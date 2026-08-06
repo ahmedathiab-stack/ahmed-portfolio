@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>أحمد عادل ناجي ذياب | Portfolio & Verified Credentials</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+    <!-- Header / Navbar -->
+    <header class="hero">
+        <div class="container">
+            <h1>أحمد عادل ناجي ذياب</h1>
+            <p class="subtitle">مدرب برامج محاسبة وأنظمة مالية | مدرب معتمد (ICDL & English)</p>
+            <div class="contact-info">
+                <span>📍 جعار - خنفر - أبين - اليمن</span> |
+                <span>📱 96779087415+</span> |
+                <span>✉️ Ahmed.a.n.thiab@gmail.com</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="container main-content">
+        <!-- Profile Summary -->
+        <section class="card">
+            <h2>📌 الملخص المهني</h2>
+            <p>مدرب معتمد ومحاسب أكاديمي حاصل على بكالوريوس المحاسبة من جامعة أبين، أجمع بين الخبرة المالية العملية
+                والمهارات التدريبية والتيسيرية. متخصص في تأهيل الكوادر وتدريب الأنظمة المحاسبية الآلية والبرامج
+                المكتبية.</p>
+        </section>
+
+        <!-- Master Access Bar -->
+        <div class="master-access-bar">
+            <span>🔒 هل لديك تصريح دخول شامل لكافة الوثائق؟</span>
+            <button class="btn-master" onclick="openModal('ALL')">إدخال مفتاح التصريح الشامل</button>
+        </div>
+
+        <!-- Protected Certificates Section -->
+        <section class="card">
+            <h2>🔐 السجل الأكاديمي والشهادات الموثقة</h2>
+            <p class="section-desc">جميع الوثائق محمية بنظام التصاريح المؤقتة. اختر وثيقة محددة أو استخدم التصريح
+                الممنوح لك.</p>
+
+            <div class="cert-grid">
+
+                <!-- 1. Accounting Group -->
+                <div class="cert-category">
+                    <h3>📊 المؤهلات والشهادات المحاسبية</h3>
+
+                    <div class="cert-item" id="item-cert-acc-1">
+                        <div class="cert-info">
+                            <h4>بكالوريوس محاسبة</h4>
+                            <p>جامعة أبين (2026)</p>
+                        </div>
+                        <button class="btn-lock" onclick="openModal('cert-acc-1')">🔒 معاينة</button>
+                    </div>
+
+                    <div class="cert-item" id="item-cert-acc-2">
+                        <div class="cert-info">
+                            <h4>شهادة نظام إكسترا للمحاسبة والإدارة</h4>
+                            <p>بن مقيبل للأنظمة ومؤسسة بلقيس (2022)</p>
+                        </div>
+                        <button class="btn-lock" onclick="openModal('cert-acc-2')">🔒 معاينة</button>
+                    </div>
+                </div>
+
+                <!-- 2. IT & Vocational Group -->
+                <div class="cert-category">
+                    <h3>💻 تقنية المعلومات والمهارات المهنية</h3>
+
+                    <div class="cert-item" id="item-cert-it-1">
+                        <div class="cert-info">
+                            <h4>دبلوم الرخصة الدولية قيادة الحاسوب (ICDL)</h4>
+                            <p>وزارة التعليم الفني - معهد جبس (2020)</p>
+                        </div>
+                        <button class="btn-lock" onclick="openModal('cert-it-1')">🔒 معاينة</button>
+                    </div>
+
+                    <div class="cert-item" id="item-cert-lang-1">
+                        <div class="cert-info">
+                            <h4>دبلوم عالي لغة إنجليزية (B2)</h4>
+                            <p>وزارة التعليم الفني - معهد جبس (2022)</p>
+                        </div>
+                        <button class="btn-lock" onclick="openModal('cert-lang-1')">🔒 معاينة</button>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+    </div>
+
+    <!-- Modal for Access Code -->
+    <div id="accessModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <h3 id="modalTitle">طلب تصريح معاينة</h3>
+            <p id="modalDesc">أدخل رمز الوصول المؤقت الخاص بهذه الوثيقة أو الرمز الشامل:</p>
+            <input type="password" id="passcode" placeholder="أدخل كود التصريح هنا">
+            <button class="btn-submit" onclick="validateCode()">فحص التصريح والفتح</button>
+            <p id="errorMsg" class="error-text"></p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
