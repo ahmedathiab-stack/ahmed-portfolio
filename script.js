@@ -1,56 +1,101 @@
 // ============================================================
-// قاعدة البيانات والمعرفة للذكاء الاصطناعي (Knowledge Base)
+// 1. قاعدة البيانات الافتراضية والمعرفة للذكاء الاصطناعي
 // ============================================================
-const USER_KNOWLEDGE_BASE = {
+const DEFAULT_KNOWLEDGE_BASE = {
     personalInfo: {
         name: "أحمد عادل ناجي ذياب",
-        title: "محاسب ومتخصص في الأنظمة المحاسبية وتقنية المعلومات",
-        location: "اليمن",
-        summary: "محاسب متخصص يجمع بين الخصلة المالية واستخدام الحلول التقنية الحديثة ونظام إكسترا."
-    },
-    // ============================================================
-// 1. قاعدة البيانات والذاكرة
-// ============================================================
-const USER_KNOWLEDGE_BASE = {
-    personalInfo: {
-        name: "أحمد عادل ناجي ذياب",
-        title: "محاسب ومتخصص في الأنظمة المحاسبية وتقنية المعلومات"
+        title: "مدرب برامج محاسبة وأنظمة مالية | مدرب معتمد (ICDL & English)",
+        location: "جعار - خنفر - أبين - اليمن",
+        summary: "مدرب معتمد ومحاسب أكاديمي حاصل على بكالوريوس المحاسبة من جامعة أبين، أجمع بين الخبرة المالية العملية والمهارات التدريبية والتيسيرية. متخصص في تأهيل الكوادر وتدريب الأنظمة المحاسبية الآلية والبرامج المكتبية."
     },
     certificates: [
-        { id: "cert-acc-1", title: "بكالوريوس المحاسبة", category: "محاسبة", status: "متاح", issuer: "جامعة معتمدة" },
-        { id: "cert-acc-2", title: "شهادة نظام إكسترا المحاسبي", category: "محاسبة", status: "متاح", issuer: "مركز تدريب" },
-        { id: "cert-it-1", title: "دبلوم ICDL", category: "تقنية", status: "متاح", issuer: "ICDL" },
-        { id: "cert-lang-1", title: "شهادة إنجليزي B2", category: "لغات", status: "متاح", issuer: "معهد لغات" }
+        { id: "cert-acc-1", title: "بكالوريوس المحاسبة", category: "محاسبة", status: "متاح", issuer: "جامعة أبين (2026)" },
+        { id: "cert-acc-2", title: "شهادة نظام إكسترا للمحاسبة والإدارة", category: "محاسبة", status: "متاح", issuer: "بن مقيبل للأنظمة ومؤسسة بلقيس (2022)" },
+        { id: "cert-it-1", title: "دبلوم قيادة الحاسوب ICDL", category: "تقنية معلومات", status: "متاح", issuer: "وزارة التعليم الفني - معهد جبس (2020)" },
+        { id: "cert-lang-1", title: "شهادة اللغة الإنجليزية (B2)", category: "لغات", status: "متاح", issuer: "وزارة التعليم الفني - معهد جبس (2022)" },
+        { id: "cert-acc-3", title: "شهادة المعايير الدولية IFRS", category: "محاسبة", status: "قيد الحصول / قيد الرفع", issuer: "جاري العمل عليها" }
     ],
-    experiences: [],
-    skills: { accounting: [], tech: [], languages: [] },
+    experiences: [
+        {
+            role: "مدرب أنظمة محاسبية وماليات",
+            company: "مراكز تدريبية ومؤسسات أهلية",
+            period: "2023 - الحالي",
+            tasks: [
+                "تدريب وإدارة تطبيقات نظام إكسترا المحاسبي الآلي.",
+                "إدارة الحسابات اليومية وتسجيل القيود وإصدار التقارير المالية.",
+                "مراجعة المطابقات البنكية وحسابات الموردين والعملاء."
+            ]
+        }
+    ],
+    skills: {
+        accounting: ["نظام إكسترا (Extra System)", "إعداد القوائم المالية", "التسويات البنكية", "المراجعة المستندية"],
+        tech: ["إدخال البيانات بمهارة عالية", "برامج Microsoft Office", "إدارة قواعد البيانات"],
+        languages: ["اللغة العربية (اللغة الأم)", "اللغة الإنجليزية (مستوى B2)"]
+    },
     volunteer: []
 };
 
+// تحميل البيانات المفضلة من LocalStorage أو اعتماد الافتراضية
+let USER_KNOWLEDGE_BASE = JSON.parse(JSON.stringify(DEFAULT_KNOWLEDGE_BASE));
+
 // ============================================================
-// 2. دالة رسم وعرض المحتوى ديناميكياً على الشاشة (UI Renderer)
+// 2. نظام روابط الشهادات وأكواد التصاريح (Access System)
+// ============================================================
+const CERT_FILES = {
+    "cert-acc-1": "certificates/bachelor-accounting.pdf",
+    "cert-acc-2": "certificates/extra-system.pdf",
+    "cert-it-1":  "certificates/icdl-diploma.pdf",
+    "cert-lang-1":"certificates/english-b2.pdf"
+};
+
+const ACCESS_KEYS = {
+    "MASTER-2026": { scope: "ALL", expires: "2026-12-31" },
+    "ACC-ONLY":    { scope: ["cert-acc-1", "cert-acc-2"], expires: "2026-12-31" },
+    "EXTRA-PASS":  { scope: ["cert-acc-2"], expires: "2026-12-31" }
+};
+
+let activeTarget = null;
+const SESSION_STORAGE_KEY = "unlocked_certificates_session";
+let isAIAdaptabilityEnabled = localStorage.getItem("ai_adapt_status") !== "OFF";
+
+// ============================================================
+// 3. دالة رسم وعرض المحتوى ديناميكياً على الشاشة (UI Renderer)
 // ============================================================
 function renderAllDynamicContent() {
+    const unlockedList = JSON.parse(sessionStorage.getItem(SESSION_STORAGE_KEY)) || [];
+
     // عرض الشهادات
     const certContainer = document.getElementById("certificates-container");
     if (certContainer) {
-        certContainer.innerHTML = USER_KNOWLEDGE_BASE.certificates.map(c => `
-            <div class="cert-card" id="item-${c.id}">
-                <h4>${c.title}</h4>
-                <p>الجهة: ${c.issuer} | الحالة: <b>${c.status}</b></p>
-                ${c.status === 'متاح' ? `<button class="btn-lock" onclick="openModal('${c.id}')">🔒 طلب معاينة</button>` : '<span style="color:#e53e3e;">قيد التجهيز</span>'}
-            </div>
-        `).join('');
+        certContainer.innerHTML = USER_KNOWLEDGE_BASE.certificates.map(c => {
+            const isUnlocked = unlockedList.includes(c.id);
+            return `
+            <div class="cert-item ${isUnlocked ? 'unlocked' : ''}" id="item-${c.id}" style="border: 1px solid #e2e8f0; padding: 12px; margin-bottom: 10px; border-radius: 8px;">
+                <div class="cert-info">
+                    <h4 style="margin:0 0 5px 0;">${c.title}</h4>
+                    <p style="margin:0; color:#666; font-size:13px;">الجهة: ${c.issuer} | التصنيف: ${c.category}</p>
+                </div>
+                <div style="margin-top: 10px;">
+                ${
+                    c.status === 'قيد الحصول / قيد الرفع' 
+                    ? '<span style="color:#e53e3e; font-size:13px; font-weight:bold;">⏳ قيد التجهيز</span>'
+                    : isUnlocked 
+                        ? `<button class="btn-lock unlocked-btn" onclick="openCertificateFile('${c.id}')" style="background:#2b6cb0; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer;">👁️ فتح الملف</button>`
+                        : `<button class="btn-lock" onclick="openModal('${c.id}')" style="background:#e2e8f0; border:1px solid #cbd5e0; padding:6px 12px; border-radius:4px; cursor:pointer;">🔒 طلب معاينة</button>`
+                }
+                </div>
+            </div>`;
+        }).join('');
     }
 
     // عرض الخبرات
     const expContainer = document.getElementById("experiences-container");
     if (expContainer) {
         expContainer.innerHTML = USER_KNOWLEDGE_BASE.experiences.map(e => `
-            <div class="exp-card">
-                <h4>${e.role} - <span>${e.company}</span></h4>
-                <small>${e.period}</small>
-                <ul>${e.tasks.map(t => `<li>${t}</li>`).join('')}</ul>
+            <div class="exp-card" style="border-right: 3px solid #2b6cb0; padding-right: 15px; margin-bottom: 15px;">
+                <h4 style="margin:0;">${e.role} - <span style="color:#2b6cb0;">${e.company}</span></h4>
+                <small style="color:#718096;">${e.period}</small>
+                <ul style="margin-top:8px; padding-right:20px;">${e.tasks.map(t => `<li>${t}</li>`).join('')}</ul>
             </div>
         `).join('');
     }
@@ -59,34 +104,56 @@ function renderAllDynamicContent() {
     const skillContainer = document.getElementById("skills-container");
     if (skillContainer) {
         let skillsHTML = "";
+        const catNames = { accounting: "📊 محاسبة ومالية", tech: "💻 تقنية معلومات", languages: "🌐 لغات" };
         for (let cat in USER_KNOWLEDGE_BASE.skills) {
             if (USER_KNOWLEDGE_BASE.skills[cat].length > 0) {
-                skillsHTML += `<div><b>${cat}:</b> ${USER_KNOWLEDGE_BASE.skills[cat].join(', ')}</div>`;
+                const label = catNames[cat] || cat;
+                skillsHTML += `<div style="margin-bottom:10px;"><b>${label}:</b> ${USER_KNOWLEDGE_BASE.skills[cat].join(' • ')}</div>`;
             }
         }
-        skillContainer.innerHTML = skillsHTML;
+        skillContainer.innerHTML = skillsHTML || "<p>لا يوجد مهارات مضافة حالياً</p>";
     }
 
     // عرض الأعمال التطوعية
     const volContainer = document.getElementById("volunteer-container");
-    if (volContainer && USER_KNOWLEDGE_BASE.volunteer) {
-        volContainer.innerHTML = USER_KNOWLEDGE_BASE.volunteer.map(v => `
-            <div class="vol-card">
-                <b>${v.role}</b> في ${v.org} (${v.period})
-            </div>
-        `).join('');
+    if (volContainer) {
+        volContainer.innerHTML = (USER_KNOWLEDGE_BASE.volunteer && USER_KNOWLEDGE_BASE.volunteer.length > 0)
+            ? USER_KNOWLEDGE_BASE.volunteer.map(v => `
+                <div class="vol-card" style="padding: 8px 0; border-bottom: 1px dashed #e2e8f0;">
+                    <b>${v.role}</b> في ${v.org} <span style="color:#718096; font-size:12px;">(${v.period})</span>
+                </div>
+            `).join('')
+            : "<p style='color:#a0aec0; font-size:13px;'>لا توجد أعمال تطوعية مضافة حالياً.</p>";
+    }
+
+    // تحديث حالة زر الذكاء الاصطناعي في النافذة
+    const aiBtn = document.getElementById("aiToggleBtn");
+    if (aiBtn) {
+        aiBtn.innerText = isAIAdaptabilityEnabled ? "تفعيل (ON)" : "إيقاف (OFF)";
+        aiBtn.style.background = isAIAdaptabilityEnabled ? "#38a169" : "#e53e3e";
     }
 }
 
 // ============================================================
-// 3. دوال لوحة التحكم والإضافة
+// 4. دوال لوحة التحكم والإضافة الشاملة
 // ============================================================
-function switchAdminTab(tab) {
+function switchAdminTab(tabName, evt) {
     document.querySelectorAll('.admin-tab-content').forEach(el => el.style.display = 'none');
     document.querySelectorAll('.admin-tab').forEach(el => el.classList.remove('active'));
     
-    document.getElementById(`tab-${tab}`).style.display = 'block';
-    event.currentTarget.classList.add('active');
+    const targetTab = document.getElementById(`tab-${tabName}`);
+    if (targetTab) targetTab.style.display = 'block';
+    
+    if (evt && evt.currentTarget) {
+        evt.currentTarget.classList.add('active');
+    }
+}
+
+function toggleAIAdaptability() {
+    isAIAdaptabilityEnabled = !isAIAdaptabilityEnabled;
+    localStorage.setItem("ai_adapt_status", isAIAdaptabilityEnabled ? "ON" : "OFF");
+    saveAndRefresh();
+    alert(`تم ${isAIAdaptabilityEnabled ? "تفعيل" : "إيقاف"} تكيف وتدريب الذكاء الاصطناعي.`);
 }
 
 function addNewCertificate() {
@@ -96,9 +163,12 @@ function addNewCertificate() {
 
     if (!title) return alert("يرجى إدخال عنوان الشهادة");
 
-    const newId = `cert-custom-${Date.now()}`;
     USER_KNOWLEDGE_BASE.certificates.push({
-        id: newId, title, category: "عام", status, issuer: issuer || "غير محدد"
+        id: `cert-custom-${Date.now()}`,
+        title,
+        category: "عام",
+        status,
+        issuer: issuer || "جهة غير محددة"
     });
 
     saveAndRefresh();
@@ -109,26 +179,27 @@ function addNewExperience() {
     const role = document.getElementById("addExpRole").value.trim();
     const company = document.getElementById("addExpCompany").value.trim();
     const period = document.getElementById("addExpPeriod").value.trim();
-    const tasks = document.getElementById("addExpTasks").value.split("\n").filter(t => t.trim() !== "");
+    const tasksRaw = document.getElementById("addExpTasks").value;
+    const tasks = tasksRaw.split("\n").filter(t => t.trim() !== "");
 
-    if (!role || !company) return alert("يرجى إدخال البيانات الأساسية");
+    if (!role || !company) return alert("يرجى إدخال المسمى الوظيفي والجهة");
 
     USER_KNOWLEDGE_BASE.experiences.push({ role, company, period, tasks });
     saveAndRefresh();
-    alert("✅ تم إضافة الخبرة!");
+    alert("✅ تم إضافة الخبرة بنجاح!");
 }
 
 function addNewSkill() {
     const skill = document.getElementById("addSkillName").value.trim();
     const cat = document.getElementById("addSkillCat").value;
 
-    if (!skill) return alert("أدخل اسم المهارة");
+    if (!skill) return alert("يرجى إدخال اسم المهارة");
 
     if (!USER_KNOWLEDGE_BASE.skills[cat]) USER_KNOWLEDGE_BASE.skills[cat] = [];
     USER_KNOWLEDGE_BASE.skills[cat].push(skill);
     
     saveAndRefresh();
-    alert("✅ تم إضافة المهارة!");
+    alert("✅ تم إضافة المهارة بنجاح!");
 }
 
 function addNewVolunteer() {
@@ -136,285 +207,70 @@ function addNewVolunteer() {
     const org = document.getElementById("addVolOrg").value.trim();
     const period = document.getElementById("addVolPeriod").value.trim();
 
+    if (!role || !org) return alert("يرجى إدخال بيانات التطوع");
+
     if (!USER_KNOWLEDGE_BASE.volunteer) USER_KNOWLEDGE_BASE.volunteer = [];
     USER_KNOWLEDGE_BASE.volunteer.push({ role, org, period });
     
     saveAndRefresh();
-    alert("✅ تم إضافة العمل التطوعي!");
+    alert("✅ تم إضافة العمل التطوعي بنجاح!");
 }
 
-// حفظ البيانات وتحديث الشاشة والنافذة
 function saveAndRefresh() {
     localStorage.setItem("user_kb_custom", JSON.stringify(USER_KNOWLEDGE_BASE));
-    renderAllDynamicContent(); // تحديث عناصر الصفحة فوراً
-    closeAdminModal();
+    renderAllDynamicContent();
+    if (typeof closeAdminModal === "function") closeAdminModal();
 }
 
 function loadDynamicData() {
     const saved = localStorage.getItem("user_kb_custom");
     if (saved) {
-        const parsed = JSON.parse(saved);
-        Object.assign(USER_KNOWLEDGE_BASE, parsed);
-    }
-    renderAllDynamicContent(); // رسم المحتوى عند فتح الموقع
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-    loadDynamicData();
-});
-    // ============================================================
-// إدارة الإضافات والتحكم التكيّفي للذكاء الاصطناعي
-// ============================================================
-
-// حالة تكيّف الذكاء الاصطناعي (مفتاح التشغيل والإيقاف)
-let isAIAdaptabilityEnabled = localStorage.getItem("ai_adapt_status") !== "OFF";
-
-function toggleAIAdaptability() {
-    isAIAdaptabilityEnabled = !isAIAdaptabilityEnabled;
-    localStorage.setItem("ai_adapt_status", isAIAdaptabilityEnabled ? "ON" : "OFF");
-    
-    const btn = document.getElementById("aiToggleBtn");
-    if (btn) {
-        btn.innerText = isAIAdaptabilityEnabled ? "تفعيل (ON)" : "إيقاف (OFF)";
-        btn.style.background = isAIAdaptabilityEnabled ? "#38a169" : "#e53e3e";
-    }
-    alert(`تم ${isAIAdaptabilityEnabled ? "تفعيل" : "إيقاف"} حرية الذكاء الاصطناعي في التكيف والتعديل.`);
-}
-
-// التنقل بين تبويبات لوحة التحكم
-function switchAdminTab(tab) {
-    document.querySelectorAll('.admin-tab-content').forEach(el => el.style.display = 'none');
-    document.getElementById(`tab-${tab}`).style.display = 'block';
-}
-
-// دالة إضافة شهادة جديدة وتحديث القاعدة والذكاء فوراً
-function addNewCertificate() {
-    const title = document.getElementById("addCertTitle").value.trim();
-    const issuer = document.getElementById("addCertIssuer").value.trim();
-    const status = document.getElementById("addCertStatus").value;
-
-    if (!title) return alert("يرجى إدخال عنوان الشهادة");
-
-    const newCert = {
-        id: `cert-custom-${Date.now()}`,
-        title: title,
-        category: "عام",
-        status: status,
-        issuer: issuer || "غير محدد"
-    };
-
-    USER_KNOWLEDGE_BASE.certificates.push(newCert);
-    saveDynamicData();
-    alert("✅ تم إضافة الشهادة بنجاح، وتكيف الذكاء الاصطناعي معها فوراً!");
-    closeAdminModal();
-}
-
-// دالة إضافة خبرة جديدة
-function addNewExperience() {
-    const role = document.getElementById("addExpRole").value.trim();
-    const company = document.getElementById("addExpCompany").value.trim();
-    const period = document.getElementById("addExpPeriod").value.trim();
-    const tasks = document.getElementById("addExpTasks").value.split("\n").filter(t => t.trim() !== "");
-
-    if (!role || !company) return alert("يرجى إدخال البيانات الأساسية للخبرة");
-
-    USER_KNOWLEDGE_BASE.experiences.push({ role, company, period, tasks });
-    saveDynamicData();
-    alert("✅ تم إضافة الخبرة وتحديث قاعدة بيانات الذكاء الاصطناعي!");
-    closeAdminModal();
-}
-
-// دالة إضافة مهارة جديدة
-function addNewSkill() {
-    const skill = document.getElementById("addSkillName").value.trim();
-    const cat = document.getElementById("addSkillCat").value;
-
-    if (!skill) return alert("أدخل اسم المهارة");
-
-    if (!USER_KNOWLEDGE_BASE.skills[cat]) USER_KNOWLEDGE_BASE.skills[cat] = [];
-    USER_KNOWLEDGE_BASE.skills[cat].push(skill);
-    saveDynamicData();
-    alert("✅ تم إضافة المهارة بنجاح!");
-    closeAdminModal();
-}
-
-// دالة إضافة عمل تطوعي
-function addNewVolunteer() {
-    const role = document.getElementById("addVolRole").value.trim();
-    const org = document.getElementById("addVolOrg").value.trim();
-    const period = document.getElementById("addVolPeriod").value.trim();
-
-    if (!USER_KNOWLEDGE_BASE.volunteer) USER_KNOWLEDGE_BASE.volunteer = [];
-    USER_KNOWLEDGE_BASE.volunteer.push({ role, org, period });
-    saveDynamicData();
-    alert("✅ تم إضافة العمل التطوعي بنجاح!");
-    closeAdminModal();
-}
-
-// حفظ البيانات في المتصفح لاستعادتها دائماً
-function saveDynamicData() {
-    localStorage.setItem("user_kb_custom", JSON.stringify(USER_KNOWLEDGE_BASE));
-}
-
-// استعادة البيانات المضافة عند تحميل الصفحة
-function loadDynamicData() {
-    const saved = localStorage.getItem("user_kb_custom");
-    if (saved) {
-        const parsed = JSON.parse(saved);
-        Object.assign(USER_KNOWLEDGE_BASE, parsed);
-    }
-}
-
-// تشغيل الاستعادة تلقائياً عند الفتح
-document.addEventListener("DOMContentLoaded", () => {
-    loadDynamicData();
-});
-    
-    // الشهادات (مقسمة بين مكتملة وقيد التجهيز)
-    certificates: [
-        { id: "cert-acc-1", title: "بكالوريوس المحاسبة", category: "محاسبة", status: "متاح", issuer: "جامعة معتمدة" },
-        { id: "cert-acc-2", title: "شهادة نظام إكسترا المحاسبي", category: "محاسبة", status: "متاح", issuer: "مركز تدريب معتمد" },
-        { id: "cert-it-1", title: "دبلوم قيادة الحاسوب ICDL", category: "تقنية معلومات", status: "متاح", issuer: "ICDL Foundation" },
-        { id: "cert-lang-1", title: "شهادة اللغة الإنجليزية (مستوى B2)", category: "لغات", status: "متاح", issuer: "معهد لغات" },
-        // شهادات قيد التجهيز أو ناقصة (سيتعامل معها الذكاء بذكاء)
-        { id: "cert-acc-3", title: "شهادة المعايير الدولية IFRS", category: "محاسبة", status: "قيد الحصول / قيد الرفع", issuer: "جاري العمل عليها" }
-    ],
-
-    // الخبرات المهنية
-    experiences: [
-        {
-            role: "محاسب ماليات وإدخال بيانات",
-            company: "جهة عمل / شركة",
-            period: "2023 - الحالي",
-            tasks: [
-                "إدارة الحسابات اليومية وتسجيل القيود المحاسبية.",
-                "استخدام نظام إكسترا المحاسبي لإصدار التقارير المالية.",
-                "مراجعة المطابقات البنكية وحسابات الموردين والعملاء."
-            ]
+        try {
+            const parsed = JSON.parse(saved);
+            Object.assign(USER_KNOWLEDGE_BASE, parsed);
+        } catch (e) {
+            console.error("خطأ في قراءة البيانات المحفوظة", e);
         }
-    ],
-
-    // المهارات المكتسبة
-    skills: {
-        accounting: ["نظام إكسترا (Extra System)", "إعداد القوائم المالية", "التسويات البنكية", "المراجعة المستندية"],
-        tech: ["إدخال البيانات بمهارة عالية", "إدارة قواعد البيانات البسيطة", "استخدام برامج Microsoft Office"],
-        languages: ["اللغة العربية (اللغة الأم)", "اللغة الإنجليزية (مستوى B2 - ممتاز)"]
     }
-};
+    renderAllDynamicContent();
+}
+
 // ============================================================
-// دالة بناء سياق الذكاء الاصطناعي من قاعدة المعرفة
+// 5. بناء سياق الذكاء الاصطناعي من قاعدة البيانات المحدثة
 // ============================================================
 function getAIBaseContext() {
     const kb = USER_KNOWLEDGE_BASE;
     
-    // تجميع الشهادات وحالتها
-    const certsText = kb.certificates.map(c => 
-        `- ${c.title} (${c.category}) - الحالة: [${c.status}]`
-    ).join("\n");
-
-    // تجميع الخبرات
-    const expText = kb.experiences.map(e => 
-        `- ${e.role} في ${e.company} (${e.period}):\n  * ${e.tasks.join("\n  * ")}`
-    ).join("\n");
-
-    // تجميع المهارات
-    const skillsText = `
-- المحاسبة: ${kb.skills.accounting.join("، ")}
-- التقنية: ${kb.skills.tech.join("، ")}
-- اللغات: ${kb.skills.languages.join("، ")}
-    `;
+    const certsText = kb.certificates.map(c => `- ${c.title} (${c.issuer}) - الحالة: [${c.status}]`).join("\n");
+    const expText = kb.experiences.map(e => `- ${e.role} في ${e.company} (${e.period}):\n  * ${e.tasks.join("\n  * ")}`).join("\n");
+    
+    let skillsText = "";
+    for (let cat in kb.skills) {
+        skillsText += `- ${cat}: ${kb.skills[cat].join("، ")}\n`;
+    }
 
     return `
-أنت المساعد الذكي والممثل الشخصي لـ (${kb.personalInfo.name}).
-وظيفتك الإجابة عن أسئلة زوار الموقع، مسؤولي التوظيف، والشركات بناءً على البيانات الحقيقية المرفقة فقط.
-
---- قواعد إجابة الذكاء الاصطناعي ---
-1. التزم بالمعلومات المذكورة أدناه فقط. لا تخترع شهادات أو خبرات غير موجودة.
-2. إذا سُئلت عن شهادة حالتها [قيد الحصول / قيد الرفع]، وضح بلباقة أنها "قيد التجهيز وستكون متاحة في الموقع قريباً".
-3. عندما يطلب منك زائر تكييف السيرة الذاتية لوظيفة معينة (مثلاً محاسب أو مدخل بيانات)، قم بإبراز الخبرات والمهارات والشهادات المتاحة ذات الصلة بتلك الوظيفة فقط.
-4. حافظ على نبرة احترافية، مادية، وواثقة.
-
---- البيانات المعتمدة لـ ${kb.personalInfo.name} ---
-الاسم والصفة: ${kb.personalInfo.name} - ${kb.personalInfo.title}
+أنت المساعد الذكي الخاص بالمستشار (${kb.personalInfo.name}).
+الصفة: ${kb.personalInfo.title}
+العنوان والاتصال: ${kb.personalInfo.location}
 الملخص: ${kb.personalInfo.summary}
 
-الشهادات الموثقة والحالية:
+--- البيانات الحقيقية الحالية المعتمدة ---
+الشهادات والمؤهلات:
 ${certsText}
 
 الخبرات العملية:
 ${expText}
 
-المهارات المكتسبة:
+المهارات:
 ${skillsText}
+
+تعليمات الرد: أجب بإيجاز واحترافية باللغة العربية معتمدًا فقط على المعلومات أعلاه.
 `;
 }
-// ============================================================
-// 1. مصفوفة روابط الشهادات والملفات
-// ============================================================
-const CERT_FILES = {
-    "cert-acc-1": "certificates/bachelor-accounting.pdf", // رابط بكالوريوس المحاسبة
-    "cert-acc-2": "certificates/extra-system.pdf",        // رابط شهادة إكسترا
-    "cert-it-1":  "certificates/icdl-diploma.pdf",        // رابط ICDL
-    "cert-lang-1":"certificates/english-b2.pdf"           // رابط اللغة الإنجليزية
-};
 
 // ============================================================
-// 2. جدول التصاريح والأكواد المعتمدة
-// ============================================================
-const ACCESS_KEYS = {
-    // كود تصريح شامل (Master Key) يفتح جميع الشهادات
-    "MASTER-2026": { scope: "ALL", expires: "2026-12-31" },
-
-    // كود مخصص لشهادات المحاسبة فقط
-    "ACC-ONLY": { scope: ["cert-acc-1", "cert-acc-2"], expires: "2026-12-31" },
-
-    // كود مخصص لشهادة واحدة فقط (مثال: شهادة إكسترا)
-    "EXTRA-PASS": { scope: ["cert-acc-2"], expires: "2026-12-31" }
-};
-
-// متغير لتحديد الهدف الحالي ('ALL' أو معرف شهادة معين)
-let activeTarget = null;
-const SESSION_STORAGE_KEY = "unlocked_certificates_session";
-
-// ============================================================
-// 3. تهيئة الأحداث واستعادة الحالة عند تحميل الصفحة
-// ============================================================
-document.addEventListener("DOMContentLoaded", () => {
-    restoreUnlockedCertificates();
-    setupEventListeners();
-});
-
-function setupEventListeners() {
-    // تشغيل الفحص عند الضغط على Enter في حقل الإدخال
-    const passInput = document.getElementById("passcode");
-    if (passInput) {
-        passInput.addEventListener("keypress", (e) => {
-            if (e.key === "Enter") {
-                validateCode();
-            }
-        });
-    }
-
-    // إغلاق النافذة المنبثقة عند النقر خارجها
-    const modal = document.getElementById("accessModal");
-    if (modal) {
-        modal.addEventListener("click", (e) => {
-            if (e.target === modal) {
-                closeModal();
-            }
-        });
-    }
-
-    // إغلاق النافذة عند الضغط على زر Escape
-    document.addEventListener("keydown", (e) => {
-        if (e.key === "Escape") {
-            closeModal();
-        }
-    });
-}
-
-// ============================================================
-// 4. دمج وتطوير دوال النافذة المنبثقة (Modal Control)
+// 6. التحكم بالمعاينة والتصاريح (Modal Logic)
 // ============================================================
 function openModal(targetId) {
     activeTarget = targetId;
@@ -424,7 +280,7 @@ function openModal(targetId) {
     if (errorMsg) errorMsg.innerText = "";
     if (passInput) {
         passInput.value = "";
-        setTimeout(() => passInput.focus(), 100); // التركيز على الحقل تلقائياً
+        setTimeout(() => passInput.focus(), 100);
     }
 
     const titleElem = document.getElementById("modalTitle");
@@ -447,16 +303,11 @@ function closeModal() {
     if (modal) modal.style.display = "none";
 }
 
-// ============================================================
-// 5. دالة فحص وتأكيد كود التصريح (Code Validation)
-// ============================================================
 function validateCode() {
     const inputElem = document.getElementById("passcode");
     const errorMsg = document.getElementById("errorMsg");
-    
     if (!inputElem) return;
 
-    // تحويل المدخلات لأحرف كبيرة وإزالة الفراغات
     const inputCode = inputElem.value.trim().toUpperCase();
     const keyData = ACCESS_KEYS[inputCode];
 
@@ -465,63 +316,40 @@ function validateCode() {
         return;
     }
 
-    // التحقق من تاريخ الصلاحية
     const today = new Date().toISOString().split('T')[0];
     if (keyData.expires < today) {
         if (errorMsg) errorMsg.innerText = "⚠️ عفواً، انتهت صلاحية هذا التصريح!";
         return;
     }
 
-    // التحقق من نطاق التصريح المسموح (Scope Validation)
     if (keyData.scope === "ALL") {
         alert("🔓 تم تفعيل التصريح الشامل! يمكنك الآن معاينة جميع الوثائق.");
-        const allIds = Object.keys(CERT_FILES);
-        unlockCertificates(allIds);
+        const allIds = USER_KNOWLEDGE_BASE.certificates.map(c => c.id);
         saveUnlockedToSession(allIds);
         closeModal();
+        renderAllDynamicContent();
     } 
     else if (Array.isArray(keyData.scope)) {
         if (activeTarget === "ALL" || keyData.scope.includes(activeTarget)) {
             alert("🔓 تم التأكد من التصريح بنجاح!");
-            unlockCertificates(keyData.scope);
             saveUnlockedToSession(keyData.scope);
             closeModal();
+            renderAllDynamicContent();
         } else {
             if (errorMsg) errorMsg.innerText = "⚠️ هذا الرمز غير مصرح له بفتح هذه الوثيقة المحددة.";
         }
     }
 }
 
-// ============================================================
-// 6. دالة فتح الشهادات وتحديث الواجهة (Unlock UI Logic)
-// ============================================================
-function unlockCertificates(allowedCertIds) {
-    allowedCertIds.forEach(id => {
-        const certContainer = document.getElementById(`item-${id}`);
-        const itemBtn = document.querySelector(`#item-${id} .btn-lock`);
-
-        if (certContainer) {
-            certContainer.classList.add("unlocked"); // إضافة كلاس التمييز البصري
-        }
-
-        if (itemBtn) {
-            itemBtn.innerText = "👁️ فتح الملف";
-            itemBtn.classList.add("unlocked-btn");
-            itemBtn.onclick = function () {
-                const filePath = CERT_FILES[id];
-                if (filePath && !filePath.includes("undefined")) {
-                    window.open(filePath, "_blank");
-                } else {
-                    alert("📄 هذه الشهادة مفعّلة في النظام، وسيكون ملفها متاحاً فور رفعه على السيرفر!");
-                }
-            };
-        }
-    });
+function openCertificateFile(id) {
+    const filePath = CERT_FILES[id];
+    if (filePath) {
+        window.open(filePath, "_blank");
+    } else {
+        alert("📄 هذه الشهادة مفعّلة في النظام، وسيكون ملف المعاينة متاحاً فور رفعه على السيرفر!");
+    }
 }
 
-// ============================================================
-// 7. إدارة الذاكرة المؤقتة للشهادات المفتوحة (Session Storage)
-// ============================================================
 function saveUnlockedToSession(ids) {
     try {
         let currentSaved = JSON.parse(sessionStorage.getItem(SESSION_STORAGE_KEY)) || [];
@@ -532,13 +360,28 @@ function saveUnlockedToSession(ids) {
     }
 }
 
-function restoreUnlockedCertificates() {
-    try {
-        const saved = JSON.parse(sessionStorage.getItem(SESSION_STORAGE_KEY));
-        if (saved && Array.isArray(saved) && saved.length > 0) {
-            unlockCertificates(saved);
-        }
-    } catch (e) {
-        console.warn("تعذر استعادة الشهادات المفتوحة:", e);
+// ============================================================
+// 7. تهيئة التشغيل عند تحميل الصفحة
+// ============================================================
+document.addEventListener("DOMContentLoaded", () => {
+    loadDynamicData();
+
+    // أحداث المفاتيح والنافذة المنبثقة
+    const passInput = document.getElementById("passcode");
+    if (passInput) {
+        passInput.addEventListener("keypress", (e) => {
+            if (e.key === "Enter") validateCode();
+        });
     }
-}
+
+    const modal = document.getElementById("accessModal");
+    if (modal) {
+        modal.addEventListener("click", (e) => {
+            if (e.target === modal) closeModal();
+        });
+    }
+
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") closeModal();
+    });
+});
