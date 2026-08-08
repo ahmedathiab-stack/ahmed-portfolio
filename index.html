@@ -119,14 +119,14 @@
       img.addEventListener('dragstart', (e) => e.preventDefault());
   });
 </script>
-    <!-- === بداية الشات بوت الاحترافي (ملء الشاشة - ستايل واتساب) === -->
+   <!-- === بداية الشات بوت (ستايل واتساب ملء الشاشة - دعم مفاتيح متعددة) === -->
 <style>
-  /* تصميم الزر العائم (لم يتغير كثيراً) */
+  /* زر فتح المحادثة العائم */
   #ai-chat-btn {
     position: fixed;
     bottom: 20px;
     right: 20px;
-    background: #25D366; /* لون واتساب أخضر */
+    background: #25D366;
     color: white;
     border: none;
     border-radius: 50px;
@@ -134,107 +134,97 @@
     font-size: 18px;
     cursor: pointer;
     box-shadow: 0 4px 15px rgba(0,0,0,0.4);
-    z-index: 2000; /* مرتفع جداً ليكون فوق كل شيء */
+    z-index: 2000;
     transition: transform 0.3s ease;
     font-family: sans-serif;
   }
-  #ai-chat-btn:hover { transform: scale(1.1); }
+  #ai-chat-btn:hover { transform: scale(1.05); }
 
-  /* حاوية المحادثة (الآن ملء الشاشة) */
+  /* نافذة المحادثة ملء الشاشة */
   #ai-chat-box {
     display: none;
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: #E5DDD5; /* لون خلفية محادثة واتساب */
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background: #E5DDD5;
     flex-direction: column;
-    z-index: 10000; /* فوق كل شيء على الإطلاق */
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* خط شبيه بالواتساب */
+    z-index: 10000;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   }
 
-  /* رأس المحادثة (ستايل واتساب) */
+  /* الشريط العلوي */
   #ai-chat-header {
-    background: #075E54; /* لون واتساب الداكن */
+    background: #075E54;
     color: white;
-    padding: 10px 15px;
+    padding: 12px 18px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     box-shadow: 0 2px 5px rgba(0,0,0,0.2);
   }
-  #ai-chat-header .user-info { display: flex; align-items: center; gap: 10px; }
+  #ai-chat-header .user-info { display: flex; align-items: center; gap: 12px; }
   #ai-chat-header .user-avatar {
-    width: 40px; height: 40px;
-    background: #ccc; border-radius: 50%;
+    width: 42px; height: 42px;
+    background: #E5DDD5; border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
     font-weight: bold; color: #075E54; font-size: 20px;
   }
   #ai-chat-header .status-info { display: flex; flex-direction: column; }
   #ai-chat-header .status-info .name { font-weight: bold; font-size: 16px; }
-  #ai-chat-header .status-info .status { font-size: 12px; opacity: 0.8; }
-  #ai-chat-header .close-btn { cursor: pointer; font-size: 24px; padding: 5px; }
+  #ai-chat-header .status-info .status { font-size: 12px; opacity: 0.85; }
+  #ai-chat-header .close-btn { cursor: pointer; font-size: 22px; padding: 5px; }
 
-  /* منطقة الرسائل (خلفية بنقوش واتساب إن أمكن) */
+  /* منطقة الرسائل */
   #ai-chat-messages {
     flex: 1;
     padding: 20px;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    padding-bottom: 80px; /* مساحة لمنطقة الإدخال */
+    gap: 12px;
+    padding-bottom: 90px;
   }
 
-  /* تصميم الفقاعات (بوقعات واتساب) */
+  /* تصميم الفقاعات */
   .msg {
-    padding: 8px 12px;
-    border-radius: 7px;
-    max-width: 75%;
+    padding: 10px 14px;
+    border-radius: 8px;
+    max-width: 78%;
     font-size: 15px;
-    line-height: 1.4;
+    line-height: 1.5;
     position: relative;
     word-wrap: break-word;
   }
   
-  /* فقاعة المستخدم (يمين - أخضر فاتح) */
   .user-msg {
     background: #DCF8C6;
     align-self: flex-end;
     border-top-right-radius: 0;
   }
   .user-msg::after {
-    content: '';
-    position: absolute; right: -8px; top: 0;
-    width: 0; height: 0;
+    content: ''; position: absolute; right: -8px; top: 0;
     border: 8px solid transparent;
     border-left-color: #DCF8C6; border-top-color: #DCF8C6;
   }
 
-  /* فقاعة البوت (يسار - أبيض) */
   .bot-msg {
     background: white;
     align-self: flex-start;
     border-top-left-radius: 0;
-    box-shadow: 0 1px 1px rgba(0,0,0,0.1);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.15);
   }
   .bot-msg::after {
-    content: '';
-    position: absolute; left: -8px; top: 0;
-    width: 0; height: 0;
+    content: ''; position: absolute; left: -8px; top: 0;
     border: 8px solid transparent;
     border-right-color: white; border-top-color: white;
   }
 
-  /* منطقة الإدخال السفلية (ستايل واتساب) */
+  /* منطقة الإدخال */
   #ai-chat-input-area {
     position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
+    bottom: 0; left: 0; width: 100%;
     background: #F0F0F0;
-    padding: 10px;
+    padding: 12px 15px;
     display: flex;
     align-items: center;
     gap: 10px;
@@ -244,7 +234,7 @@
   #ai-chat-input {
     flex: 1;
     border: none;
-    padding: 12px 15px;
+    padding: 12px 18px;
     border-radius: 25px;
     outline: none;
     font-size: 15px;
@@ -257,22 +247,17 @@
     width: 45px; height: 45px;
     border-radius: 50%;
     cursor: pointer;
-    font-size: 20px;
+    font-size: 18px;
     display: flex; align-items: center; justify-content: center;
-    transition: background 0.3s;
   }
-  #ai-chat-send:hover { background: #128C7E; }
 </style>
 
-<!-- زر التفعيل (أخضر واتساب) -->
 <button id="ai-chat-btn" onclick="toggleChat()">💬 تحدث مع أحمد</button>
 
-<!-- حاوية المحادثة ملء الشاشة -->
 <div id="ai-chat-box">
-  <!-- رأس المحادثة -->
   <div id="ai-chat-header">
     <div class="user-info">
-      <div class="user-avatar">أ</div> <!-- الحرف الأول من اسمك -->
+      <div class="user-avatar">أ</div>
       <div class="status-info">
         <span class="name">مساعد أحمد ذياب الذكي</span>
         <span class="status">متصل حالياً</span>
@@ -281,15 +266,10 @@
     <span class="close-btn" onclick="toggleChat()">✖</span>
   </div>
 
-  <!-- منطقة الرسائل -->
   <div id="ai-chat-messages">
-    <!-- رسالة الترحيب -->
-    <div class="msg bot-msg">
-      أهلاً بك! 👋 أنا المساعد الذكي الخاص بأحمد. كيف يمكنني مساعدتك اليوم؟
-    </div>
+    <div class="msg bot-msg">أهلاً بك! 👋 أنا المساعد الذكي الخاص بأحمد. كيف يمكنني مساعدتك اليوم؟</div>
   </div>
 
-  <!-- منطقة الإدخال -->
   <div id="ai-chat-input-area">
     <input type="text" id="ai-chat-input" placeholder="اكتب رسالتك هنا..." onkeypress="handleKey(event)">
     <button id="ai-chat-send" onclick="sendMessage()">➤</button>
@@ -297,7 +277,7 @@
 </div>
 
 <script>
-  // بياناتك المعرفية
+  // بيانات البوت المعرفية
   const USER_DATA = `
   الاسم: أحمد ذياب
   المهنة: مطور موقع ومحترف تكنولوجيا
@@ -305,8 +285,12 @@
   ملاحظة: الشهادات حالياً قيد التحديث والرفع على الموقع.
   `;
 
-  // 1. ضع مفتاح الـ API الجديد الخاص بك هنا بين العلامتين
-  const GEMINI_API_KEY = "ضـع_المـفـتـاح_الجـديـد_هـنـا";
+  // قائمة المفاتيح المتعددة: يجرب النظام المفتاح الأول، وإذا فشل ينقل فوراً للتالي
+  const AI_API_KEYS = [
+    "AQ.Ab8RN6IOpwK7xP5JHTiQJMojgC5hti0GieXWheo9De5-h4TBdw", // المفتاح الأول
+    "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", // المفتاح الثاني (Groq)
+    // "يمكنك إضافة مفتاح ثالث هنا مستقبلاً بين علامتي التنصيص"
+  ];
 
   function toggleChat() {
     const box = document.getElementById('ai-chat-box');
@@ -314,13 +298,13 @@
     
     if (box.style.display === 'flex') {
       box.style.display = 'none';
-      btn.style.display = 'block'; // إظهار الزر عند الإغلاق
-      document.body.style.overflow = 'auto'; // إعادة التمرير للصفحة
+      btn.style.display = 'block';
+      document.body.style.overflow = 'auto';
     } else {
       box.style.display = 'flex';
-      btn.style.display = 'none'; // إخفاء الزر عند الفتح
-      document.body.style.overflow = 'hidden'; // منع تمرير الصفحة بالخلفية
-      document.getElementById('ai-chat-input').focus(); // التركيز على حقل الإدخال
+      btn.style.display = 'none';
+      document.body.style.overflow = 'hidden';
+      document.getElementById('ai-chat-input').focus();
     }
   }
 
@@ -334,56 +318,57 @@
     if (!text) return;
 
     const msgContainer = document.getElementById('ai-chat-messages');
-    
-    // إضافة رسالة المستخدم
     msgContainer.innerHTML += `<div class="msg user-msg">${text}</div>`;
     input.value = '';
-    
-    // تمرير تلقائي للأسفل
     msgContainer.scrollTop = msgContainer.scrollHeight;
 
-    // التأكد من وجود المفتاح
-    if (!GEMINI_API_KEY || GEMINI_API_KEY === "ضـع_المـفـتـاح_الجـديـد_هـنـا") {
-      msgContainer.innerHTML += `<div class="msg bot-msg">⚠️ خطأ: يرجى إضافة مفتاح API صحيح في الكود.</div>`;
-      msgContainer.scrollTop = msgContainer.scrollHeight;
-      return;
-    }
+    let success = false;
 
-    try {
-      // الاتصال بـ Google Gemini
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{
-            parts: [{
-              text: `أنت مساعد ذكي للموقع الشخصي لأحمد ذياب. أجب بناءً على هذه البيانات:\n${USER_DATA}\n\nسؤال الزائر: ${text}`
-            }]
-          }]
-        })
-      });
+    // حلقة لتجربة المفاتيح المضافة بالترتيب
+    for (let i = 0; i < AI_API_KEYS.length; i++) {
+      const apiKey = AI_API_KEYS[i];
+      if (!apiKey || apiKey.includes("إضافة مفتاح")) continue;
 
-      const data = await response.json();
+      try {
+        const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`
+          },
+          body: JSON.stringify({
+            model: "llama-3.3-70b-versatile",
+            messages: [
+              {
+                role: "system",
+                content: `أنت مساعد ذكي للموقع الشخصي لأحمد ذياب. أجب باللغة العربية بأسلوب محترف ومختصر بناءً على هذه البيانات فقط:\n${USER_DATA}`
+              },
+              { role: "user", content: text }
+            ]
+          })
+        });
 
-      // معالجة الخطأ من السيرفر
-      if (data.error) {
-        msgContainer.innerHTML += `<div class="msg bot-msg">⚠️ خطأ من غوغل: ${data.error.message}</div>`;
-      } else {
-        // إضافة رد البوت
-        const reply = data.candidates[0].content.parts[0].text;
-        msgContainer.innerHTML += `<div class="msg bot-msg">${reply}</div>`;
+        const data = await response.json();
+
+        if (!data.error && data.choices && data.choices[0]) {
+          const reply = data.choices[0].message.content;
+          msgContainer.innerHTML += `<div class="msg bot-msg">${reply}</div>`;
+          success = true;
+          break; // تم الاتصال بنجاح، توقف عن التجربة
+        }
+      } catch (err) {
+        console.warn(`المفتاح رقم ${i + 1} لم يعمل، جاري الانتقال للمفتاح التالي...`);
       }
-
-    } catch (err) {
-      // خطأ في الشبكة أو الاتصال
-      msgContainer.innerHTML += `<div class="msg bot-msg">⚠️ خطأ في الاتصال: ${err.message}</div>`;
     }
-    
-    // تمرير تلقائي للأسفل بعد كل رد
+
+    if (!success) {
+      msgContainer.innerHTML += `<div class="msg bot-msg">⚠️ تعذر الاتصال بالمساعد حالياً. يرجى المراهنة على مفتاح يعمل.</div>`;
+    }
+
     msgContainer.scrollTop = msgContainer.scrollHeight;
   }
 
-  // === كود منع نسخ الصور (احتفظنا به) ===
+  // كود منع نسخ الصور
   document.addEventListener('contextmenu', function(e) {
       if (e.target.tagName === 'IMG') {
           e.preventDefault();
@@ -394,7 +379,6 @@
       img.addEventListener('dragstart', (e) => e.preventDefault());
   });
 </script>
-<!-- === نهاية الكود === -->
-</body>
+<!-- === نهاية الكود === --></body>
 
 </html>
