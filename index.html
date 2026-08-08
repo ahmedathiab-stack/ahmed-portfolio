@@ -122,6 +122,8 @@
    <!-- === بداية الشات بوت (ستايل واتساب ملء الشاشة - دعم مفاتيح متعددة) === -->
 <style>
   /* زر فتح المحادثة العائم */
+  <style>
+  /* زر فتح المحادثة */
   #ai-chat-btn {
     position: fixed;
     bottom: 20px;
@@ -140,12 +142,14 @@
   }
   #ai-chat-btn:hover { transform: scale(1.05); }
 
-  /* نافذة المحادثة ملء الشاشة */
+  /* حاوية المحادثة (تتعدل تلقائياً مع حجم الشاشة وكيبورد الجوال) */
   #ai-chat-box {
     display: none;
     position: fixed;
     top: 0; left: 0;
-    width: 100vw; height: 100vh;
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh; /* يتكيف تلقائياً عند ظهور كيبورد الجوال */
     background: #E5DDD5;
     flex-direction: column;
     z-index: 10000;
@@ -161,6 +165,7 @@
     align-items: center;
     justify-content: space-between;
     box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    flex-shrink: 0; /* منع انكماش الهيدر */
   }
   #ai-chat-header .user-info { display: flex; align-items: center; gap: 12px; }
   #ai-chat-header .user-avatar {
@@ -174,15 +179,14 @@
   #ai-chat-header .status-info .status { font-size: 12px; opacity: 0.85; }
   #ai-chat-header .close-btn { cursor: pointer; font-size: 22px; padding: 5px; }
 
-  /* منطقة الرسائل */
+  /* منطقة الردود والرسائل (ينكمش ارتفاعها عند فتح الكيبورد لتستغل المساحة المتبقية) */
   #ai-chat-messages {
     flex: 1;
-    padding: 20px;
+    padding: 15px;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
     gap: 12px;
-    padding-bottom: 90px;
   }
 
   /* تصميم الفقاعات */
@@ -195,7 +199,6 @@
     position: relative;
     word-wrap: break-word;
   }
-  
   .user-msg {
     background: #DCF8C6;
     align-self: flex-end;
@@ -206,7 +209,6 @@
     border: 8px solid transparent;
     border-left-color: #DCF8C6; border-top-color: #DCF8C6;
   }
-
   .bot-msg {
     background: white;
     align-self: flex-start;
@@ -219,19 +221,7 @@
     border-right-color: white; border-top-color: white;
   }
 
-  /* منطقة الإدخال */
-  #ai-chat-input-area {
-    position: fixed;
-    bottom: 0; left: 0; width: 100%;
-    background: #F0F0F0;
-    padding: 12px 15px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    box-sizing: border-box;
-    border-top: 1px solid #ccc;
-  }
-  /* منطقة الإدخال السفلية (تم تعديلها لمنع تغطية الرسالة الأخيرة) */
+  /* منطقة كتابة الأسئلة (استعادة شكلها وحجمها السابق بالكامل) */
   #ai-chat-input-area {
     background: #F0F0F0;
     padding: 12px 15px;
@@ -240,8 +230,16 @@
     gap: 10px;
     box-sizing: border-box;
     border-top: 1px solid #ccc;
-    width: 100%;
+    flex-shrink: 0; /* يضمن بقاء منطقة الإدخال بنفس حجمها السابق بدون انكماش */
   }
+  #ai-chat-input {
+    flex: 1;
+    border: none;
+    padding: 12px 18px;
+    border-radius: 25px;
+    outline: none;
+    font-size: 15px;
+    background: white;
   }
   #ai-chat-send {
     background: #075E54;
@@ -253,6 +251,7 @@
     font-size: 18px;
     display: flex; align-items: center; justify-content: center;
   }
+</style>
 </style>
 
 <button id="ai-chat-btn" onclick="toggleChat()">💬 تحدث مع أحمد</button>
