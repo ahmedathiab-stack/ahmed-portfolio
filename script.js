@@ -3,8 +3,8 @@ const CONFIG = {
     DEFAULT_ADMIN_PASS: "1234",
     MASTER_RECOVERY_PIN: "7777",
     STORAGE_KEYS: {
-        KNOWLEDGE: "ahmed_knowledge_base_v5",
-        UNLOCKED_CERTS: "ahmed_unlocked_certs_v5"
+        KNOWLEDGE: "ahmed_knowledge_base_v7",
+        UNLOCKED_CERTS: "ahmed_unlocked_certs_v7"
     },
     AI_API_KEYS: [
         "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"
@@ -54,7 +54,6 @@ class Store {
                 volunteer: Array.isArray(parsed.volunteer) ? parsed.volunteer : DEFAULT_KNOWLEDGE_BASE.volunteer
             };
         } catch (e) {
-            console.error("Storage corrupt, resetting...", e);
             return DEFAULT_KNOWLEDGE_BASE;
         }
     }
@@ -100,23 +99,10 @@ const App = {
 
     renderAll() {
         const db = Store.getKnowledge();
-
-        // تحديث النصوص الشخصية
-        if (db.personalInfo) {
-            const p = db.personalInfo;
-            if (document.getElementById('hero-name')) document.getElementById('hero-name').innerText = p.name || '';
-            if (document.getElementById('hero-title')) document.getElementById('hero-title').innerText = p.title || '';
-            if (document.getElementById('hero-location')) document.getElementById('hero-location').innerText = `📍 ${p.location || ''}`;
-            if (document.getElementById('hero-phone')) document.getElementById('hero-phone').innerText = `📱 ${p.phone || ''}`;
-            if (document.getElementById('hero-email')) document.getElementById('hero-email').innerText = `✉️ ${p.email || ''}`;
-            if (document.getElementById('profile-summary')) document.getElementById('profile-summary').innerText = p.summary || '';
-        }
-
         this.renderCertificates(db);
         this.renderExperiences(db);
         this.renderSkills(db);
         this.renderVolunteer(db);
-
         if (this.isAdminLoggedIn) this.renderAdminLists(db);
     },
 
@@ -143,8 +129,8 @@ const App = {
                     </div>
                     <div>
                         ${isUnlocked ? 
-                            `<a href="${c.imageUrl || '#'}" target="_blank" class="btn-primary" style="text-decoration:none; font-size:0.85rem;">👁️ معاينة الصورة/المستند</a>` :
-                            `<button class="btn-primary" onclick="App.openCertPassModal('${c.id}')">🔒 طلب فتح المعاينة</button>`
+                            `<a href="${c.imageUrl || '#'}" target="_blank" class="btn-primary" style="text-decoration:none; font-size:0.85rem; width:100%;">👁️ معاينة المستند</a>` :
+                            `<button class="btn-primary" onclick="App.openCertPassModal('${c.id}')" style="width:100%;">🔒 طلب فتح المعاينة</button>`
                         }
                     </div>
                 </div>
@@ -267,19 +253,7 @@ const App = {
         }
     },
 
-    resetToDefaultData() {
-        if (confirm('هل أنت تأكد من استعادة كافة البيانات الافتراضية؟ سيمحى أي تعديل قديم.')) {
-            localStorage.removeItem(CONFIG.STORAGE_KEYS.KNOWLEDGE);
-            Store.saveKnowledge(DEFAULT_KNOWLEDGE_BASE);
-            alert('تم إعادة ضبط البيانات بنجاح!');
-        }
-    },
-
-    /* =======================================
-       عرض قوائم التعديل والحذف باللوحة الجانبية
-       ======================================= */
     renderAdminLists(db) {
-        // قائمة الشهادات
         const certList = document.getElementById('admin-certs-list');
         if (certList) {
             certList.innerHTML = (db.certificates || []).map((c, i) => `
@@ -293,7 +267,6 @@ const App = {
             `).join('');
         }
 
-        // قائمة الخبرات
         const expList = document.getElementById('admin-exp-list');
         if (expList) {
             expList.innerHTML = (db.experiences || []).map((e, i) => `
@@ -307,7 +280,6 @@ const App = {
             `).join('');
         }
 
-        // قائمة المهارات
         const skillList = document.getElementById('admin-skills-list');
         if (skillList) {
             skillList.innerHTML = (db.skills || []).map((s, i) => `
@@ -321,7 +293,6 @@ const App = {
             `).join('');
         }
 
-        // قائمة التطوع
         const volList = document.getElementById('admin-vol-list');
         if (volList) {
             volList.innerHTML = (db.volunteer || []).map((v, i) => `
@@ -336,9 +307,6 @@ const App = {
         }
     },
 
-    /* =======================================
-       وظائف حفظ / تعديل الشهادات (تتضمن الصورة)
-       ======================================= */
     saveCertificate() {
         const index = parseInt(document.getElementById('certEditIndex').value);
         const title = document.getElementById('certTitle').value.trim();
@@ -360,14 +328,14 @@ const App = {
         };
 
         if (index >= 0) {
-            db.certificates[index] = certObj; // تعديل تلقائي
+            db.certificates[index] = certObj;
         } else {
-            db.certificates.push(certObj); // إضافة تلقائية
+            db.certificates.push(certObj);
         }
 
         Store.saveKnowledge(db);
         this.resetCertForm();
-        alert('تم حفظ البيانات والتحديث التلقائي في الشهادات الموثقة!');
+        alert('تم حفظ الشهادة وإضافتها للمعرض فوراً وبدون تعقيد!');
     },
 
     editCertificate(index) {
@@ -392,9 +360,6 @@ const App = {
         document.getElementById('certImage').value = "";
     },
 
-    /* =======================================
-       وظائف حفظ / تعديل الخبرات، المهارات والتطوع
-       ======================================= */
     saveExperience() {
         const index = parseInt(document.getElementById('expEditIndex').value);
         const role = document.getElementById('expRole').value.trim();
@@ -443,7 +408,7 @@ const App = {
 
         Store.saveKnowledge(db);
         document.getElementById('skillEditIndex').value = "-1";
-        alert('تم حفظ المهارة وتحديثها التلقائي!');
+        alert('تم حفظ المهارة وتحديثها!');
     },
 
     editSkill(index) {
@@ -487,11 +452,8 @@ const App = {
         document.getElementById('volPeriod').value = v.period || '';
     },
 
-    /* =======================================
-       الحذف التلقائي من قاعدة البيانات والواجهة
-       ======================================= */
     deleteItem(key, index) {
-        if (!confirm('هل أنت تأكد من الحذف؟ ستحذف المعلومة تلقائياً من الموثقات المعروضة.')) return;
+        if (!confirm('هل أنت تأكد من الحذف؟ ستحذف المعلومة تلقائياً من الموقع.')) return;
         const db = Store.getKnowledge();
         db[key].splice(index, 1);
         Store.saveKnowledge(db);
@@ -532,7 +494,13 @@ const App = {
         msgContainer.scrollTop = msgContainer.scrollHeight;
 
         const kb = Store.getKnowledge();
-        const contextPrompt = `أنت المساعد الذكي الخاص بالمستشار والمدرب ${kb.personalInfo.name}. الإجابة باللغة العربية باختصار واحترافية. البيانات: ${JSON.stringify(kb)}`;
+        
+        const strictSystemPrompt = `أنت المساعد الشخصي للمدرب أحمد عادل ناجي ذياب. 
+قواعد صارمة جداً:
+1. التزم بالرد حصراً ونهائياً **بلغة السائل** التي استخدمها في سؤاله (إذا سأل بالعربية أجب بالعربية وحدها تماماً، وإذا سأل بالإنجليزية أجب بالإنجليزية وحدها).
+2. ممنوع نهائياً خلط اللغات أو إدخال لغات غريبة (كالصينية أو غيرها).
+3. تحدث بطريقة طبيعية ومحاكاة تامة للبشر مثل أسلوب المراسلة عبر تطبيق واتساب (مختصر، ودود، وخالٍ من الحشو والتكرار الممل).
+بيانات الموقع المتوفرة لديك: ${JSON.stringify(kb)}`;
 
         let success = false;
         for (let apiKey of CONFIG.AI_API_KEYS) {
@@ -546,7 +514,7 @@ const App = {
                     body: JSON.stringify({
                         model: "llama-3.3-70b-versatile",
                         messages: [
-                            { role: "system", content: contextPrompt },
+                            { role: "system", content: strictSystemPrompt },
                             { role: "user", content: text }
                         ]
                     })
@@ -563,7 +531,7 @@ const App = {
         }
 
         if (!success) {
-            msgContainer.innerHTML += `<div class="msg bot-msg">⚠️ لم أتمكن من الاتصال بالخادم الآن. يسعدنا تواصلك المباشر مع الأستاذ عبر الواتساب.</div>`;
+            msgContainer.innerHTML += `<div class="msg bot-msg">⚠️ عذراً، واجهت مشكلة بسيطة في الاتصال. يمكنك مراسلة الأستاذ مباشرة عبر الواتساب.</div>`;
         }
         msgContainer.scrollTop = msgContainer.scrollHeight;
     }
