@@ -7,7 +7,29 @@
     <title>أحمد عادل ناجي ذياب | Portfolio & Verified Credentials</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
-    
+    <!-- قسم الشهادات في لوحة التحكم -->
+<div id="tab-certs" class="admin-tab-content">
+    <input type="text" id="certTitle" placeholder="اسم الشهادة">
+    <input type="text" id="certIssuer" placeholder="الجهة المصدرة">
+    <input type="text" id="certCategory" placeholder="الفئة (مثال: دورات تدريبية، شهادات أكاديمية)">
+    <input type="url" id="certImage" placeholder="رابط صورة الشهادة (مثال: https://.../image.jpg)">
+    <input type="password" id="certPin" placeholder="عين رمز PIN خاص بالشهادة">
+    <button class="btn-submit" onclick="addNewCertificate()">إضافة الشهادة</button>
+</div>
+
+<!-- قسم المهارات في لوحة التحكم -->
+<div id="tab-skills" class="admin-tab-content">
+    <input type="text" id="skillCategory" placeholder="المجال / التخصص (مثال: برمجة، إدارة، تصميم، كتابة)">
+    <input type="text" id="skillName" placeholder="اسم المهارة">
+    <select id="skillLevel">
+        <option value="مبتدئ">مبتدئ</option>
+        <option value="متوسط">متوسط</option>
+
+        <option value="متقدم">متقدم</option>
+        <option value="خبير">خبير</option>
+    </select>
+    <button class="btn-submit" onclick="addNewSkill()">إضافة المهارة</button>
+</div>
     <style>
       /* =========================================================
          تنسيقات الشات بوت ولوحة التحكم والأزرار
