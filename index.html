@@ -249,15 +249,32 @@
   border-top: 1px solid #d1d7db;
   flex-shrink: 0; /* يمنع انكماش حقل الكتابة */
 }
-  #ai-chat-input {
-    flex: 1;
-    border: none;
-    padding: 12px 18px;
-    border-radius: 25px;
-    outline: none;
-    font-size: 15px;
-    background: white;
-  }
+  /* زر الفتح الخارجي فقط */
+#ai-chat-btn {
+  position: fixed;
+  bottom: 25px;
+  right: 25px;
+  background: linear-gradient(135deg, #007bff, #0056b3);
+  color: #ffffff;
+  border: none;
+  border-radius: 30px;
+  padding: 14px 24px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(0, 123, 255, 0.35);
+  z-index: 9999;
+  transition: all 0.3s ease;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#ai-chat-btn:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 12px 25px rgba(0, 123, 255, 0.45);
+}
   #ai-chat-send {
     background: #075E54;
     color: white;
