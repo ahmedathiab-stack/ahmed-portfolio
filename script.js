@@ -8,6 +8,156 @@ const DEFAULT_KNOWLEDGE_BASE = {
         location: "جعار - خنفر - أبين - اليمن",
         summary: "مدرب معتمد ومحاسب أكاديمي حاصل على بكالوريوس المحاسبة من جامعة أبين، أجمع بين الخبرة المالية العملية والمهارات التدريبية والتيسيرية. متخصص في تأهيل الكوادر وتدريب الأنظمة المحاسبية الآلية والبرامج المكتبية."
     },
+    // --- 1. إدارة الأمان وكلمة المرور ---
+const MASTER_RECOVERY_PIN = "7777"; // رمز الاستعادة الثابت في حال نسيان كلمة المرور
+let isAdminLoggedIn = false;
+
+function getAdminPassword() {
+    return localStorage.getItem('admin_password') || '1234'; // كلمة المرور الافتراضية
+}
+
+function toggleAdminAuth() {
+    if (isAdminLoggedIn) {
+        isAdminLoggedIn = false;
+        document.getElementById('admin-content-body').style.display = 'none';
+        document.getElementById('auth-btn').innerText = '🔒 تسجيل الدخول للوحة';
+        alert('تم تسجيل الخروج من لوحة التحكم.');
+        return;
+    }
+
+    const pass = prompt('أدخل كلمة مرور لوحة التحكم (الافتراضية: 1234):');
+    if (pass === null) return;
+
+    if (pass === getAdminPassword()) {
+        unlockAdminPanel();
+    } else {
+        const reset = confirm('كلمة المرور غير صحيحة! هل نسيت كلمة المرور وتريد استعادتها بـ Master PIN؟');
+        if (reset) {
+            const pin = prompt('أدخل رمز الاستعادة (Master PIN):');
+            if (pin === MASTER_RECOVERY_PIN) {
+                const newPass = prompt('أدخل كلمة المرور الجديدة للوحة التحكم:');
+                if (newPass) {
+                    localStorage.setItem('admin_password', newPass);
+                    alert('تم تغيير كلمة المرور بنجاح وتسجيل الدخول!');
+                    unlockAdminPanel();
+                }
+            } else {
+                alert('رمز الاستعادة غير صحيح!');
+            }
+        }
+    }
+}
+
+function unlockAdminPanel() {
+    isAdminLoggedIn = true;
+    document.getElementById('admin-content-body').style.display = 'block';
+    document.getElementById('auth-btn').innerText = '🔓 تسجيل الخروج';
+    renderAdminLists(); // عرض قوائم التعديل والحذف
+}
+
+function changeAdminPassword() {
+    const currentPass = document.getElementById('currentPassInput').value;
+    const newPass = document.getElementById('newPassInput').value;
+
+    if (currentPass !== getAdminPassword()) {
+        alert('كلمة المرور الحالية غير صحيحة!');
+        return;
+    }
+    if (!newPass) {
+        alert('يرجى كتابة كلمة المرور الجديدة');
+        return;
+    }
+
+    localStorage.setItem('admin_password', newPass);
+    alert('تم تحديث كلمة المرور بنجاح!');
+    document.getElementById('currentPassInput').value = '';
+    document.getElementById('newPassInput').value = '';
+}
+
+// --- 2. دوال الحفظ والتعديل والحذف للشهادات ---
+function saveCertificate() {
+    const editIndex = parseInt(document.getElementById('certEditIndex').value);
+    const title = document.getElementById('certTitle').value.trim();
+    const issuer = document.getElementById('certIssuer').value.trim();
+    const category = document.getElementById('certCategory').value.trim();
+    const imageUrl = document.getElementById('certImage').value.trim();
+    const pin = document.getElementById('certPin').value.trim();
+
+    if (!title || !issuer) {
+        alert('يرجى إدخال اسم الشهادة والجهة المصدرة');
+        return;
+    }
+
+    let certs = JSON.parse(localStorage.getItem('my_certificates') || '[]');
+
+    if (editIndex >= 0) {
+        // تعديل شهادة موجودة
+        certs[editIndex] = { ...certs[editIndex], title, issuer, category, imageUrl, pin };
+        document.getElementById('certEditIndex').value = "-1";
+        document.getElementById('btn-save-cert').innerText = "إضافة / حفظ الشهادة";
+    } else {
+        // إضافة شهادة جديدة
+        certs.push({ title, issuer, category, imageUrl, pin, unlocked: false });
+    }
+
+    localStorage.setItem('my_certificates', JSON.stringify(certs));
+    resetCertForm();
+    renderCertificates();
+    renderAdminLists();
+    alert('تم الحفظ بنجاح!');
+}
+
+function editCert(index) {
+    const certs = JSON.parse(localStorage.getItem('my_certificates') || '[]');
+    const cert = certs[index];
+    if (!cert) return;
+
+    document.getElementById('certEditIndex').value = index;
+    document.getElementById('certTitle').value = cert.title || '';
+    document.getElementById('certIssuer').value = cert.issuer || '';
+    document.getElementById('certCategory').value = cert.category || '';
+    document.getElementById('certImage').value = cert.imageUrl || '';
+    document.getElementById('certPin').value = cert.pin || '';
+    document.getElementById('btn-save-cert').innerText = "💾 حفظ التعديلات";
+}
+
+function deleteCert(index) {
+    if (!confirm('هل أنت تأكد من حذف هذه الشهادة؟')) return;
+    let certs = JSON.parse(localStorage.getItem('my_certificates') || '[]');
+    certs.splice(index, 1);
+    localStorage.setItem('my_certificates', JSON.stringify(certs));
+    renderCertificates();
+    renderAdminLists();
+}
+
+function resetCertForm() {
+    document.getElementById('certTitle').value = '';
+    document.getElementById('certIssuer').value = '';
+    document.getElementById('certCategory').value = '';
+    document.getElementById('certImage').value = '';
+    document.getElementById('certPin').value = '';
+}
+
+// --- 3. عرض قائمة العناصر داخل لوحة التحكم مع أزرار التحكم ---
+function renderAdminLists() {
+    // قائمة الشهادات للتحكم
+    const certs = JSON.parse(localStorage.getItem('my_certificates') || '[]');
+    const certsListDiv = document.getElementById('admin-certs-list');
+    if (certsListDiv) {
+        let html = '<h4>قائمة الشهادات المضافة:</h4>';
+        certs.forEach((c, i) => {
+            html += `
+                <div style="display:flex; justify-content:space-between; align-items:center; background:#f8fafc; padding:8px 12px; margin-top:6px; border-radius:6px; border:1px solid #e2e8f0;">
+                    <span><strong>${c.title}</strong> (${c.issuer})</span>
+                    <div>
+                        <button onclick="editCert(${i})" style="background:#3182ce; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;">✏️ تعديل</button>
+                        <button onclick="deleteCert(${i})" style="background:#e53e3e; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;">🗑️ حذف</button>
+                    </div>
+                </div>`;
+        });
+        certsListDiv.innerHTML = certs.length ? html : '<p style="color:#718096;">لا توجد شهادات حالياً.</p>';
+    }
+}
     // 1. تعليمات شخصية الذكاء الاصطناعي (AI Persona Guidelines)
 function getAIBaseContext() {
     const experiences = JSON.parse(localStorage.getItem('my_experiences') || '[]');
