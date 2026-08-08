@@ -231,14 +231,17 @@
     box-sizing: border-box;
     border-top: 1px solid #ccc;
   }
-  #ai-chat-input {
-    flex: 1;
-    border: none;
-    padding: 12px 18px;
-    border-radius: 25px;
-    outline: none;
-    font-size: 15px;
-    background: white;
+  /* منطقة الإدخال السفلية (تم تعديلها لمنع تغطية الرسالة الأخيرة) */
+  #ai-chat-input-area {
+    background: #F0F0F0;
+    padding: 12px 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-sizing: border-box;
+    border-top: 1px solid #ccc;
+    width: 100%;
+  }
   }
   #ai-chat-send {
     background: #075E54;
