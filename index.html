@@ -251,6 +251,12 @@
     font-size: 18px;
     display: flex; align-items: center; justify-content: center;
   }
+    document.getElementById('ai-chat-input').addEventListener('focus', () => {
+  setTimeout(() => {
+    const msgContainer = document.getElementById('ai-chat-messages');
+    msgContainer.scrollTop = msgContainer.scrollHeight;
+  }, 300);
+});
 </style>
 </style>
 
