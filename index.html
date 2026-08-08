@@ -16,7 +16,80 @@
     <input type="password" id="certPin" placeholder="عين رمز PIN خاص بالشهادة">
     <button class="btn-submit" onclick="addNewCertificate()">إضافة الشهادة</button>
 </div>
+<!-- قسم لوحة التحكم المحمي -->
+<div class="card admin-card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <h2>⚙️ لوحة التحكم وإدارة المحتوى</h2>
+        <button id="auth-btn" class="btn-master" onclick="toggleAdminAuth()">🔒 تسجيل الدخول للوحة</button>
+    </div>
 
+    <!-- واجهة الإدخال والتعديل (تظهر فقط بعد تسجيل الدخول) -->
+    <div id="admin-content-body" style="display: none;">
+        <div class="admin-tabs-nav">
+            <button class="admin-tab active" onclick="openAdminTab('certs')">الشهادات</button>
+            <button class="admin-tab" onclick="openAdminTab('skills')">المهارات</button>
+            <button class="admin-tab" onclick="openAdminTab('exp')">الخبرات</button>
+            <button class="admin-tab" onclick="openAdminTab('vol')">التطوع</button>
+            <button class="admin-tab" onclick="openAdminTab('security')">🔐 الأمان</button>
+        </div>
+
+        <!-- إدارة الشهادات -->
+        <div id="tab-certs" class="admin-tab-content" style="display: block;">
+            <input type="hidden" id="certEditIndex" value="-1">
+            <input type="text" id="certTitle" placeholder="اسم الشهادة">
+            <input type="text" id="certIssuer" placeholder="الجهة المصدرة">
+            <input type="text" id="certCategory" placeholder="الفئة (مثال: دورات تدريبية)">
+            <input type="url" id="certImage" placeholder="رابط صورة الشهادة">
+            <input type="password" id="certPin" placeholder="رمز PIN الخاص بالشهادة لفتحها للزوار">
+            <button id="btn-save-cert" class="btn-submit" onclick="saveCertificate()">إضافة / حفظ الشهادة</button>
+            <div id="admin-certs-list" style="margin-top: 15px;"></div>
+        </div>
+
+        <!-- إدارة المهارات -->
+        <div id="tab-skills" class="admin-tab-content">
+            <input type="hidden" id="skillEditIndex" value="-1">
+            <input type="text" id="skillCategory" placeholder="المجال / التخصص">
+            <input type="text" id="skillName" placeholder="اسم المهارة">
+            <select id="skillLevel">
+                <option value="مبتدئ">مبتدئ</option>
+                <option value="متوسط">متوسط</option>
+                <option value="متقدم">متقدم</option>
+                <option value="خبير">خبير</option>
+            </select>
+            <button id="btn-save-skill" class="btn-submit" onclick="saveSkill()">إضافة / حفظ المهارة</button>
+            <div id="admin-skills-list" style="margin-top: 15px;"></div>
+        </div>
+
+        <!-- إدارة الخبرات -->
+        <div id="tab-exp" class="admin-tab-content">
+            <input type="hidden" id="expEditIndex" value="-1">
+            <input type="text" id="expRole" placeholder="المسمى الوظيفي">
+            <input type="text" id="expCompany" placeholder="اسم الجهة / الشركة">
+            <input type="text" id="expPeriod" placeholder="الفترة (مثال: 2022 - الحالي)">
+            <textarea id="expDesc" placeholder="الوصف والمسؤوليات"></textarea>
+            <button class="btn-submit" onclick="saveExperience()">إضافة / حفظ الخبرة</button>
+            <div id="admin-exp-list" style="margin-top: 15px;"></div>
+        </div>
+
+        <!-- إدارة التطوع -->
+        <div id="tab-vol" class="admin-tab-content">
+            <input type="hidden" id="volEditIndex" value="-1">
+            <input type="text" id="volRole" placeholder="الدور التطوعي">
+            <input type="text" id="volOrg" placeholder="الجهة / المنظمة">
+            <input type="text" id="volPeriod" placeholder="الفترة">
+            <button class="btn-submit" onclick="saveVolunteer()">إضافة / حفظ العمل التطوعي</button>
+            <div id="admin-vol-list" style="margin-top: 15px;"></div>
+        </div>
+
+        <!-- تبويب الأمان وتغيير كلمة المرور -->
+        <div id="tab-security" class="admin-tab-content">
+            <h4 style="margin-bottom: 10px;">تغيير كلمة مرور لوحة التحكم</h4>
+            <input type="password" id="currentPassInput" placeholder="كلمة المرور الحالية">
+            <input type="password" id="newPassInput" placeholder="كلمة المرور الجديدة">
+            <button class="btn-submit" onclick="changeAdminPassword()">تحديث كلمة المرور</button>
+        </div>
+    </div>
+</div>
 <!-- قسم المهارات في لوحة التحكم -->
 <div id="tab-skills" class="admin-tab-content">
     <input type="text" id="skillCategory" placeholder="المجال / التخصص (مثال: برمجة، إدارة، تصميم، كتابة)">
