@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>أحمد عادل ناجي ذياب | معرض الأعمال والاعتمادات</title>
+    <title>أحمد عادل ناجي ذياب | معرض الأعمال والاعتمادات الموثقة</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
@@ -32,30 +32,36 @@
 
                 <!-- إدارة الشهادات -->
                 <div id="tab-certs" class="admin-tab-content active">
-                    <p class="section-desc">إدارة الشهادات والاعتمادات</p>
+                    <p class="section-desc">إدارة الشهادات والاعتمادات الموثقة</p>
+                    <input type="hidden" id="certEditIndex" value="-1">
                     <input type="text" id="certTitle" placeholder="عنوان الشهادة">
                     <input type="text" id="certIssuer" placeholder="الجهة المصدرة">
                     <input type="text" id="certCategory" placeholder="التصنيف (محاسبة، لغات...)">
                     <input type="text" id="certPin" placeholder="رمز PIN الخاص بالشهادة (مثل: 1001)">
-                    <input type="text" id="certImage" placeholder="رابط صورة / مستند الشهادة">
-                    <button class="btn-submit" onclick="App.saveCertificate()">حفظ الشهادة</button>
+                    <input type="text" id="certImage" placeholder="رابط صورة / مستند الشهادة (URL)">
+                    <button class="btn-submit" onclick="App.saveCertificate()">💾 حفظ / إضافة الشهادة</button>
+                    <button class="btn-secondary-outline" style="margin-top:5px;" onclick="App.resetCertForm()">إلغاء التعديل</button>
+                    
+                    <h4 style="margin-top:15px; font-size:0.9rem;">الشهادات الحالية (تعديل / حذف):</h4>
                     <div id="admin-certs-list" class="admin-list"></div>
                 </div>
 
                 <!-- إدارة الخبرات -->
                 <div id="tab-exp" class="admin-tab-content">
                     <p class="section-desc">إدارة الخبرات العملية</p>
+                    <input type="hidden" id="expEditIndex" value="-1">
                     <input type="text" id="expRole" placeholder="المسمى الوظيفي">
                     <input type="text" id="expCompany" placeholder="الجهة أو المؤسسة">
                     <input type="text" id="expPeriod" placeholder="الفترة الزمانية">
                     <textarea id="expDesc" placeholder="تفاصيل المسؤوليات"></textarea>
-                    <button class="btn-submit" onclick="App.saveExperience()">إضافة خبرة</button>
+                    <button class="btn-submit" onclick="App.saveExperience()">💾 حفظ الخبرة</button>
                     <div id="admin-exp-list" class="admin-list"></div>
                 </div>
 
                 <!-- إدارة المهارات -->
                 <div id="tab-skills" class="admin-tab-content">
                     <p class="section-desc">إدارة المهارات والقدرات</p>
+                    <input type="hidden" id="skillEditIndex" value="-1">
                     <input type="text" id="skillName" placeholder="اسم المهارة">
                     <input type="text" id="skillCategory" placeholder="التصنيف">
                     <select id="skillLevel">
@@ -64,17 +70,18 @@
                         <option value="متقدم">متقدم</option>
                         <option value="خبير">خبير</option>
                     </select>
-                    <button class="btn-submit" onclick="App.saveSkill()">إضافة مهارة</button>
+                    <button class="btn-submit" onclick="App.saveSkill()">💾 حفظ المهارة</button>
                     <div id="admin-skills-list" class="admin-list"></div>
                 </div>
 
                 <!-- إدارة التطوع -->
                 <div id="tab-vol" class="admin-tab-content">
                     <p class="section-desc">إدارة الأعمال التطوعية</p>
+                    <input type="hidden" id="volEditIndex" value="-1">
                     <input type="text" id="volRole" placeholder="المسمى التطوعي">
                     <input type="text" id="volOrg" placeholder="الجهة المنظمة">
                     <input type="text" id="volPeriod" placeholder="الفترة الزمانية">
-                    <button class="btn-submit" onclick="App.saveVolunteer()">إضافة تطوع</button>
+                    <button class="btn-submit" onclick="App.saveVolunteer()">💾 حفظ العمل التطوعي</button>
                     <div id="admin-vol-list" class="admin-list"></div>
                 </div>
             </div>
