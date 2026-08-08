@@ -9,7 +9,54 @@
     <!-- Google Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+<!-- زر اللوحة الجانبية العائم (FAB) -->
+<button id="toggle-drawer-btn" class="admin-fab" title="لوحة التحكم">⚙️</button>
 
+<!-- اللوحة الجانبية (Drawer) -->
+<div id="admin-drawer" class="admin-drawer">
+    <div class="admin-drawer-header">
+        <h3>لوحة التحكم والإدارة</h3>
+        <span id="close-drawer-btn" class="close-drawer">&times;</span>
+    </div>
+    <div style="padding: 20px;">
+        <!-- زر فتح نافذة تسجيل الدخول -->
+        <button class="btn-submit" onclick="App.toggleAdminAuth()">
+            <span id="auth-btn-text">🔒 تسجيل الدخول للوحة</span>
+        </button>
+
+        <!-- محتوى لوحة التحكم (مخفي حتى يتم تسجيل الدخول) -->
+        <div id="admin-content-body" style="display: none; margin-top: 20px;">
+            <div class="admin-tabs-nav">
+                <button class="admin-tab active" data-target="tab-certs">الشهادات</button>
+                <button class="admin-tab" data-target="tab-exp">الخبرات</button>
+            </div>
+
+            <div id="tab-certs" class="admin-tab-content" style="display: block;">
+                <p class="section-desc">إدارة الشهادات وإضافة عناصر جديدة</p>
+                <input type="text" placeholder="عنوان الشهادة الجديدة">
+                <button class="btn-submit">إضافة الشهادة</button>
+            </div>
+
+            <div id="tab-exp" class="admin-tab-content">
+                <p class="section-desc">إدارة الخبرات العملية</p>
+                <input type="text" placeholder="مسمى الخبرة">
+                <button class="btn-submit">إضافة الخبرة</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- النافذة المنبثقة لتسجيل الدخول (Modal) -->
+<div id="auth-modal" class="modal">
+    <div class="modal-content">
+        <span id="close-auth-modal" class="close-btn">&times;</span>
+        <h3>تسجيل دخول المشرف</h3>
+        <p>أدخل كلمة المرور للوصول إلى لوحة التحكم</p>
+        <input type="password" id="admin-password-input" placeholder="كلمة المرور (1234)">
+        <button class="btn-submit" onclick="App.verifyPassword()">دخول</button>
+        <div id="auth-error" class="error-text"></div>
+    </div>
+</div>
     <style>
         /* =========================================================
            نظام التصميم والتنسيقات الموحدة (Design System)
