@@ -11,16 +11,22 @@
     <button id="toggle-drawer-btn" class="admin-fab" onclick="App.toggleAdminDrawer()">⚙️</button>
     <aside id="admin-drawer" class="admin-drawer">
         <!-- لوحة التحكم -->
-        <div class="admin-drawer-header"><h3>إدارة المحتوى</h3><span onclick="App.toggleAdminDrawer()">&times;</span></div>
+        <div class="admin-drawer-header"><h3>إدارة المحتوى</h3><span class="close-drawer" onclick="App.toggleAdminDrawer()">&times;</span></div>
         <div class="admin-drawer-body">
             <button id="auth-btn" class="btn-submit" onclick="App.toggleAdminAuth()">🔒 تسجيل الدخول</button>
             <div id="admin-content-body" style="display:none;">
+                <div class="admin-tabs-nav">
+                    <button class="admin-tab active" onclick="App.switchAdminTab('tab-certs', this)">الشهادات</button>
+                </div>
                 <div id="tab-certs" class="admin-tab-content active">
-                    <h4>إضافة شهادة جديدة للموقع</h4>
+                    <h4>إضافة/تعديل شهادة</h4>
+                    <input type="hidden" id="certEditIndex" value="-1">
                     <input type="text" id="certTitle" placeholder="اسم الشهادة">
                     <input type="text" id="certIssuer" placeholder="الجهة المصدرة">
-                    <input type="text" id="certImage" placeholder="رابط صورة الشهادة (URL)">
-                    <button class="btn-submit" onclick="App.saveCertificate()">✅ إضافة للشهادات فوراً</button>
+                    <input type="text" id="certCategory" placeholder="التصنيف (محاسبة، تقنية...)">
+                    <input type="text" id="certPin" placeholder="رقم سري للفتح (اختياري)">
+                    <input type="text" id="certImage" placeholder="رابط صورة الشهادة أو المستند (URL)">
+                    <button class="btn-submit" onclick="App.saveCertificate()">✅ حفظ وتحديث فوري للمعرض</button>
                     <div id="admin-certs-list" class="admin-list"></div>
                 </div>
             </div>
@@ -35,16 +41,31 @@
         </section>
     </main>
 
-    <!-- الشات في وضع ملء الشاشة -->
+    <!-- Modal طلب الكود -->
+    <div id="accessModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="App.closeModal('accessModal')">&times;</span>
+            <h3>مطلوب كود التصريح</h3>
+            <p style="font-size:0.9rem; color:var(--text-muted); margin: 10px 0;">أدخل الكود الخاص بهذا المستند أو استخدم الكود الشامل:</p>
+            <input type="password" id="passcode" placeholder="أدخل الكود هنا...">
+            <button class="btn-submit" onclick="App.validateAccessCode()">تحقق وفتح المعاينة</button>
+            <div id="errorMsg" class="error-text"></div>
+        </div>
+    </div>
+
+    <!-- الشات في وضع ملء الشاشة (مثل واتساب) -->
     <div id="ai-chat-box" class="full-screen-chat">
         <div id="ai-chat-header">
-            <span>مساعد أحمد الذكي</span>
-            <span style="cursor:pointer" onclick="App.toggleChat()">✖ إغلاق</span>
+            <div style="display:flex; align-items:center; gap:10px;">
+                <div class="chat-avatar">أ</div>
+                <span>مساعد أحمد الذكي</span>
+            </div>
+            <span style="cursor:pointer; font-weight:bold; font-size:1.2rem;" onclick="App.toggleChat()">✖ إغلاق</span>
         </div>
         <div id="ai-chat-messages"></div>
         <div id="ai-chat-input-area">
-            <input type="text" id="ai-chat-input" placeholder="اكتب رسالتك..." onkeypress="App.handleChatKey(event)">
-            <button onclick="App.sendChatMessage()">إرسال</button>
+            <input type="text" id="ai-chat-input" placeholder="اكتب رسالتك هنا..." onkeypress="App.handleChatKey(event)">
+            <button id="ai-chat-send" onclick="App.sendChatMessage()">➤</button>
         </div>
     </div>
     <button id="ai-chat-btn" onclick="App.toggleChat()">💬 تواصل مع المساعد</button>
