@@ -144,17 +144,16 @@
 
   /* حاوية المحادثة (تتعدل تلقائياً مع حجم الشاشة وكيبورد الجوال) */
   #ai-chat-box {
-    display: none;
-    position: fixed;
-    top: 0; left: 0;
-    width: 100vw;
-    height: 100vh;
-    height: 100dvh; /* يتكيف تلقائياً عند ظهور كيبورد الجوال */
-    background: #E5DDD5;
-    flex-direction: column;
-    z-index: 10000;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  }
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw;
+  height: 100dvh; /* يتكيف تلقائياً مع شاشات الجوال */
+  background: #efeae2; /* خلفية ناعمة ومريحة للعين */
+  flex-direction: column;
+  z-index: 10000;
+  font-family: system-ui, -apple-system, sans-serif;
+}
 
   /* الشريط العلوي */
   #ai-chat-header {
@@ -181,12 +180,14 @@
 
   /* منطقة الردود والرسائل (ينكمش ارتفاعها عند فتح الكيبورد لتستغل المساحة المتبقية) */
   #ai-chat-messages {
-    flex: 1;
-    padding: 15px;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+  flex: 1;
+  padding: 15px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-sizing: border-box;
+}
   }
 
   /* تصميم الفقاعات */
@@ -222,16 +223,15 @@
   }
 
   /* منطقة كتابة الأسئلة (استعادة شكلها وحجمها السابق بالكامل) */
-  #ai-chat-input-area {
-    background: #F0F0F0;
-    padding: 12px 15px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    box-sizing: border-box;
-    border-top: 1px solid #ccc;
-    flex-shrink: 0; /* يضمن بقاء منطقة الإدخال بنفس حجمها السابق بدون انكماش */
-  }
+  ##ai-chat-input-area {
+  background: #f0f2f5;
+  padding: 10px 15px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-top: 1px solid #d1d7db;
+  flex-shrink: 0; /* يمنع انكماش حقل الكتابة */
+}
   #ai-chat-input {
     flex: 1;
     border: none;
