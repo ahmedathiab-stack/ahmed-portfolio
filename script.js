@@ -8,6 +8,238 @@ const DEFAULT_KNOWLEDGE_BASE = {
         location: "جعار - خنفر - أبين - اليمن",
         summary: "مدرب معتمد ومحاسب أكاديمي حاصل على بكالوريوس المحاسبة من جامعة أبين، أجمع بين الخبرة المالية العملية والمهارات التدريبية والتيسيرية. متخصص في تأهيل الكوادر وتدريب الأنظمة المحاسبية الآلية والبرامج المكتبية."
     },
+    // =========================================================
+// رقم الواتساب الخاص بك (قم بتغييره برقمك شامل مفتاح الدولة)
+// =========================================================
+const MY_WHATSAPP_NUMBER = "967770000000"; 
+
+// --- 1. التحكم باللوحة الجانبية ---
+function toggleAdminDrawer() {
+    const drawer = document.getElementById('admin-drawer');
+    drawer.classList.toggle('open');
+}
+
+// --- 2. نظام طلب المفاتيح عبر الواتساب ---
+function openWhatsAppRequestModal() {
+    const certs = JSON.parse(localStorage.getItem('my_certificates') || '[]');
+    const select = document.getElementById('waCertSelect');
+    select.innerHTML = '';
+    
+    certs.forEach((c) => {
+        select.innerHTML += `<option value="${c.title}">${c.title} - (${c.issuer})</option>`;
+    });
+
+    document.getElementById('wa-modal').style.display = 'flex';
+}
+
+function closeWaModal() {
+    document.getElementById('wa-modal').style.display = 'none';
+}
+
+function sendWaRequest(type) {
+    let message = "";
+    if (type === 'master') {
+        message = "مرحباً أ/ أحمد عادل، أود الحصول على (مفتاح تصريح شامل) للاطلاع على كافة الشهادات في موقعك المهني.";
+    } else {
+        const certTitle = document.getElementById('waCertSelect').value;
+        message = `مرحباً أ/ أحمد عادل، أود الحصول على (مفتاح تصريح) للشهادة التالية: [${certTitle}].`;
+    }
+
+    const url = `https://wa.me/${MY_WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+    window.open(url, '_blank');
+    closeWaModal();
+}
+
+// --- 3. نظام المفاتيح المتقدمة (مؤقتة / استخدام مرة واحدة / إلغاء) ---
+function generateAdvancedKey() {
+    const type = document.getElementById('keyType').value;
+    const certIndex = document.getElementById('keyCertSelect').value;
+    const duration = document.getElementById('keyDuration').value;
+
+    const keyCode = 'KEY-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+    const keys = JSON.parse(localStorage.getItem('my_advanced_keys') || '[]');
+
+    const newKey = {
+        code: keyCode,
+        type: type,
+        certIndex: certIndex,
+        duration: duration, // 'once', '1', '7', '30'
+        createdAt: Date.now(),
+        usedCount: 0,
+        active: true
+    };
+
+    keys.push(newKey);
+    localStorage.setItem('my_advanced_keys', JSON.stringify(keys));
+    renderKeysHistory();
+    alert(`تم إنشاء المفتاح بنجاح: ${keyCode}`);
+}
+
+function revokeKey(index) {
+    let keys = JSON.parse(localStorage.getItem('my_advanced_keys') || '[]');
+    keys[index].active = false;
+    localStorage.setItem('my_advanced_keys', JSON.stringify(keys));
+    renderKeysHistory();
+}
+
+function deleteKey(index) {
+    let keys = JSON.parse(localStorage.getItem('my_advanced_keys') || '[]');
+    keys.splice(index, 1);
+    localStorage.setItem('my_advanced_keys', JSON.stringify(keys));
+    renderKeysHistory();
+}
+
+function renderKeysHistory() {
+    const keys = JSON.parse(localStorage.getItem('my_advanced_keys') || '[]');
+    const container = document.getElementById('keys-history-list');
+    if (!container) return;
+
+    let html = '<h4>المفاتيح المنشأة:</h4>';
+    keys.forEach((k, i) => {
+        const status = k.active ? '🟢 نشط' : '🔴 ملغى/منتهي';
+        html += `
+            <div class="admin-item-row">
+                <div>
+                    <strong>${k.code}</strong> <small>(${k.duration === 'once' ? 'مرة واحدة' : k.duration + ' أيام'})</small>
+                    <br><small style="color:var(--text-muted);">${status} | استخدام: ${k.usedCount}</small>
+                </div>
+                <div>
+                    ${k.active ? `<button class="btn-action-delete" onclick="revokeKey(${i})">إلغاء</button>` : ''}
+                    <button class="btn-action-delete" style="background:#718096;" onclick="deleteKey(${i})">حذف</button>
+                </div>
+            </div>`;
+    });
+    container.innerHTML = keys.length ? html : '<p style="color:#718096;">لا توجد مفاتيح منشأة.</p>';
+}
+
+// --- 4. إدارة التعديل والحذف الشاملة لجميع العناصر ---
+
+// أ. الخبرات
+function saveExperience() {
+    const editIndex = parseInt(document.getElementById('expEditIndex').value);
+    const role = document.getElementById('expRole').value.trim();
+    const company = document.getElementById('expCompany').value.trim();
+    const period = document.getElementById('expPeriod').value.trim();
+    const desc = document.getElementById('expDesc').value.trim();
+
+    if (!role || !company) return alert('يرجى ملء المسمى والجهة');
+
+    let exps = JSON.parse(localStorage.getItem('my_experiences') || '[]');
+    if (editIndex >= 0) {
+        exps[editIndex] = { role, company, period, desc };
+        document.getElementById('expEditIndex').value = "-1";
+    } else {
+        exps.push({ role, company, period, desc });
+    }
+
+    localStorage.setItem('my_experiences', JSON.stringify(exps));
+    renderExperiences(); renderAdminLists();
+    alert('تم الحفظ بنجاح!');
+}
+
+function editExp(i) {
+    const exps = JSON.parse(localStorage.getItem('my_experiences') || '[]');
+    const exp = exps[i];
+    document.getElementById('expEditIndex').value = i;
+    document.getElementById('expRole').value = exp.role;
+    document.getElementById('expCompany').value = exp.company;
+    document.getElementById('expPeriod').value = exp.period;
+    document.getElementById('expDesc').value = exp.desc;
+}
+
+function deleteExp(i) {
+    if (!confirm('تأكيد حذف الخبرة؟')) return;
+    let exps = JSON.parse(localStorage.getItem('my_experiences') || '[]');
+    exps.splice(i, 1);
+    localStorage.setItem('my_experiences', JSON.stringify(exps));
+    renderExperiences(); renderAdminLists();
+}
+
+// ب. الأعمال التطوعية
+function saveVolunteer() {
+    const editIndex = parseInt(document.getElementById('volEditIndex').value);
+    const role = document.getElementById('volRole').value.trim();
+    const org = document.getElementById('volOrg').value.trim();
+    const period = document.getElementById('volPeriod').value.trim();
+
+    if (!role || !org) return alert('يرجى ملء كافة البيانات المطلوبة');
+
+    let vols = JSON.parse(localStorage.getItem('my_volunteer') || '[]');
+    if (editIndex >= 0) {
+        vols[editIndex] = { role, org, period };
+        document.getElementById('volEditIndex').value = "-1";
+    } else {
+        vols.push({ role, org, period });
+    }
+
+    localStorage.setItem('my_volunteer', JSON.stringify(vols));
+    renderVolunteer(); renderAdminLists();
+    alert('تم الحفظ بنجاح!');
+}
+
+function editVol(i) {
+    const vols = JSON.parse(localStorage.getItem('my_volunteer') || '[]');
+    const vol = vols[i];
+    document.getElementById('volEditIndex').value = i;
+    document.getElementById('volRole').value = vol.role;
+    document.getElementById('volOrg').value = vol.org;
+    document.getElementById('volPeriod').value = vol.period;
+}
+
+function deleteVol(i) {
+    if (!confirm('تأكيد الحذف؟')) return;
+    let vols = JSON.parse(localStorage.getItem('my_volunteer') || '[]');
+    vols.splice(i, 1);
+    localStorage.setItem('my_volunteer', JSON.stringify(vols));
+    renderVolunteer(); renderAdminLists();
+}
+
+// عرض قوائم الإدارة والتعديل الحية
+function renderAdminLists() {
+    // قائمة الشهادات
+    const certs = JSON.parse(localStorage.getItem('my_certificates') || '[]');
+    let cHtml = '<h4>الشهادات المضافة:</h4>';
+    certs.forEach((c, i) => {
+        cHtml += `<div class="admin-item-row">
+            <span>${c.title}</span>
+            <div>
+                <button class="btn-action-edit" onclick="editCert(${i})">تعديل</button>
+                <button class="btn-action-delete" onclick="deleteCert(${i})">حذف</button>
+            </div>
+        </div>`;
+    });
+    document.getElementById('admin-certs-list').innerHTML = cHtml;
+
+    // قائمة الخبرات
+    const exps = JSON.parse(localStorage.getItem('my_experiences') || '[]');
+    let eHtml = '<h4>الخبرات المضافة:</h4>';
+    exps.forEach((e, i) => {
+        eHtml += `<div class="admin-item-row">
+            <span>${e.role} - ${e.company}</span>
+            <div>
+                <button class="btn-action-edit" onclick="editExp(${i})">تعديل</button>
+                <button class="btn-action-delete" onclick="deleteExp(${i})">حذف</button>
+            </div>
+        </div>`;
+    });
+    document.getElementById('admin-exp-list').innerHTML = eHtml;
+
+    // قائمة التطوع
+    const vols = JSON.parse(localStorage.getItem('my_volunteer') || '[]');
+    let vHtml = '<h4>الأعمال التطوعية:</h4>';
+    vols.forEach((v, i) => {
+        vHtml += `<div class="admin-item-row">
+            <span>${v.role} - ${v.org}</span>
+            <div>
+                <button class="btn-action-edit" onclick="editVol(${i})">تعديل</button>
+                <button class="btn-action-delete" onclick="deleteVol(${i})">حذف</button>
+            </div>
+        </div>`;
+    });
+    document.getElementById('admin-vol-list').innerHTML = vHtml;
+
+    renderKeysHistory();
+}
     // --- 1. إدارة الأمان وكلمة المرور ---
 const MASTER_RECOVERY_PIN = "7777"; // رمز الاستعادة الثابت في حال نسيان كلمة المرور
 let isAdminLoggedIn = false;
