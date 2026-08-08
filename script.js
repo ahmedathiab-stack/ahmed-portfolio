@@ -2,6 +2,7 @@
  * ============================================================================
  *  الموقع المهني وشبكة إدارة المحتوى - أ/ أحمد عادل ناجي ذياب
  *  Engine Version: 3.0 (Clean Architecture & Production Ready)
+ *  [المجموعة الأولى: الإعدادات، محرك البيانات، والأمان]
  * ============================================================================
  */
 
@@ -10,31 +11,32 @@
 // ============================================================================
 const CONFIG = {
     WHATSAPP_NUMBER: "967779087415", // رقم الواتساب الموحد
-    ADMIN_PASSWORD: "1234",          // كلمة المرور الافتراضية للوحة التحكم
-    MASTER_RECOVERY_PIN: "7777",    // رمز الاستعادة الشامل
+    DEFAULT_ADMIN_PASS: "1234",      // كلمة المرور الافتراضية للوحة التحكم
+    MASTER_RECOVERY_PIN: "7777",    // رمز استعادة النظام الشامل
     STORAGE_KEYS: {
-        KNOWLEDGE: "ahmed_knowledge_base_v2",
-        ADVANCED_KEYS: "ahmed_advanced_keys_v2",
-        ADMIN_PASS: "ahmed_admin_password",
+        KNOWLEDGE: "ahmed_knowledge_base_v3",
+        ADVANCED_KEYS: "ahmed_advanced_keys_v3",
+        ADMIN_PASS: "ahmed_admin_password_v3",
         UNLOCKED_CERTS: "ahmed_unlocked_certs_session",
         AI_STATUS: "ahmed_ai_adapt_status"
     }
 };
 
-// البيانات الافتراضية لقواعد المعرفة
+// قاعدة البيانات الافتراضية
 const DEFAULT_KNOWLEDGE_BASE = {
     personalInfo: {
         name: "أحمد عادل ناجي ذياب",
         title: "مدرب برامج محاسبة وأنظمة مالية | مدرب معتمد (ICDL & English)",
         location: "جعار - خنفر - أبين - اليمن",
+        phone: "+967 779087415",
+        email: "Ahmed.a.n.thiab@gmail.com",
         summary: "مدرب معتمد ومحاسب أكاديمي حاصل على بكالوريوس المحاسبة من جامعة أبين، أجمع بين الخبرة المالية العملية والمهارات التدريبية والتيسيرية."
     },
     certificates: [
-        { id: "cert-acc-1", title: "بكالوريوس المحاسبة", category: "محاسبة", status: "متاح", issuer: "جامعة أبين (2026)", imageUrl: "", pin: "1001", unlocked: false },
-        { id: "cert-acc-2", title: "شهادة نظام إكسترا للمحاسبة والإدارة", category: "محاسبة", status: "متاح", issuer: "بن مقيبل للأنظمة ومؤسسة بلقيس (2022)", imageUrl: "", pin: "1002", unlocked: false },
-        { id: "cert-it-1", title: "دبلوم قيادة الحاسوب ICDL", category: "تقنية معلومات", status: "متاح", issuer: "وزارة التعليم الفني - معهد جبس (2020)", imageUrl: "", pin: "1003", unlocked: false },
-        { id: "cert-lang-1", title: "شهادة اللغة الإنجليزية (B2)", category: "لغات", status: "متاح", issuer: "وزارة التعليم الفني - معهد جبس (2022)", imageUrl: "", pin: "1004", unlocked: false },
-        { id: "cert-acc-3", title: "شهادة المعايير الدولية IFRS", category: "محاسبة", status: "قيد الحصول / قيد الرفع", issuer: "جاري العمل عليها", imageUrl: "", pin: "", unlocked: false }
+        { id: "cert-acc-1", title: "بكالوريوس المحاسبة", category: "محاسبة", issuer: "جامعة أبين (2026)", imageUrl: "", pin: "1001", unlocked: false },
+        { id: "cert-acc-2", title: "شهادة نظام إكسترا للمحاسبة والإدارة", category: "محاسبة", issuer: "بن مقيبل للأنظمة ومؤسسة بلقيس (2022)", imageUrl: "", pin: "1002", unlocked: false },
+        { id: "cert-it-1", title: "دبلوم قيادة الحاسوب ICDL", category: "تقنية معلومات", issuer: "وزارة التعليم الفني - معهد جبس (2020)", imageUrl: "", pin: "1003", unlocked: false },
+        { id: "cert-lang-1", title: "شهادة اللغة الإنجليزية (B2)", category: "لغات", issuer: "وزارة التعليم الفني - معهد جبس (2022)", imageUrl: "", pin: "1004", unlocked: false }
     ],
     experiences: [
         {
@@ -56,31 +58,48 @@ const DEFAULT_KNOWLEDGE_BASE = {
 };
 
 // ============================================================================
-// 2. المحرك المركزي لإدارة الحالة (Store Manager)
+// 2. المحرك المركزي لإدارة الحالة (State & Store Manager)
 // ============================================================================
 class Store {
     static getKnowledge() {
-        const data = localStorage.getItem(CONFIG.STORAGE_KEYS.KNOWLEDGE);
-        return data ? JSON.parse(data) : DEFAULT_KNOWLEDGE_BASE;
+        try {
+            const data = localStorage.getItem(CONFIG.STORAGE_KEYS.KNOWLEDGE);
+            return data ? JSON.parse(data) : DEFAULT_KNOWLEDGE_BASE;
+        } catch (e) {
+            console.error("خطأ في قراءة قاعدة البيانات المحلية:", e);
+            return DEFAULT_KNOWLEDGE_BASE;
+        }
     }
 
     static saveKnowledge(data) {
-        localStorage.setItem(CONFIG.STORAGE_KEYS.KNOWLEDGE, JSON.stringify(data));
-        window.USER_KNOWLEDGE_BASE = data;
-        App.renderAll();
+        try {
+            localStorage.setItem(CONFIG.STORAGE_KEYS.KNOWLEDGE, JSON.stringify(data));
+            window.USER_KNOWLEDGE_BASE = data;
+            App.renderAll();
+        } catch (e) {
+            console.error("خطأ في حفظ البيانات المحلية:", e);
+        }
     }
 
     static getKeys() {
-        return JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.ADVANCED_KEYS) || '[]');
+        try {
+            return JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.ADVANCED_KEYS) || '[]');
+        } catch (e) {
+            return [];
+        }
     }
 
     static saveKeys(keys) {
         localStorage.setItem(CONFIG.STORAGE_KEYS.ADVANCED_KEYS, JSON.stringify(keys));
-        App.renderAdminLists();
+        App.renderAdminKeysList();
     }
 
     static getUnlockedCerts() {
-        return JSON.parse(sessionStorage.getItem(CONFIG.STORAGE_KEYS.UNLOCKED_CERTS) || '[]');
+        try {
+            return JSON.parse(sessionStorage.getItem(CONFIG.STORAGE_KEYS.UNLOCKED_CERTS) || '[]');
+        } catch (e) {
+            return [];
+        }
     }
 
     static unlockCert(certId) {
@@ -91,10 +110,18 @@ class Store {
             App.renderAll();
         }
     }
+
+    static getAdminPassword() {
+        return localStorage.getItem(CONFIG.STORAGE_KEYS.ADMIN_PASS) || CONFIG.DEFAULT_ADMIN_PASS;
+    }
+
+    static setAdminPassword(newPass) {
+        localStorage.setItem(CONFIG.STORAGE_KEYS.ADMIN_PASS, newPass);
+    }
 }
 
 // ============================================================================
-// 3. التطبيق المركزي وإدارة الواجهات (App Framework)
+// 3. تطبيق الإدارة والتحكم في الواجهات (App Core Framework)
 // ============================================================================
 const App = {
     selectedCertForUnlock: null,
@@ -102,43 +129,46 @@ const App = {
     init() {
         this.setupDrawer();
         this.setupTabs();
-        this.setupModal();
+        this.setupModals();
         this.populateWaSelect();
         this.renderAll();
     },
 
-    // تشغيل اللوحة الجانبية (Admin Drawer)
+    /* التحكم باللوحة الجانبية للتحكم (Admin Drawer) */
     setupDrawer() {
-        const fabBtn = document.getElementById('toggle-drawer-btn');
         const drawer = document.getElementById('admin-drawer');
-        const closeBtn = document.getElementById('close-drawer-btn');
-
-        if (fabBtn && drawer) {
-            fabBtn.addEventListener('click', () => drawer.classList.add('open'));
-        }
-        if (closeBtn && drawer) {
-            closeBtn.addEventListener('click', () => drawer.classList.remove('open'));
-        }
+        window.toggleAdminDrawer = function() {
+            if (drawer) drawer.classList.toggle('open');
+        };
     },
 
-    // نظام التبويبات داخل لوحة التحكم
+    /* التحكم بالتبويبات داخل لوحة التحكم */
     setupTabs() {
-        const tabs = document.querySelectorAll('.admin-tab');
-        tabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                const targetId = tab.getAttribute('data-target');
-                document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
-                document.querySelectorAll('.admin-tab-content').forEach(c => c.style.display = 'none');
-                
-                tab.classList.add('active');
-                const targetContent = document.getElementById(targetId);
-                if (targetContent) targetContent.style.display = 'block';
-            });
-        });
+        window.openAdminTab = function(tabName) {
+            document.querySelectorAll('.admin-tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.admin-tab').forEach(btn => btn.classList.remove('active'));
+
+            const targetTab = document.getElementById(`tab-${tabName}`);
+            if (targetTab) targetTab.classList.add('active');
+
+            if (event && event.currentTarget) {
+                event.currentTarget.classList.add('active');
+            }
+        };
     },
 
-    // إدارة إغلاق النوافذ المنبثقة
-    setupModal() {
+    /* إدارة إغلاق وفتح النوافذ المنبثقة */
+    setupModals() {
+        window.openModal = function(id) {
+            const modal = document.getElementById(id);
+            if (modal) modal.style.display = 'flex';
+        };
+
+        window.closeModal = function(id) {
+            const modal = document.getElementById(id);
+            if (modal) modal.style.display = 'none';
+        };
+
         window.addEventListener('click', (e) => {
             if (e.target.classList.contains('modal')) {
                 e.target.style.display = 'none';
@@ -146,368 +176,129 @@ const App = {
         });
     },
 
-    // تسجيل دخول الإدارة
+    /* نظام التحقق من كلمة مرور الإدارة */
     toggleAdminAuth() {
-        const modal = document.getElementById('auth-modal');
-        if (modal) modal.style.display = 'flex';
-    },
+        const savedPass = Store.getAdminPassword();
+        const inputPass = prompt("أدخل كلمة المرور لدخول لوحة التحكم:");
+        if (!inputPass) return;
 
-    verifyPassword() {
-        const passInput = document.getElementById('admin-password-input');
-        const errorText = document.getElementById('auth-error');
-        const contentBody = document.getElementById('admin-content-body');
-        const authBtnText = document.getElementById('auth-btn-text');
-
-        const savedPass = localStorage.getItem(CONFIG.STORAGE_KEYS.ADMIN_PASS) || CONFIG.ADMIN_PASSWORD;
-
-        if (passInput && (passInput.value === savedPass || passInput.value === CONFIG.MASTER_RECOVERY_PIN)) {
-            const authModal = document.getElementById('auth-modal');
-            if (authModal) authModal.style.display = 'none';
+        if (inputPass === savedPass || inputPass === CONFIG.MASTER_RECOVERY_PIN) {
+            const contentBody = document.getElementById('admin-content-body');
+            const authBtn = document.getElementById('auth-btn');
             if (contentBody) contentBody.style.display = 'block';
-            if (authBtnText) authBtnText.innerText = '✅ تم تسجيل الدخول بنجاح';
-            passInput.value = '';
-            if (errorText) errorText.innerText = '';
-        } else {
-            if (errorText) errorText.innerText = 'كلمة المرور غير صحيحة، حاول مرة أخرى.';
-        }
-    },
-
-    // إعداد قائمة خيارات الشهادات للواتساب
-    populateWaSelect() {
-        const select = document.getElementById('waCertSelect');
-        if (!select) return;
-        const kb = Store.getKnowledge();
-        select.innerHTML = '<option value="">-- اختر الشهادة المطلوب معاينتها --</option>';
-        kb.certificates.forEach(c => {
-            const opt = document.createElement('option');
-            opt.value = c.title;
-            opt.textContent = c.title;
-            select.appendChild(opt);
-        });
-    },
-
-    // إرسال طلب مفتاح للواتساب
-    sendWaRequest(type) {
-        let message = "";
-        if (type === 'master') {
-            message = `مرحباً أ/ أحمد عادل، أود الحصول على (مفتاح تصريح شامل) للاطلاع على كافة الشهادات والوثائق.`;
-        } else {
-            const select = document.getElementById('waCertSelect');
-            const certTitle = select ? select.value : '';
-            if (!certTitle) {
-                alert('يرجى اختيار شهادة من القائمة أو الطلب عبر الزر الشامل.');
-                return;
+            if (authBtn) {
+                authBtn.innerText = "🔓 تم تسجيل الدخول";
+                authBtn.disabled = true;
+                authBtn.style.background = "#10b981";
             }
-            message = `مرحباً أ/ أحمد عادل، أود الحصول على (مفتاح تصريح) للشهادة التالية: [${certTitle}].`;
+            alert("تم تسجيل الدخول بنجاح!");
+        } else {
+            alert("كلمة المرور غير صحيحة!");
         }
-
-        const url = `https://wa.me/${CONFIG.WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
-        window.location.href = url;
-        if (typeof closeModal === 'function') closeModal('wa-modal');
     },
 
-    // فتح نافذة إدخال كود التصريح
-    openAccessModal(certId = null) {
-        this.selectedCertForUnlock = certId;
-        const modal = document.getElementById('accessModal');
-        const errorMsg = document.getElementById('errorMsg');
-        const passcode = document.getElementById('passcode');
-        if (errorMsg) errorMsg.innerText = '';
-        if (passcode) passcode.value = '';
-        if (modal) modal.style.display = 'flex';
-    },
+    /* إدارة بيانات الشهادات (حفظ / تعديل / حذف) */
+    saveCertificate() {
+        const index = parseInt(document.getElementById('certEditIndex').value);
+        const title = document.getElementById('certTitle').value.trim();
+        const issuer = document.getElementById('certIssuer').value.trim();
+        const category = document.getElementById('certCategory').value.trim();
+        const imageUrl = document.getElementById('certImage').value.trim();
+        const pin = document.getElementById('certPin').value.trim();
 
-    // التحقق من صحة كود التصريح
-    validateCode() {
-        const passcode = document.getElementById('passcode')?.value.trim();
-        const errorMsg = document.getElementById('errorMsg');
-        if (!passcode) {
-            if (errorMsg) errorMsg.innerText = 'يرجى إدخال كود التصريح.';
+        if (!title || !issuer) {
+            alert("يرجى ملء اسم الشهادة والجهة المصدرة على الأقل.");
             return;
         }
 
         const kb = Store.getKnowledge();
-        const advKeys = Store.getKeys();
+        const newCert = {
+            id: index >= 0 ? kb.certificates[index].id : `cert-${Date.now()}`,
+            title,
+            issuer,
+            category: category || "عام",
+            imageUrl,
+            pin: pin || "1234",
+            unlocked: false
+        };
 
-        // 1. فحص كود الوصول الشامل
-        const isMaster = advKeys.some(k => k.code === passcode && k.type === 'master') || passcode === CONFIG.MASTER_RECOVERY_PIN;
-
-        if (isMaster) {
-            kb.certificates.forEach(c => Store.unlockCert(c.id));
-            if (typeof closeModal === 'function') closeModal('accessModal');
-            alert('تم تفعيل التصريح الشامل لجميع الوثائق بنجاح!');
-            return;
-        }
-
-        // 2. فحص كود شهادة محددة
-        if (this.selectedCertForUnlock) {
-            const cert = kb.certificates.find(c => c.id === this.selectedCertForUnlock);
-            if (cert && (cert.pin === passcode || advKeys.some(k => k.code === passcode && k.certId === cert.id))) {
-                Store.unlockCert(cert.id);
-                if (typeof closeModal === 'function') closeModal('accessModal');
-                alert(`تم فتح تصريح المعاينة لشهادة: ${cert.title}`);
-                return;
-            }
+        if (index >= 0) {
+            kb.certificates[index] = newCert;
         } else {
-            const matchedCert = kb.certificates.find(c => c.pin === passcode);
-            if (matchedCert) {
-                Store.unlockCert(matchedCert.id);
-                if (typeof closeModal === 'function') closeModal('accessModal');
-                alert(`تم فتح تصريح المعاينة لشهادة: ${matchedCert.title}`);
-                return;
-            }
+            kb.certificates.push(newCert);
         }
 
-        if (errorMsg) errorMsg.innerText = 'رمز التصريح غير صحيح أو غير مفعل.';
+        Store.saveKnowledge(kb);
+        this.resetCertForm();
+        alert("تم حفظ الشهادة بنجاح!");
     },
 
-    // تحديث كافة عناصر القوائم والبيانات
-    renderAll() {
-        this.populateWaSelect();
-        this.renderAdminLists();
+    resetCertForm() {
+        document.getElementById('certEditIndex').value = "-1";
+        document.getElementById('certTitle').value = "";
+        document.getElementById('certIssuer').value = "";
+        document.getElementById('certCategory').value = "";
+        document.getElementById('certImage').value = "";
+        document.getElementById('certPin').value = "";
     },
 
-    renderAdminLists() {
+    editCertificate(index) {
         const kb = Store.getKnowledge();
-        ['certs', 'exp', 'skills', 'vol'].forEach(type => {
-            const container = document.getElementById(`list-${type}`);
-            if (!container) return;
-            container.innerHTML = "";
+        const cert = kb.certificates[index];
+        if (!cert) return;
 
-            let listData = [];
-            if (type === 'certs') listData = kb.certificates.map(c => `${c.title} (${c.issuer})`);
-            else if (type === 'exp') listData = kb.experiences.map(e => `${e.role} - ${e.company}`);
-            else if (type === 'skills') listData = kb.skills.map(s => s.name);
-            else if (type === 'vol') listData = kb.volunteer.map(v => `${v.role} (${v.org})`);
-
-            listData.forEach((item, index) => {
-                const row = document.createElement('div');
-                row.className = 'admin-item-row';
-                row.style.cssText = 'display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border-color);';
-                row.innerHTML = `
-                    <span>${item}</span>
-                    <div>
-                        <button style="background: var(--primary-color); color: #fff; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer;" onclick="App.deleteAdminItem('${type}', ${index})">حذف</button>
-                    </div>
-                `;
-                container.appendChild(row);
-            });
-        });
+        document.getElementById('certEditIndex').value = index;
+        document.getElementById('certTitle').value = cert.title || "";
+        document.getElementById('certIssuer').value = cert.issuer || "";
+        document.getElementById('certCategory').value = cert.category || "";
+        document.getElementById('certImage').value = cert.imageUrl || "";
+        document.getElementById('certPin').value = cert.pin || "";
+        openAdminTab('certs');
     },
 
-    deleteAdminItem(type, index) {
+    deleteCertificate(index) {
+        if (!confirm("هل أنت تأكد من حذف هذه الشهادة؟")) return;
         const kb = Store.getKnowledge();
-        if (type === 'certs') kb.certificates.splice(index, 1);
-        else if (type === 'exp') kb.experiences.splice(index, 1);
-        else if (type === 'skills') kb.skills.splice(index, 1);
-        else if (type === 'vol') kb.volunteer.splice(index, 1);
+        kb.certificates.splice(index, 1);
+        Store.saveKnowledge(kb);
+    },
 
+    /* إدارة البيانات الأخرى (المهارات / الخبرات / التطوع) */
+    saveSkill() {
+        const index = parseInt(document.getElementById('skillEditIndex').value);
+        const category = document.getElementById('skillCategory').value.trim();
+        const name = document.getElementById('skillName').value.trim();
+        const level = document.getElementById('skillLevel').value;
+
+        if (!name) { alert("يرجى إدخال اسم المهارة."); return; }
+
+        const kb = Store.getKnowledge();
+        const item = { name, category: category || "عام", level };
+
+        if (index >= 0) kb.skills[index] = item;
+        else kb.skills.push(item);
+
+        Store.saveKnowledge(kb);
+        document.getElementById('skillEditIndex').value = "-1";
+        document.getElementById('skillCategory').value = "";
+        document.getElementById('skillName').value = "";
+    },
+
+    deleteSkill(index) {
+        if (!confirm("حذف هذه المهارة؟")) return;
+        const kb = Store.getKnowledge();
+        kb.skills.splice(index, 1);
         Store.saveKnowledge(kb);
     }
 };
 
-// جعل الكائنات متاحة عالمياً لنشاطات النقر المفرد (onclick)
+// إتاحة الكائنات للنطاق العام (Global Scope)
 window.App = App;
 window.Store = Store;
+window.toggleAdminAuth = () => App.toggleAdminAuth();
+window.saveCertificate = () => App.saveCertificate();
+window.saveSkill = () => App.saveSkill();
 window.USER_KNOWLEDGE_BASE = Store.getKnowledge();
-
-// تشغيل التطبيق فور تحميل DOM
-document.addEventListener('DOMContentLoaded', () => App.init());
-/**
- * ============================================================================
- *  الموقع المهني وشبكة إدارة المحتوى - أ/ أحمد عادل ناجي ذياب
- *  Engine Version: 3.0 (Clean Architecture & Production Ready)
- * ============================================================================
- */
-
-// ============================================================================
-// 1. الإعدادات والبيانات الافتراضية (Configuration & Constants)
-// ============================================================================
-/* =========================================================
-   ملف الجافاسكريبت الرئيسي (script.js) - أ/ أحمد عادل ناجي ذياب
-   ========================================================= */
-/* =========================================================
-   ملف الجافاسكريبت الرئيسي (script.js) - أ/ أحمد عادل ناجي ذياب
-   ========================================================= */
-
-const CONFIG = {
-    WHATSAPP_NUMBER: "967770000000", // رقم الواتساب الخاص بك
-    ADMIN_PASSWORD: "1234"           // كلمة المرور للوحة التحكم
-};
-
-const App = {
-    data: {
-        certs: [],
-        exp: [],
-        skills: [],
-        vol: []
-    },
-
-    init() {
-        this.setupDrawer();
-        this.setupTabs();
-        this.setupModal();
-        this.renderAllLists();
-    },
-
-    setupDrawer() {
-        const fabBtn = document.getElementById('toggle-drawer-btn');
-        const drawer = document.getElementById('admin-drawer');
-        const closeBtn = document.getElementById('close-drawer-btn');
-
-        if (fabBtn && drawer) {
-            fabBtn.addEventListener('click', () => drawer.classList.add('open'));
-        }
-        if (closeBtn && drawer) {
-            closeBtn.addEventListener('click', () => drawer.classList.remove('open'));
-        }
-    },
-
-    setupTabs() {
-        const tabs = document.querySelectorAll('.admin-tab');
-        tabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                const targetId = tab.getAttribute('data-target');
-                document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
-                document.querySelectorAll('.admin-tab-content').forEach(c => c.style.display = 'none');
-                
-                tab.classList.add('active');
-                const targetContent = document.getElementById(targetId);
-                if (targetContent) targetContent.style.display = 'block';
-            });
-        });
-    },
-
-    setupModal() {
-        const modal = document.getElementById('auth-modal');
-        const closeBtn = document.getElementById('close-auth-modal');
-
-        if (closeBtn && modal) {
-            closeBtn.addEventListener('click', () => modal.style.display = 'none');
-        }
-        window.addEventListener('click', (e) => {
-            if (e.target === modal) modal.style.display = 'none';
-        });
-    },
-
-    toggleAdminAuth() {
-        const modal = document.getElementById('auth-modal');
-        if (modal) modal.style.display = 'flex';
-    },
-
-    verifyPassword() {
-        const passInput = document.getElementById('admin-password-input');
-        const errorText = document.getElementById('auth-error');
-        const contentBody = document.getElementById('admin-content-body');
-        const authBtnText = document.getElementById('auth-btn-text');
-
-        if (passInput && passInput.value === CONFIG.ADMIN_PASSWORD) {
-            document.getElementById('auth-modal').style.display = 'none';
-            if (contentBody) contentBody.style.display = 'block';
-            if (authBtnText) authBtnText.innerText = '✅ تم تسجيل الدخول بنجاح';
-            passInput.value = '';
-            if (errorText) errorText.innerText = '';
-        } else {
-            if (errorText) errorText.innerText = 'كلمة المرور غير صحيحة.';
-        }
-    },
-
-    // إضافة عنصر جديد للقسم المحدد
-    addItem(type) {
-        let newItemText = "";
-        if (type === 'certs') {
-            const title = document.getElementById('cert-title-input').value;
-            const issuer = document.getElementById('cert-issuer-input').value;
-            if (!title) return;
-            newItemText = `${title} - (${issuer})` ;
-            document.getElementById('cert-title-input').value = '';
-            document.getElementById('cert-issuer-input').value = '';
-        } else if (type === 'exp') {
-            const title = document.getElementById('exp-title-input').value;
-            const comp = document.getElementById('exp-company-input').value;
-            if (!title) return;
-            newItemText = `${title} في ${comp}`;
-            document.getElementById('exp-title-input').value = '';
-            document.getElementById('exp-company-input').value = '';
-        } else if (type === 'skills') {
-            const skill = document.getElementById('skill-name-input').value;
-            if (!skill) return;
-            newItemText = skill;
-            document.getElementById('skill-name-input').value = '';
-        } else if (type === 'vol') {
-            const vol = document.getElementById('vol-title-input').value;
-            if (!vol) return;
-            newItemText = vol;
-            document.getElementById('vol-title-input').value = '';
-        }
-
-        this.data[type].push(newItemText);
-        this.renderList(type);
-    },
-
-    // حذف عنصر
-    deleteItem(type, index) {
-        this.data[type].splice(index, 1);
-        this.renderList(type);
-    },
-
-    // تعديل عنصر
-    editItem(type, index) {
-        let currentVal = this.data[type][index];
-        let newVal = prompt("تعديل العنصر:", currentVal);
-        if (newVal !== null && newVal.trim() !== "") {
-            this.data[type][index] = newVal.trim();
-            this.renderList(type);
-        }
-    },
-
-    renderList(type) {
-        const container = document.getElementById(`list-${type}`);
-        if (!container) return;
-        container.innerHTML = "";
-
-        this.data[type].forEach((item, index) => {
-            const row = document.createElement('div');
-            row.className = 'admin-item-row';
-            row.innerHTML = `
-                <span>${item}</span>
-                <div>
-                    <button class="btn-action-edit" onclick="App.editItem('${type}', ${index})">تعديل</button>
-                    <button class="btn-action-delete" onclick="App.deleteItem('${type}', ${index})">حذف</button>
-                </div>
-            `;
-            container.appendChild(row);
-        });
-    },
-
-    renderAllLists() {
-        ['certs', 'exp', 'skills', 'vol'].forEach(type => this.renderList(type));
-    },
-
-    // التوجيه الفوري للواتساب بدون أي تأخير
-    sendWhatsAppRequest(certTitle = null) {
-        let message = certTitle 
-            ? `مرحباً أ/ أحمد عادل، أود الحصول على تصريح للشهادة: [${certTitle}].`
-            : `مرحباً أ/ أحمد عادل، أود التواصل معك مباشرة من موقعك المهني.`;
-
-        const url = `https://wa.me/${CONFIG.WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
-        window.location.href = url;
-    }
-};
-
-document.addEventListener('DOMContentLoaded', () => App.init());
-const CONFIG = {
-    WHATSAPP_NUMBER: "967770000000", // استبدل هذا برقم الواتساب الخاص بك (متبوعاً برقم الدولة بدون علامة +)
-    ADMIN_PASSWORD: "1234"           // كلمة مرور لوحة التحكم (يمكنك تغييرها هنا)
-};
-
-const App = {
-    init() {
-        this.setupDrawer();
-        this.setupTabs();
-        this.setupModal();
-    },
-
     // 1. تشغيل اللوحة الجانبية (Admin Drawer)
     setupDrawer() {
         const fabBtn = document.getElementById('toggle-drawer-btn');
