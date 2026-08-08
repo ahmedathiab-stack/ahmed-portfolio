@@ -3,14 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>أحمد عادل ناجي ذياب | معرض الأعمال والاعتمادات الموثقة</title>
-    <!-- Google Fonts -->
+    <title>أحمد عادل ناجي ذياب | معرض الأعمال والاعتمادات</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <!-- زر فتح لوحة التحكم الجانبية -->
+    <!-- زر فتح لوحة التحكم -->
     <button id="toggle-drawer-btn" class="admin-fab" title="لوحة التحكم" onclick="App.toggleAdminDrawer()">⚙️</button>
 
     <!-- اللوحة الجانبية للإدارة -->
@@ -21,6 +20,7 @@
         </div>
         <div class="admin-drawer-body">
             <button id="auth-btn" class="btn-submit" onclick="App.toggleAdminAuth()">🔒 تسجيل الدخول للوحة</button>
+            <button class="btn-danger-outline" onclick="App.resetToDefaultData()">🔄 إعادة ضبط البيانات للوضع الافتراضي</button>
 
             <div id="admin-content-body" style="display: none; margin-top: 20px;">
                 <nav class="admin-tabs-nav">
@@ -33,11 +33,10 @@
                 <!-- إدارة الشهادات -->
                 <div id="tab-certs" class="admin-tab-content active">
                     <p class="section-desc">إدارة الشهادات والاعتمادات</p>
-                    <input type="hidden" id="certEditIndex" value="-1">
                     <input type="text" id="certTitle" placeholder="عنوان الشهادة">
                     <input type="text" id="certIssuer" placeholder="الجهة المصدرة">
                     <input type="text" id="certCategory" placeholder="التصنيف (محاسبة، لغات...)">
-                    <input type="text" id="certPin" placeholder="رمز PIN الخاص بالشهادة">
+                    <input type="text" id="certPin" placeholder="رمز PIN الخاص بالشهادة (مثل: 1001)">
                     <input type="text" id="certImage" placeholder="رابط صورة / مستند الشهادة">
                     <button class="btn-submit" onclick="App.saveCertificate()">حفظ الشهادة</button>
                     <div id="admin-certs-list" class="admin-list"></div>
@@ -85,12 +84,12 @@
     <!-- الهيدر والترويسة -->
     <header class="hero">
         <div class="container">
-            <h1>أحمد عادل ناجي ذياب</h1>
-            <p class="subtitle">مدرب برامج محاسبة وأنظمة مالية | مدرب معتمد (ICDL & English)</p>
+            <h1 id="hero-name">أحمد عادل ناجي ذياب</h1>
+            <p id="hero-title" class="subtitle">مدرب برامج محاسبة وأنظمة مالية | مدرب معتمد (ICDL & English)</p>
             <div class="contact-info">
-                <span>📍 جعار - خنفر - أبين - اليمن</span>
-                <span>📱 +967 779087415</span>
-                <span>✉️ Ahmed.a.n.thiab@gmail.com</span>
+                <span id="hero-location">📍 جعار - خنفر - أبين - اليمن</span>
+                <span id="hero-phone">📱 +967 779087415</span>
+                <span id="hero-email">✉️ Ahmed.a.n.thiab@gmail.com</span>
             </div>
         </div>
     </header>
@@ -141,16 +140,14 @@
         </section>
     </main>
 
-    <!-- ==================== Modals (النوافذ المنبثقة) ==================== -->
-    
-    <!-- نافذة طلب تصريح عبر الواتساب -->
+    <!-- Modals -->
     <div id="wa-modal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="App.closeModal('wa-modal')">&times;</span>
             <h3>💬 طلب مفتاح تصريح عبر الواتساب</h3>
             <p>حدد نوع المفتاح للتواصل المباشر مع الأستاذ أحمد:</p>
             <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 15px;">
-                <button class="btn-whatsapp" style="justify-content: center; width: 100%;" onclick="App.sendWhatsAppRequest()">طلب مفتاح شامل (جميع الشهادات)</button>
+                <button class="btn-whatsapp" style="justify-content: center; width: 100%;" onclick="App.sendWhatsAppRequest('مرحباً أ/ أحمد عادل، أود الحصول على الرقم السرّي الشامل لفتح كافة الشهادات والوثائق.')">طلب مفتاح شامل (جميع الشهادات)</button>
                 <hr style="border: 0; border-top: 1px solid var(--border-color);">
                 <label style="font-size: 0.85rem; font-weight: 600; text-align: right;">أو اختر شهادة محددة:</label>
                 <select id="waCertSelect"></select>
@@ -159,19 +156,18 @@
         </div>
     </div>
 
-    <!-- نافذة إدخال كود التصريح -->
     <div id="accessModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="App.closeModal('accessModal')">&times;</span>
             <h3>طلب تصريح معاينة</h3>
-            <p>أدخل رمز الوصول الخاص بهذه الوثيقة أو الرمز الشامل:</p>
+            <p>أدخل رمز الوصول الخاص بهذه الوثيقة أو الرمز الشامل (تجريبي: 7777):</p>
             <input type="password" id="passcode" placeholder="أدخل كود التصريح هنا">
             <button class="btn-submit" onclick="App.validateAccessCode()">فحص التصريح والفتح</button>
             <p id="errorMsg" class="error-text"></p>
         </div>
     </div>
 
-    <!-- ==================== AI Chatbot UI ==================== -->
+    <!-- AI Chatbot UI -->
     <button id="ai-chat-btn" onclick="App.toggleChat()">💬 اسأل السكرتير الذكي</button>
 
     <div id="ai-chat-box">
