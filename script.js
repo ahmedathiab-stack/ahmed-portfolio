@@ -11,7 +11,176 @@
 /* =========================================================
    ملف الجافاسكريبت الرئيسي (script.js) - أ/ أحمد عادل ناجي ذياب
    ========================================================= */
+/* =========================================================
+   ملف الجافاسكريبت الرئيسي (script.js) - أ/ أحمد عادل ناجي ذياب
+   ========================================================= */
 
+const CONFIG = {
+    WHATSAPP_NUMBER: "967770000000", // رقم الواتساب الخاص بك
+    ADMIN_PASSWORD: "1234"           // كلمة المرور للوحة التحكم
+};
+
+const App = {
+    data: {
+        certs: [],
+        exp: [],
+        skills: [],
+        vol: []
+    },
+
+    init() {
+        this.setupDrawer();
+        this.setupTabs();
+        this.setupModal();
+        this.renderAllLists();
+    },
+
+    setupDrawer() {
+        const fabBtn = document.getElementById('toggle-drawer-btn');
+        const drawer = document.getElementById('admin-drawer');
+        const closeBtn = document.getElementById('close-drawer-btn');
+
+        if (fabBtn && drawer) {
+            fabBtn.addEventListener('click', () => drawer.classList.add('open'));
+        }
+        if (closeBtn && drawer) {
+            closeBtn.addEventListener('click', () => drawer.classList.remove('open'));
+        }
+    },
+
+    setupTabs() {
+        const tabs = document.querySelectorAll('.admin-tab');
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const targetId = tab.getAttribute('data-target');
+                document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.admin-tab-content').forEach(c => c.style.display = 'none');
+                
+                tab.classList.add('active');
+                const targetContent = document.getElementById(targetId);
+                if (targetContent) targetContent.style.display = 'block';
+            });
+        });
+    },
+
+    setupModal() {
+        const modal = document.getElementById('auth-modal');
+        const closeBtn = document.getElementById('close-auth-modal');
+
+        if (closeBtn && modal) {
+            closeBtn.addEventListener('click', () => modal.style.display = 'none');
+        }
+        window.addEventListener('click', (e) => {
+            if (e.target === modal) modal.style.display = 'none';
+        });
+    },
+
+    toggleAdminAuth() {
+        const modal = document.getElementById('auth-modal');
+        if (modal) modal.style.display = 'flex';
+    },
+
+    verifyPassword() {
+        const passInput = document.getElementById('admin-password-input');
+        const errorText = document.getElementById('auth-error');
+        const contentBody = document.getElementById('admin-content-body');
+        const authBtnText = document.getElementById('auth-btn-text');
+
+        if (passInput && passInput.value === CONFIG.ADMIN_PASSWORD) {
+            document.getElementById('auth-modal').style.display = 'none';
+            if (contentBody) contentBody.style.display = 'block';
+            if (authBtnText) authBtnText.innerText = '✅ تم تسجيل الدخول بنجاح';
+            passInput.value = '';
+            if (errorText) errorText.innerText = '';
+        } else {
+            if (errorText) errorText.innerText = 'كلمة المرور غير صحيحة.';
+        }
+    },
+
+    // إضافة عنصر جديد للقسم المحدد
+    addItem(type) {
+        let newItemText = "";
+        if (type === 'certs') {
+            const title = document.getElementById('cert-title-input').value;
+            const issuer = document.getElementById('cert-issuer-input').value;
+            if (!title) return;
+            newItemText = `${title} - (${issuer})` ;
+            document.getElementById('cert-title-input').value = '';
+            document.getElementById('cert-issuer-input').value = '';
+        } else if (type === 'exp') {
+            const title = document.getElementById('exp-title-input').value;
+            const comp = document.getElementById('exp-company-input').value;
+            if (!title) return;
+            newItemText = `${title} في ${comp}`;
+            document.getElementById('exp-title-input').value = '';
+            document.getElementById('exp-company-input').value = '';
+        } else if (type === 'skills') {
+            const skill = document.getElementById('skill-name-input').value;
+            if (!skill) return;
+            newItemText = skill;
+            document.getElementById('skill-name-input').value = '';
+        } else if (type === 'vol') {
+            const vol = document.getElementById('vol-title-input').value;
+            if (!vol) return;
+            newItemText = vol;
+            document.getElementById('vol-title-input').value = '';
+        }
+
+        this.data[type].push(newItemText);
+        this.renderList(type);
+    },
+
+    // حذف عنصر
+    deleteItem(type, index) {
+        this.data[type].splice(index, 1);
+        this.renderList(type);
+    },
+
+    // تعديل عنصر
+    editItem(type, index) {
+        let currentVal = this.data[type][index];
+        let newVal = prompt("تعديل العنصر:", currentVal);
+        if (newVal !== null && newVal.trim() !== "") {
+            this.data[type][index] = newVal.trim();
+            this.renderList(type);
+        }
+    },
+
+    renderList(type) {
+        const container = document.getElementById(`list-${type}`);
+        if (!container) return;
+        container.innerHTML = "";
+
+        this.data[type].forEach((item, index) => {
+            const row = document.createElement('div');
+            row.className = 'admin-item-row';
+            row.innerHTML = `
+                <span>${item}</span>
+                <div>
+                    <button class="btn-action-edit" onclick="App.editItem('${type}', ${index})">تعديل</button>
+                    <button class="btn-action-delete" onclick="App.deleteItem('${type}', ${index})">حذف</button>
+                </div>
+            `;
+            container.appendChild(row);
+        });
+    },
+
+    renderAllLists() {
+        ['certs', 'exp', 'skills', 'vol'].forEach(type => this.renderList(type));
+    },
+
+    // التوجيه الفوري للواتساب بدون أي تأخير
+    sendWhatsAppRequest(certTitle = null) {
+        let message = certTitle 
+            ? `مرحباً أ/ أحمد عادل، أود الحصول على تصريح للشهادة: [${certTitle}].`
+            : `مرحباً أ/ أحمد عادل، أود التواصل معك مباشرة من موقعك المهني.`;
+
+        const url = `https://wa.me/${CONFIG.WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+        window.location.href = url;
+    }
+};
+
+document.addEventListener('DOMContentLoaded', () => App.init());
 const CONFIG = {
     WHATSAPP_NUMBER: "967770000000", // استبدل هذا برقم الواتساب الخاص بك (متبوعاً برقم الدولة بدون علامة +)
     ADMIN_PASSWORD: "1234"           // كلمة مرور لوحة التحكم (يمكنك تغييرها هنا)
