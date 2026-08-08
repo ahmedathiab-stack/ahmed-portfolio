@@ -8,6 +8,17 @@
 // ============================================================================
 // 1. الإعدادات والبيانات الافتراضية (Configuration & Constants)
 // ============================================================================
+static sendWhatsAppRequest(certTitle = null) {
+    let message = certTitle 
+        ? `مرحباً أ/ أحمد عادل، أود الحصول على (مفتاح تصريح) للشهادة التالية: [${certTitle}].`
+        : `مرحباً أ/ أحمد عادل، أود الحصول على (مفتاح تصريح شامل) للاطلاع على كافة الشهادات والوثائق في موقعك المهني.`;
+
+    const url = `https://wa.me/${CONFIG.WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+    
+    // استخدام التوجيه المباشر لضمان فتح الواتساب بدون حظر من المتصفح
+    window.location.href = url;
+    App.closeWaModal();
+}
 const CONFIG = {
     WHATSAPP_NUMBER: "967779087415", // رقم الواتساب الموحد
     MASTER_RECOVERY_PIN: "7777",    // رمز استعادة لوحة التحكم
