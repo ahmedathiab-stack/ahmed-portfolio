@@ -9,6 +9,160 @@ const USER_KNOWLEDGE_BASE = {
         summary: "محاسب متخصص يجمع بين الخصلة المالية واستخدام الحلول التقنية الحديثة ونظام إكسترا."
     },
     // ============================================================
+// 1. قاعدة البيانات والذاكرة
+// ============================================================
+const USER_KNOWLEDGE_BASE = {
+    personalInfo: {
+        name: "أحمد عادل ناجي ذياب",
+        title: "محاسب ومتخصص في الأنظمة المحاسبية وتقنية المعلومات"
+    },
+    certificates: [
+        { id: "cert-acc-1", title: "بكالوريوس المحاسبة", category: "محاسبة", status: "متاح", issuer: "جامعة معتمدة" },
+        { id: "cert-acc-2", title: "شهادة نظام إكسترا المحاسبي", category: "محاسبة", status: "متاح", issuer: "مركز تدريب" },
+        { id: "cert-it-1", title: "دبلوم ICDL", category: "تقنية", status: "متاح", issuer: "ICDL" },
+        { id: "cert-lang-1", title: "شهادة إنجليزي B2", category: "لغات", status: "متاح", issuer: "معهد لغات" }
+    ],
+    experiences: [],
+    skills: { accounting: [], tech: [], languages: [] },
+    volunteer: []
+};
+
+// ============================================================
+// 2. دالة رسم وعرض المحتوى ديناميكياً على الشاشة (UI Renderer)
+// ============================================================
+function renderAllDynamicContent() {
+    // عرض الشهادات
+    const certContainer = document.getElementById("certificates-container");
+    if (certContainer) {
+        certContainer.innerHTML = USER_KNOWLEDGE_BASE.certificates.map(c => `
+            <div class="cert-card" id="item-${c.id}">
+                <h4>${c.title}</h4>
+                <p>الجهة: ${c.issuer} | الحالة: <b>${c.status}</b></p>
+                ${c.status === 'متاح' ? `<button class="btn-lock" onclick="openModal('${c.id}')">🔒 طلب معاينة</button>` : '<span style="color:#e53e3e;">قيد التجهيز</span>'}
+            </div>
+        `).join('');
+    }
+
+    // عرض الخبرات
+    const expContainer = document.getElementById("experiences-container");
+    if (expContainer) {
+        expContainer.innerHTML = USER_KNOWLEDGE_BASE.experiences.map(e => `
+            <div class="exp-card">
+                <h4>${e.role} - <span>${e.company}</span></h4>
+                <small>${e.period}</small>
+                <ul>${e.tasks.map(t => `<li>${t}</li>`).join('')}</ul>
+            </div>
+        `).join('');
+    }
+
+    // عرض المهارات
+    const skillContainer = document.getElementById("skills-container");
+    if (skillContainer) {
+        let skillsHTML = "";
+        for (let cat in USER_KNOWLEDGE_BASE.skills) {
+            if (USER_KNOWLEDGE_BASE.skills[cat].length > 0) {
+                skillsHTML += `<div><b>${cat}:</b> ${USER_KNOWLEDGE_BASE.skills[cat].join(', ')}</div>`;
+            }
+        }
+        skillContainer.innerHTML = skillsHTML;
+    }
+
+    // عرض الأعمال التطوعية
+    const volContainer = document.getElementById("volunteer-container");
+    if (volContainer && USER_KNOWLEDGE_BASE.volunteer) {
+        volContainer.innerHTML = USER_KNOWLEDGE_BASE.volunteer.map(v => `
+            <div class="vol-card">
+                <b>${v.role}</b> في ${v.org} (${v.period})
+            </div>
+        `).join('');
+    }
+}
+
+// ============================================================
+// 3. دوال لوحة التحكم والإضافة
+// ============================================================
+function switchAdminTab(tab) {
+    document.querySelectorAll('.admin-tab-content').forEach(el => el.style.display = 'none');
+    document.querySelectorAll('.admin-tab').forEach(el => el.classList.remove('active'));
+    
+    document.getElementById(`tab-${tab}`).style.display = 'block';
+    event.currentTarget.classList.add('active');
+}
+
+function addNewCertificate() {
+    const title = document.getElementById("addCertTitle").value.trim();
+    const issuer = document.getElementById("addCertIssuer").value.trim();
+    const status = document.getElementById("addCertStatus").value;
+
+    if (!title) return alert("يرجى إدخال عنوان الشهادة");
+
+    const newId = `cert-custom-${Date.now()}`;
+    USER_KNOWLEDGE_BASE.certificates.push({
+        id: newId, title, category: "عام", status, issuer: issuer || "غير محدد"
+    });
+
+    saveAndRefresh();
+    alert("✅ تم إضافة الشهادة بنجاح وللذكاء الاصطناعي!");
+}
+
+function addNewExperience() {
+    const role = document.getElementById("addExpRole").value.trim();
+    const company = document.getElementById("addExpCompany").value.trim();
+    const period = document.getElementById("addExpPeriod").value.trim();
+    const tasks = document.getElementById("addExpTasks").value.split("\n").filter(t => t.trim() !== "");
+
+    if (!role || !company) return alert("يرجى إدخال البيانات الأساسية");
+
+    USER_KNOWLEDGE_BASE.experiences.push({ role, company, period, tasks });
+    saveAndRefresh();
+    alert("✅ تم إضافة الخبرة!");
+}
+
+function addNewSkill() {
+    const skill = document.getElementById("addSkillName").value.trim();
+    const cat = document.getElementById("addSkillCat").value;
+
+    if (!skill) return alert("أدخل اسم المهارة");
+
+    if (!USER_KNOWLEDGE_BASE.skills[cat]) USER_KNOWLEDGE_BASE.skills[cat] = [];
+    USER_KNOWLEDGE_BASE.skills[cat].push(skill);
+    
+    saveAndRefresh();
+    alert("✅ تم إضافة المهارة!");
+}
+
+function addNewVolunteer() {
+    const role = document.getElementById("addVolRole").value.trim();
+    const org = document.getElementById("addVolOrg").value.trim();
+    const period = document.getElementById("addVolPeriod").value.trim();
+
+    if (!USER_KNOWLEDGE_BASE.volunteer) USER_KNOWLEDGE_BASE.volunteer = [];
+    USER_KNOWLEDGE_BASE.volunteer.push({ role, org, period });
+    
+    saveAndRefresh();
+    alert("✅ تم إضافة العمل التطوعي!");
+}
+
+// حفظ البيانات وتحديث الشاشة والنافذة
+function saveAndRefresh() {
+    localStorage.setItem("user_kb_custom", JSON.stringify(USER_KNOWLEDGE_BASE));
+    renderAllDynamicContent(); // تحديث عناصر الصفحة فوراً
+    closeAdminModal();
+}
+
+function loadDynamicData() {
+    const saved = localStorage.getItem("user_kb_custom");
+    if (saved) {
+        const parsed = JSON.parse(saved);
+        Object.assign(USER_KNOWLEDGE_BASE, parsed);
+    }
+    renderAllDynamicContent(); // رسم المحتوى عند فتح الموقع
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    loadDynamicData();
+});
+    // ============================================================
 // إدارة الإضافات والتحكم التكيّفي للذكاء الاصطناعي
 // ============================================================
 
