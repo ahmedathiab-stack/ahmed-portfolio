@@ -3,199 +3,174 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>أحمد عادل ناجي ذياب | معرض الأعمال والاعتمادات الموثقة</title>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <title>أحمد عادل ناجي ذياب</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-    <!-- زر فتح لوحة التحكم -->
-    <button id="toggle-drawer-btn" class="admin-fab" title="لوحة التحكم" onclick="App.toggleAdminDrawer()">⚙️</button>
-
-    <!-- اللوحة الجانبية للإدارة -->
+    <button id="toggle-drawer-btn" class="admin-fab" onclick="App.toggleAdminDrawer()">⚙️</button>
     <aside id="admin-drawer" class="admin-drawer">
         <div class="admin-drawer-header">
-            <h3>لوحة التحكم والإدارة</h3>
+            <h3>إدارة المحتوى والشاملة</h3>
             <span class="close-drawer" onclick="App.toggleAdminDrawer()">&times;</span>
         </div>
         <div class="admin-drawer-body">
-            <button id="auth-btn" class="btn-submit" onclick="App.toggleAdminAuth()">🔒 تسجيل الدخول للوحة</button>
-            <button class="btn-danger-outline" onclick="App.resetToDefaultData()">🔄 إعادة ضبط البيانات للوضع الافتراضي</button>
-
-            <div id="admin-content-body" style="display: none; margin-top: 20px;">
-                <nav class="admin-tabs-nav">
+            <button id="auth-btn" class="btn-submit" onclick="App.toggleAdminAuth()">🔒 تسجيل الدخول</button>
+            <div id="admin-content-body" style="display:none; margin-top:15px;">
+                <div class="admin-tabs-nav">
                     <button class="admin-tab active" onclick="App.switchAdminTab('tab-certs', this)">الشهادات</button>
                     <button class="admin-tab" onclick="App.switchAdminTab('tab-exp', this)">الخبرات</button>
                     <button class="admin-tab" onclick="App.switchAdminTab('tab-skills', this)">المهارات</button>
                     <button class="admin-tab" onclick="App.switchAdminTab('tab-vol', this)">التطوع</button>
-                </nav>
-
-                <!-- إدارة الشهادات -->
+                </div>
+                
+                <!-- تبويب الشهادات -->
                 <div id="tab-certs" class="admin-tab-content active">
-                    <p class="section-desc">إدارة الشهادات والاعتمادات الموثقة</p>
+                    <h4>إضافة/تعديل شهادة</h4>
                     <input type="hidden" id="certEditIndex" value="-1">
-                    <input type="text" id="certTitle" placeholder="عنوان الشهادة">
+                    <input type="text" id="certTitle" placeholder="اسم الشهادة">
                     <input type="text" id="certIssuer" placeholder="الجهة المصدرة">
-                    <input type="text" id="certCategory" placeholder="التصنيف (محاسبة، لغات...)">
-                    <input type="text" id="certPin" placeholder="رمز PIN الخاص بالشهادة (مثل: 1001)">
-                    <input type="text" id="certImage" placeholder="رابط صورة / مستند الشهادة (URL)">
-                    <button class="btn-submit" onclick="App.saveCertificate()">💾 حفظ / إضافة الشهادة</button>
-                    <button class="btn-secondary-outline" style="margin-top:5px;" onclick="App.resetCertForm()">إلغاء التعديل</button>
-                    
-                    <h4 style="margin-top:15px; font-size:0.9rem;">الشهادات الحالية (تعديل / حذف):</h4>
+                    <input type="text" id="certCategory" placeholder="التصنيف (محاسبة، تقنية...)">
+                    <input type="text" id="certPin" placeholder="رقم سري للفتح (اختياري)">
+                    <input type="text" id="certImage" placeholder="رابط صورة الشهادة أو المستند (URL)">
+                    <button class="btn-submit" onclick="App.saveCertificate()">✅ حفظ وتحديث فوري للمعرض</button>
                     <div id="admin-certs-list" class="admin-list"></div>
                 </div>
 
-                <!-- إدارة الخبرات -->
+                <!-- تبويب الخبرات -->
                 <div id="tab-exp" class="admin-tab-content">
-                    <p class="section-desc">إدارة الخبرات العملية</p>
+                    <h4>إضافة/تعديل خبرة</h4>
                     <input type="hidden" id="expEditIndex" value="-1">
                     <input type="text" id="expRole" placeholder="المسمى الوظيفي">
-                    <input type="text" id="expCompany" placeholder="الجهة أو المؤسسة">
-                    <input type="text" id="expPeriod" placeholder="الفترة الزمانية">
-                    <textarea id="expDesc" placeholder="تفاصيل المسؤوليات"></textarea>
-                    <button class="btn-submit" onclick="App.saveExperience()">💾 حفظ الخبرة</button>
+                    <input type="text" id="expCompany" placeholder="الشركة أو الجهة">
+                    <input type="text" id="expPeriod" placeholder="الفترة الزمنية">
+                    <textarea id="expDesc" placeholder="الوصف"></textarea>
+                    <button class="btn-submit" onclick="App.saveExperience()">✅ حفظ الخبرة</button>
                     <div id="admin-exp-list" class="admin-list"></div>
                 </div>
 
-                <!-- إدارة المهارات -->
+                <!-- تبويب المهارات -->
                 <div id="tab-skills" class="admin-tab-content">
-                    <p class="section-desc">إدارة المهارات والقدرات</p>
+                    <h4>إضافة/تعديل مهارة</h4>
                     <input type="hidden" id="skillEditIndex" value="-1">
                     <input type="text" id="skillName" placeholder="اسم المهارة">
                     <input type="text" id="skillCategory" placeholder="التصنيف">
                     <select id="skillLevel">
-                        <option value="مبتدئ">مبتدئ</option>
-                        <option value="متوسط">متوسط</option>
-                        <option value="متقدم">متقدم</option>
                         <option value="خبير">خبير</option>
+                        <option value="متقدم">متقدم</option>
+                        <option value="متوسط">متوسط</option>
                     </select>
-                    <button class="btn-submit" onclick="App.saveSkill()">💾 حفظ المهارة</button>
+                    <button class="btn-submit" onclick="App.saveSkill()">✅ حفظ المهارة</button>
                     <div id="admin-skills-list" class="admin-list"></div>
                 </div>
 
-                <!-- إدارة التطوع -->
+                <!-- تبويب التطوع -->
                 <div id="tab-vol" class="admin-tab-content">
-                    <p class="section-desc">إدارة الأعمال التطوعية</p>
+                    <h4>إضافة/تعديل تطوع</h4>
                     <input type="hidden" id="volEditIndex" value="-1">
-                    <input type="text" id="volRole" placeholder="المسمى التطوعي">
-                    <input type="text" id="volOrg" placeholder="الجهة المنظمة">
-                    <input type="text" id="volPeriod" placeholder="الفترة الزمانية">
-                    <button class="btn-submit" onclick="App.saveVolunteer()">💾 حفظ العمل التطوعي</button>
+                    <input type="text" id="volRole" placeholder="الدور">
+                    <input type="text" id="volOrg" placeholder="المنظمة أو الجهة">
+                    <input type="text" id="volPeriod" placeholder="الفترة">
+                    <button class="btn-submit" onclick="App.saveVolunteer()">✅ حفظ التطوع</button>
                     <div id="admin-vol-list" class="admin-list"></div>
                 </div>
             </div>
         </div>
     </aside>
 
-    <!-- الهيدر والترويسة -->
+    <!-- الهيدر الشخصي -->
     <header class="hero">
-        <div class="container">
-            <h1 id="hero-name">أحمد عادل ناجي ذياب</h1>
-            <p id="hero-title" class="subtitle">مدرب برامج محاسبة وأنظمة مالية | مدرب معتمد (ICDL & English)</p>
-            <div class="contact-info">
-                <span id="hero-location">📍 جعار - خنفر - أبين - اليمن</span>
-                <span id="hero-phone">📱 +967 779087415</span>
-                <span id="hero-email">✉️ Ahmed.a.n.thiab@gmail.com</span>
-            </div>
+        <h1 id="hero-name">أحمد عادل ناجي ذياب</h1>
+        <p class="subtitle" id="hero-title">مدرب برامج محاسبة وأنظمة مالية | مدرب معتمد (ICDL & English)</p>
+        <div class="contact-info">
+            <span id="hero-location">📍 جعار - خنفر - أبين - اليمن</span>
+            <span id="hero-phone">📱 +967 779087415</span>
+            <span id="hero-email">✉️ Ahmed.a.n.thiab@gmail.com</span>
         </div>
     </header>
 
-    <!-- المحتوى الرئيسي -->
     <main class="container">
-        <!-- الملخص المهني -->
-        <section class="card">
-            <h2>📌 الملخص المهني</h2>
-            <p id="profile-summary">مدرب معتمد ومحاسب أكاديمي حاصل على بكالوريوس المحاسبة من جامعة أبين، أجمع بين الخبرة المالية العملية والمهارات التدريبية والتيسيرية. متخصص في تأهيل الكوادر وتدريب الأنظمة المحاسبية الآلية والبرامج المكتبية.</p>
+        <!-- شريط المفتاح الشامل واستعراض الوثائق -->
+        <section class="master-access-bar">
+            <div>
+                <span>🔓 المعرض مقفل بحماية الكود</span>
+                <p style="font-size:0.85rem; color:var(--text-muted);">أدخل كود أي شهادة لفتح معاينتها، أو استخدم الكود الشامل.</p>
+            </div>
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                <button class="btn-master" onclick="App.openModal('accessModal')">🔑 إدخال كود تصريح</button>
+                <button class="btn-whatsapp" onclick="App.openWaModal()">💬 طلب مفتاح عبر واتساب</button>
+            </div>
         </section>
 
-        <!-- شريط المفتاح الشامل -->
-        <div class="master-access-bar">
-            <div>
-                <span>🔑 هل لديك مفتاح تصريح شامل؟</span>
-                <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 2px;">يمكنك فتح جميع الوثائق والشهادات المحمية دفعة واحدة من هنا.</p>
-            </div>
-            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                <button class="btn-master" onclick="App.openModal('accessModal')">إدخال المفتاح الشامل</button>
-                <button class="btn-whatsapp" onclick="App.openWaModal()">💬 طلب مفتاح (واتساب)</button>
-            </div>
-        </div>
-
-        <!-- قسم الشهادات -->
+        <!-- النبذة -->
         <section class="card">
-            <h2>📜 السجل الأكاديمي والشهادات الموثقة</h2>
-            <p class="section-desc">عرض للشهادات والاعتمادات المحصلة. بعض الشهادات تتطلب مفتاح تصريح معاينة لفتحها.</p>
+            <h2>👤 نبذة تعريفية</h2>
+            <p id="profile-summary" class="section-desc">مدرب معتمد ومحاسب أكاديمي حاصل على بكالوريوس المحاسبة من جامعة أبين، أجمع بين الخبرة المالية العملية والمهارات التدريبية والتيسيرية.</p>
+        </section>
+
+        <!-- الشهادات الموثقة -->
+        <section class="card">
+            <h2>📜 الشهادات الموثقة</h2>
             <div id="certificates-container" class="cert-grid"></div>
         </section>
 
-        <!-- قسم الخبرات -->
+        <!-- الخبرات -->
         <section class="card">
-            <h2>💼 الخبرات المهنية والعملية</h2>
+            <h2>💼 الخبرات العملية</h2>
             <div id="experiences-container"></div>
         </section>
 
-        <!-- قسم المهارات -->
+        <!-- المهارات -->
         <section class="card">
-            <h2>⚡ المهارات والقدرات</h2>
+            <h2>⚡ المهارات التقنية والمهنية</h2>
             <div id="skills-container"></div>
         </section>
 
-        <!-- قسم التطوع -->
+        <!-- التطوع -->
         <section class="card">
-            <h2>🤝 الأعمال التطوعية والمبادرات</h2>
+            <h2>🤝 العمل التطوعي والمجتمعي</h2>
             <div id="volunteer-container"></div>
         </section>
     </main>
 
-    <!-- Modals -->
-    <div id="wa-modal" class="modal">
-        <div class="modal-content">
-            <span class="close-btn" onclick="App.closeModal('wa-modal')">&times;</span>
-            <h3>💬 طلب مفتاح تصريح عبر الواتساب</h3>
-            <p>حدد نوع المفتاح للتواصل المباشر مع الأستاذ أحمد:</p>
-            <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 15px;">
-                <button class="btn-whatsapp" style="justify-content: center; width: 100%;" onclick="App.sendWhatsAppRequest('مرحباً أ/ أحمد عادل، أود الحصول على الرقم السرّي الشامل لفتح كافة الشهادات والوثائق.')">طلب مفتاح شامل (جميع الشهادات)</button>
-                <hr style="border: 0; border-top: 1px solid var(--border-color);">
-                <label style="font-size: 0.85rem; font-weight: 600; text-align: right;">أو اختر شهادة محددة:</label>
-                <select id="waCertSelect"></select>
-                <button class="btn-primary" style="width: 100%;" onclick="App.sendWaSingleCertRequest()">طلب مفتاح للشهادة المختارة</button>
-            </div>
-        </div>
-    </div>
-
+    <!-- Modal طلب الكود -->
     <div id="accessModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="App.closeModal('accessModal')">&times;</span>
-            <h3>طلب تصريح معاينة</h3>
-            <p>أدخل رمز الوصول الخاص بهذه الوثيقة أو الرمز الشامل (تجريبي: 7777):</p>
-            <input type="password" id="passcode" placeholder="أدخل كود التصريح هنا">
-            <button class="btn-submit" onclick="App.validateAccessCode()">فحص التصريح والفتح</button>
-            <p id="errorMsg" class="error-text"></p>
+            <h3>مطلوب كود التصريح</h3>
+            <p style="font-size:0.9rem; color:var(--text-muted); margin: 10px 0;">أدخل الكود الخاص بهذا المستند أو استخدم الكود الشامل:</p>
+            <input type="password" id="passcode" placeholder="أدخل الكود هنا...">
+            <button class="btn-submit" onclick="App.validateAccessCode()">تحقق وفتح المعاينة</button>
+            <div id="errorMsg" class="error-text"></div>
         </div>
     </div>
 
-    <!-- AI Chatbot UI -->
-    <button id="ai-chat-btn" onclick="App.toggleChat()">💬 اسأل السكرتير الذكي</button>
+    <!-- Modal طلب الواتساب -->
+    <div id="wa-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="App.closeModal('wa-modal')">&times;</span>
+            <h3>طلب مفتاح عبر واتساب</h3>
+            <p style="font-size:0.9rem; color:var(--text-muted); margin: 10px 0;">اختر الشهادة المطلوبة لتجهيز رسالة الإرسال:</p>
+            <select id="waCertSelect"></select>
+            <button class="btn-whatsapp" style="width:100%; margin-top:10px;" onclick="App.sendWaSingleCertRequest()">إرسال الطلب عبر واتساب</button>
+        </div>
+    </div>
 
-    <div id="ai-chat-box">
+    <!-- الشات في وضع ملء الشاشة (مثل واتساب) -->
+    <div id="ai-chat-box" class="full-screen-chat">
         <div id="ai-chat-header">
-            <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="display:flex; align-items:center; gap:10px;">
                 <div class="chat-avatar">أ</div>
-                <div>
-                    <div style="font-size: 0.95rem; font-weight: 700;">مساعد أحمد ذياب الذكي</div>
-                    <div style="font-size: 0.75rem; opacity: 0.85;">متصل حالياً</div>
-                </div>
+                <span>مساعد أحمد الذكي</span>
             </div>
-            <span style="cursor: pointer; font-size: 18px;" onclick="App.toggleChat()">✖</span>
+            <span style="cursor:pointer; font-weight:bold; font-size:1.2rem;" onclick="App.toggleChat()">✖ إغلاق</span>
         </div>
-        <div id="ai-chat-messages">
-            <div class="msg bot-msg">أهلاً بك! 👋 أنا المساعد الذكي الخاص بالمستشار أحمد ذياب. كيف يمكنني مساعدتك اليوم؟</div>
-        </div>
+        <div id="ai-chat-messages"></div>
         <div id="ai-chat-input-area">
             <input type="text" id="ai-chat-input" placeholder="اكتب رسالتك هنا..." onkeypress="App.handleChatKey(event)">
             <button id="ai-chat-send" onclick="App.sendChatMessage()">➤</button>
         </div>
     </div>
+    <button id="ai-chat-btn" onclick="App.toggleChat()">💬 تواصل مع المساعد</button>
 
     <script src="script.js"></script>
 </body>
