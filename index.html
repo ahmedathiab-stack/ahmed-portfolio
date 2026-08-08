@@ -7,7 +7,66 @@
     <title>أحمد عادل ناجي ذياب | Portfolio & Verified Credentials</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<!-- نافذة لوحة تحكم المسؤول الشاملة -->
+<div id="adminModal" class="modal">
+    <div class="modal-content" style="max-width: 600px; text-align: right; max-height: 85vh; overflow-y: auto;">
+        <span class="close-btn" onclick="closeAdminModal()">&times;</span>
+        <h3>⚙️ لوحة التحكم والإضافة الشاملة</h3>
+        
+        <!-- مفتاح التحكم بذكاء الموقع -->
+        <div style="background: #edf2f7; padding: 10px; border-radius: 6px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">
+            <span>🤖 السماح للذكاء بالتكيف والتعديل التلقائي:</span>
+            <button id="aiToggleBtn" onclick="toggleAIAdaptability()" style="padding: 5px 15px; border-radius: 4px; border: none; cursor: pointer; background: #38a169; color: white;">تفعيل (ON)</button>
+        </div>
 
+        <!-- تبويبات الإضافة -->
+        <div style="display: flex; gap: 5px; margin-bottom: 15px; border-bottom: 2px solid #e2e8f0;">
+            <button onclick="switchAdminTab('cert')" class="admin-tab active">شهادة</button>
+            <button onclick="switchAdminTab('exp')" class="admin-tab">خبرة</button>
+            <button onclick="switchAdminTab('skill')" class="admin-tab">مهارة</button>
+            <button onclick="switchAdminTab('vol')" class="admin-tab">عمل تطوعي</button>
+        </div>
+
+        <!-- نموذج إضافة شهادة -->
+        <div id="tab-cert" class="admin-tab-content">
+            <input type="text" id="addCertTitle" placeholder="اسم الشهادة (مثال: شهادة IFRS)">
+            <input type="text" id="addCertIssuer" placeholder="الجهة المصدرة">
+            <select id="addCertStatus">
+                <option value="متاح">متاح ومعتمد</option>
+                <option value="قيد الحصول / قيد الرفع">قيد الحصول / قيد الرفع</option>
+            </select>
+            <button onclick="addNewCertificate()" class="btn-submit">إضافة الشهادة</button>
+        </div>
+
+        <!-- نموذج إضافة خبرة -->
+        <div id="tab-exp" class="admin-tab-content" style="display:none;">
+            <input type="text" id="addExpRole" placeholder=" المسمى الوظيفي (مثال: محاسب رئيسي)">
+            <input type="text" id="addExpCompany" placeholder="اسم الشركة / الجهة">
+            <input type="text" id="addExpPeriod" placeholder="الفترة (مثال: 2024 - الحالي)">
+            <textarea id="addExpTasks" placeholder="المهام (افصل بين كل مهمة بسطر جديد)"></textarea>
+            <button onclick="addNewExperience()" class="btn-submit">إضافة الخبرة</button>
+        </div>
+
+        <!-- نموذج إضافة مهارة -->
+        <div id="tab-skill" class="admin-tab-content" style="display:none;">
+            <input type="text" id="addSkillName" placeholder="اسم المهارة">
+            <select id="addSkillCat">
+                <option value="accounting">محاسبة ومالية</option>
+                <option value="tech">تقنية معلومات</option>
+                <option value="languages">لغات</option>
+            </select>
+            <button onclick="addNewSkill()" class="btn-submit">إضافة المهارة</button>
+        </div>
+
+        <!-- نموذج إضافة عمل تطوعي -->
+        <div id="tab-vol" class="admin-tab-content" style="display:none;">
+            <input type="text" id="addVolRole" placeholder="المسمى التطوعي">
+            <input type="text" id="addVolOrg" placeholder="المنظمة / الجمعية">
+            <input type="text" id="addVolPeriod" placeholder="الفترة">
+            <button onclick="addNewVolunteer()" class="btn-submit">إضافة العمل التطوعي</button>
+        </div>
+    </div>
+</div>
     <style>
       /* =========================================================
          تنسيقات الشات بوت والمساعد الذكي (ستايل متناسق وعالي الجودة)
