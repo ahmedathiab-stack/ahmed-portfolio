@@ -16,6 +16,154 @@
     <input type="password" id="certPin" placeholder="عين رمز PIN خاص بالشهادة">
     <button class="btn-submit" onclick="addNewCertificate()">إضافة الشهادة</button>
 </div>
+    <!-- ==================== قسم الشهادات ==================== -->
+<section class="card">
+    <h2>📜 الشهادات والدورات التدريبية</h2>
+    <p class="section-desc">عرض للشهادات والاعتمادات المحصلة. بعض الشهادات تتطلب مفتاح تصريح لفتحها.</p>
+
+    <!-- 1. شريط المفتاح الشامل (في الأعلى دائماً) -->
+    <div class="master-access-bar">
+        <div>
+            <span>🔑 هل لديك مفتاح تصريح شامل؟</span>
+            <p style="font-size: 0.82rem; color: #4a5568; margin-top: 2px;">يمكنك فتح جميع الشهادات دفعة واحدة هنا</p>
+        </div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button class="btn-master" onclick="openMasterKeyModal()">إدخال المفتاح الشامل</button>
+            <button class="btn-whatsapp" onclick="openWhatsAppRequestModal()">💬 طلب مفتاح (واتساب)</button>
+        </div>
+    </div>
+
+    <!-- 2. حاوية عرض الشهادات -->
+    <div id="certs-container"></div>
+</section>
+
+<!-- ==================== لوحة التحكم الجانبية (Admin Drawer) ==================== -->
+<!-- زر لوحة الإدارة العائم في الزاوية -->
+<button class="admin-fab" onclick="toggleAdminDrawer()" title="لوحة الإدارة">
+    ⚙️
+</button>
+
+<!-- اللوحة الجانبية -->
+<div id="admin-drawer" class="admin-drawer">
+    <div class="admin-drawer-header">
+        <h3>⚙️ لوحة الإدارة</h3>
+        <span class="close-drawer" onclick="toggleAdminDrawer()">&times;</span>
+    </div>
+
+    <!-- زر تسجيل الدخول -->
+    <div style="padding: 15px; border-bottom: 1px solid var(--border-color);">
+        <button id="auth-btn" class="btn-master" style="width: 100%;" onclick="toggleAdminAuth()">🔒 تسجيل الدخول للوحة</button>
+    </div>
+
+    <!-- محتوى اللوحة (يظهر بعد تسجيل الدخول) -->
+    <div id="admin-content-body" style="display: none; padding: 15px;">
+        <div class="admin-tabs-nav">
+            <button class="admin-tab active" onclick="openAdminTab('certs')">الشهادات</button>
+            <button class="admin-tab" onclick="openAdminTab('skills')">المهارات</button>
+            <button class="admin-tab" onclick="openAdminTab('exp')">الخبرات</button>
+            <button class="admin-tab" onclick="openAdminTab('vol')">التطوع</button>
+            <button class="admin-tab" onclick="openAdminTab('keys')">🔑 المفاتيح</button>
+            <button class="admin-tab" onclick="openAdminTab('security')">🔐 الأمان</button>
+        </div>
+
+        <!-- 1. إدارة الشهادات -->
+        <div id="tab-certs" class="admin-tab-content" style="display: block;">
+            <input type="hidden" id="certEditIndex" value="-1">
+            <input type="text" id="certTitle" placeholder="اسم الشهادة">
+            <input type="text" id="certIssuer" placeholder="الجهة المصدرة">
+            <input type="text" id="certCategory" placeholder="الفئة (مثال: دورات تدريبية)">
+            <input type="url" id="certImage" placeholder="رابط صورة الشهادة">
+            <input type="text" id="certPin" placeholder="رمز PIN خاص بالشهادة (افتراضي)">
+            <button id="btn-save-cert" class="btn-submit" onclick="saveCertificate()">حفظ الشهادة</button>
+            <div id="admin-certs-list" class="admin-list"></div>
+        </div>
+
+        <!-- 2. إدارة المهارات -->
+        <div id="tab-skills" class="admin-tab-content">
+            <input type="hidden" id="skillEditIndex" value="-1">
+            <input type="text" id="skillCategory" placeholder="المجال / التخصص">
+            <input type="text" id="skillName" placeholder="اسم المهارة">
+            <select id="skillLevel">
+                <option value="مبتدئ">مبتدئ</option>
+                <option value="متوسط">متوسط</option>
+                <option value="متقدم">متقدم</option>
+                <option value="خبير">خبير</option>
+            </select>
+            <button id="btn-save-skill" class="btn-submit" onclick="saveSkill()">حفظ المهارة</button>
+            <div id="admin-skills-list" class="admin-list"></div>
+        </div>
+
+        <!-- 3. إدارة الخبرات -->
+        <div id="tab-exp" class="admin-tab-content">
+            <input type="hidden" id="expEditIndex" value="-1">
+            <input type="text" id="expRole" placeholder="المسمى الوظيفي">
+            <input type="text" id="expCompany" placeholder="اسم الجهة / الشركة">
+            <input type="text" id="expPeriod" placeholder="الفترة (مثال: 2022 - الحالي)">
+            <textarea id="expDesc" placeholder="الوصف والمسؤوليات"></textarea>
+            <button id="btn-save-exp" class="btn-submit" onclick="saveExperience()">حفظ الخبرة</button>
+            <div id="admin-exp-list" class="admin-list"></div>
+        </div>
+
+        <!-- 4. إدارة التطوع -->
+        <div id="tab-vol" class="admin-tab-content">
+            <input type="hidden" id="volEditIndex" value="-1">
+            <input type="text" id="volRole" placeholder="الدور التطوعي">
+            <input type="text" id="volOrg" placeholder="الجهة / المنظمة">
+            <input type="text" id="volPeriod" placeholder="الفترة">
+            <button id="btn-save-vol" class="btn-submit" onclick="saveVolunteer()">حفظ العمل التطوعي</button>
+            <div id="admin-vol-list" class="admin-list"></div>
+        </div>
+
+        <!-- 5. إنشاء وإدارة المفاتيح المؤقتة وخاصة الاستخدام -->
+        <div id="tab-keys" class="admin-tab-content">
+            <h4 style="margin-bottom: 10px;">مولد مفاتيح التصريح المتقدمة</h4>
+            <select id="keyType">
+                <option value="master">مفتاح شامل (جميع الشهادات)</option>
+                <option value="single_cert">مفتاح لشهادة محددة</option>
+            </select>
+            <select id="keyCertSelect" style="display:none;"></select>
+            <select id="keyDuration">
+                <option value="once">استخدام لمرة واحدة فقط (Single Use)</option>
+                <option value="1">مؤقت لمدة 24 ساعة</option>
+                <option value="7">مؤقت لمدة 7 أيام</option>
+                <option value="30">مؤقت لمدة 30 يوم</option>
+            </select>
+            <button class="btn-submit" onclick="generateAdvancedKey()">توليد المفتاح</button>
+            <div id="keys-history-list" class="admin-list" style="margin-top: 15px;"></div>
+        </div>
+
+        <!-- 6. الأمان -->
+        <div id="tab-security" class="admin-tab-content">
+            <h4 style="margin-bottom: 10px;">تغيير كلمة مرور اللوحة</h4>
+            <input type="password" id="currentPassInput" placeholder="كلمة المرور الحالية">
+            <input type="password" id="newPassInput" placeholder="كلمة المرور الجديدة">
+            <button class="btn-submit" onclick="changeAdminPassword()">تحديث كلمة المرور</button>
+        </div>
+    </div>
+</div>
+
+<!-- نافذة طلب المفتاح عبر الواتساب Modal -->
+<div id="wa-modal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeWaModal()">&times;</span>
+        <h3>💬 طلب مفتاح تصريح عبر الواتساب</h3>
+        <p>حدد نوع المفتاح المطلوب للتواصل المباشر مع أحمد:</p>
+        
+        <div style="display:flex; flex-direction:column; gap:10px; margin-top:15px;">
+            <button class="btn-master" style="background:#25D366;" onclick="sendWaRequest('master')">
+                طلب مفتاح شامل (جميع الشهادات)
+            </button>
+            
+            <hr style="border: 0.5px solid var(--border-color);">
+            
+            <label style="font-size:0.88rem; text-align:right;">أو اختر شهادة محددة:</label>
+            <select id="waCertSelect" style="padding:10px; border-radius:6px; border:1px solid var(--border-color);"></select>
+            <button class="btn-master" style="background:#128C7E;" onclick="sendWaRequest('single')">
+                طلب مفتاح للشهادة المختارة
+            </button>
+        </div>
+    </div>
+</div>
 <!-- قسم لوحة التحكم المحمي -->
 <div class="card admin-card">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
