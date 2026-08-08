@@ -3,8 +3,8 @@ const CONFIG = {
     DEFAULT_ADMIN_PASS: "1234",
     MASTER_RECOVERY_PIN: "7777",
     STORAGE_KEYS: {
-        KNOWLEDGE: "ahmed_knowledge_base_v4",
-        UNLOCKED_CERTS: "ahmed_unlocked_certs_v4"
+        KNOWLEDGE: "ahmed_knowledge_base_v5",
+        UNLOCKED_CERTS: "ahmed_unlocked_certs_v5"
     },
     AI_API_KEYS: [
         "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"
@@ -133,15 +133,17 @@ const App = {
 
         container.innerHTML = certs.map(c => {
             const isUnlocked = unlockedList.includes(c.id);
+            const imgPreview = c.imageUrl ? `<div class="cert-img-box"><img src="${c.imageUrl}" alt="${c.title}" class="cert-thumbnail"></div>` : '';
             return `
                 <div class="cert-item ${isUnlocked ? 'unlocked' : ''}">
+                    ${isUnlocked ? imgPreview : ''}
                     <div class="cert-info">
                         <h4>${c.title}</h4>
                         <p>📌 ${c.issuer} | <span style="color:var(--primary-color)">${c.category || 'عام'}</span></p>
                     </div>
                     <div>
                         ${isUnlocked ? 
-                            `<a href="${c.imageUrl || '#'}" target="_blank" class="btn-primary" style="text-decoration:none; font-size:0.85rem;">👁️ معاينة المستند</a>` :
+                            `<a href="${c.imageUrl || '#'}" target="_blank" class="btn-primary" style="text-decoration:none; font-size:0.85rem;">👁️ معاينة الصورة/المستند</a>` :
                             `<button class="btn-primary" onclick="App.openCertPassModal('${c.id}')">🔒 طلب فتح المعاينة</button>`
                         }
                     </div>
@@ -273,19 +275,72 @@ const App = {
         }
     },
 
+    /* =======================================
+       عرض قوائم التعديل والحذف باللوحة الجانبية
+       ======================================= */
     renderAdminLists(db) {
+        // قائمة الشهادات
         const certList = document.getElementById('admin-certs-list');
         if (certList) {
             certList.innerHTML = (db.certificates || []).map((c, i) => `
                 <div class="admin-row">
                     <span>${c.title}</span>
-                    <button style="color:red; background:none;" onclick="App.deleteItem('certificates', ${i})">🗑️</button>
+                    <div>
+                        <button class="btn-action-edit" onclick="App.editCertificate(${i})">✏️</button>
+                        <button class="btn-action-delete" onclick="App.deleteItem('certificates', ${i})">🗑️</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // قائمة الخبرات
+        const expList = document.getElementById('admin-exp-list');
+        if (expList) {
+            expList.innerHTML = (db.experiences || []).map((e, i) => `
+                <div class="admin-row">
+                    <span>${e.role}</span>
+                    <div>
+                        <button class="btn-action-edit" onclick="App.editExperience(${i})">✏️</button>
+                        <button class="btn-action-delete" onclick="App.deleteItem('experiences', ${i})">🗑️</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // قائمة المهارات
+        const skillList = document.getElementById('admin-skills-list');
+        if (skillList) {
+            skillList.innerHTML = (db.skills || []).map((s, i) => `
+                <div class="admin-row">
+                    <span>${s.name}</span>
+                    <div>
+                        <button class="btn-action-edit" onclick="App.editSkill(${i})">✏️</button>
+                        <button class="btn-action-delete" onclick="App.deleteItem('skills', ${i})">🗑️</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // قائمة التطوع
+        const volList = document.getElementById('admin-vol-list');
+        if (volList) {
+            volList.innerHTML = (db.volunteer || []).map((v, i) => `
+                <div class="admin-row">
+                    <span>${v.role}</span>
+                    <div>
+                        <button class="btn-action-edit" onclick="App.editVolunteer(${i})">✏️</button>
+                        <button class="btn-action-delete" onclick="App.deleteItem('volunteer', ${i})">🗑️</button>
+                    </div>
                 </div>
             `).join('');
         }
     },
 
+    /* =======================================
+       وظائف حفظ / تعديل الشهادات (تتضمن الصورة)
+       ======================================= */
     saveCertificate() {
+        const index = parseInt(document.getElementById('certEditIndex').value);
         const title = document.getElementById('certTitle').value.trim();
         const issuer = document.getElementById('certIssuer').value.trim();
         const category = document.getElementById('certCategory').value.trim();
@@ -295,12 +350,53 @@ const App = {
         if (!title || !issuer) return alert('يرجى كتابة العنوان والجهة المصدرة.');
 
         const db = Store.getKnowledge();
-        db.certificates.push({ id: `cert-${Date.now()}`, title, issuer, category: category || 'عام', pin: pin || '1001', imageUrl });
+        const certObj = { 
+            id: index >= 0 ? db.certificates[index].id : `cert-${Date.now()}`, 
+            title, 
+            issuer, 
+            category: category || 'عام', 
+            pin: pin || '1001', 
+            imageUrl 
+        };
+
+        if (index >= 0) {
+            db.certificates[index] = certObj; // تعديل تلقائي
+        } else {
+            db.certificates.push(certObj); // إضافة تلقائية
+        }
+
         Store.saveKnowledge(db);
-        alert('تم حفظ الشهادة بنجاح!');
+        this.resetCertForm();
+        alert('تم حفظ البيانات والتحديث التلقائي في الشهادات الموثقة!');
     },
 
+    editCertificate(index) {
+        const db = Store.getKnowledge();
+        const c = db.certificates[index];
+        if (!c) return;
+
+        document.getElementById('certEditIndex').value = index;
+        document.getElementById('certTitle').value = c.title || '';
+        document.getElementById('certIssuer').value = c.issuer || '';
+        document.getElementById('certCategory').value = c.category || '';
+        document.getElementById('certPin').value = c.pin || '';
+        document.getElementById('certImage').value = c.imageUrl || '';
+    },
+
+    resetCertForm() {
+        document.getElementById('certEditIndex').value = "-1";
+        document.getElementById('certTitle').value = "";
+        document.getElementById('certIssuer').value = "";
+        document.getElementById('certCategory').value = "";
+        document.getElementById('certPin').value = "";
+        document.getElementById('certImage').value = "";
+    },
+
+    /* =======================================
+       وظائف حفظ / تعديل الخبرات، المهارات والتطوع
+       ======================================= */
     saveExperience() {
+        const index = parseInt(document.getElementById('expEditIndex').value);
         const role = document.getElementById('expRole').value.trim();
         const company = document.getElementById('expCompany').value.trim();
         const period = document.getElementById('expPeriod').value.trim();
@@ -309,12 +405,30 @@ const App = {
         if (!role || !company) return alert('يرجى ملء المسمى والجهة.');
 
         const db = Store.getKnowledge();
-        db.experiences.push({ role, company, period, desc });
+        const item = { role, company, period, desc };
+
+        if (index >= 0) db.experiences[index] = item;
+        else db.experiences.push(item);
+
         Store.saveKnowledge(db);
-        alert('تم حفظ الخبرة بنجاح!');
+        document.getElementById('expEditIndex').value = "-1";
+        alert('تم الحفظ والتحديث بنجاح!');
+    },
+
+    editExperience(index) {
+        const db = Store.getKnowledge();
+        const e = db.experiences[index];
+        if (!e) return;
+
+        document.getElementById('expEditIndex').value = index;
+        document.getElementById('expRole').value = e.role || '';
+        document.getElementById('expCompany').value = e.company || '';
+        document.getElementById('expPeriod').value = e.period || '';
+        document.getElementById('expDesc').value = e.desc || '';
     },
 
     saveSkill() {
+        const index = parseInt(document.getElementById('skillEditIndex').value);
         const name = document.getElementById('skillName').value.trim();
         const category = document.getElementById('skillCategory').value.trim();
         const level = document.getElementById('skillLevel').value;
@@ -322,12 +436,29 @@ const App = {
         if (!name) return alert('يرجى إدخال اسم المهارة.');
 
         const db = Store.getKnowledge();
-        db.skills.push({ name, category: category || 'عام', level });
+        const item = { name, category: category || 'عام', level };
+
+        if (index >= 0) db.skills[index] = item;
+        else db.skills.push(item);
+
         Store.saveKnowledge(db);
-        alert('تم حفظ المهارة بنجاح!');
+        document.getElementById('skillEditIndex').value = "-1";
+        alert('تم حفظ المهارة وتحديثها التلقائي!');
+    },
+
+    editSkill(index) {
+        const db = Store.getKnowledge();
+        const s = db.skills[index];
+        if (!s) return;
+
+        document.getElementById('skillEditIndex').value = index;
+        document.getElementById('skillName').value = s.name || '';
+        document.getElementById('skillCategory').value = s.category || '';
+        document.getElementById('skillLevel').value = s.level || 'متوسط';
     },
 
     saveVolunteer() {
+        const index = parseInt(document.getElementById('volEditIndex').value);
         const role = document.getElementById('volRole').value.trim();
         const org = document.getElementById('volOrg').value.trim();
         const period = document.getElementById('volPeriod').value.trim();
@@ -335,13 +466,32 @@ const App = {
         if (!role || !org) return alert('يرجى إدخال المسمى والجهة.');
 
         const db = Store.getKnowledge();
-        db.volunteer.push({ role, org, period });
+        const item = { role, org, period };
+
+        if (index >= 0) db.volunteer[index] = item;
+        else db.volunteer.push(item);
+
         Store.saveKnowledge(db);
-        alert('تم إضافة العمل التطوعي!');
+        document.getElementById('volEditIndex').value = "-1";
+        alert('تم حفظ العمل التطوعي وتحديثه!');
     },
 
+    editVolunteer(index) {
+        const db = Store.getKnowledge();
+        const v = db.volunteer[index];
+        if (!v) return;
+
+        document.getElementById('volEditIndex').value = index;
+        document.getElementById('volRole').value = v.role || '';
+        document.getElementById('volOrg').value = v.org || '';
+        document.getElementById('volPeriod').value = v.period || '';
+    },
+
+    /* =======================================
+       الحذف التلقائي من قاعدة البيانات والواجهة
+       ======================================= */
     deleteItem(key, index) {
-        if (!confirm('هل أنت تأكد من الحذف؟')) return;
+        if (!confirm('هل أنت تأكد من الحذف؟ ستحذف المعلومة تلقائياً من الموثقات المعروضة.')) return;
         const db = Store.getKnowledge();
         db[key].splice(index, 1);
         Store.saveKnowledge(db);
