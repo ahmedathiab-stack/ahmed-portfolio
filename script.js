@@ -8,6 +8,113 @@
 // ============================================================================
 // 1. الإعدادات والبيانات الافتراضية (Configuration & Constants)
 // ============================================================================
+/* =========================================================
+   ملف الجافاسكريبت الرئيسي (script.js) - أ/ أحمد عادل ناجي ذياب
+   ========================================================= */
+
+const CONFIG = {
+    WHATSAPP_NUMBER: "967770000000", // استبدل هذا برقم الواتساب الخاص بك (متبوعاً برقم الدولة بدون علامة +)
+    ADMIN_PASSWORD: "1234"           // كلمة مرور لوحة التحكم (يمكنك تغييرها هنا)
+};
+
+const App = {
+    init() {
+        this.setupDrawer();
+        this.setupTabs();
+        this.setupModal();
+    },
+
+    // 1. تشغيل اللوحة الجانبية (Admin Drawer)
+    setupDrawer() {
+        const fabBtn = document.getElementById('toggle-drawer-btn');
+        const drawer = document.getElementById('admin-drawer');
+        const closeBtn = document.getElementById('close-drawer-btn');
+
+        if (fabBtn && drawer) {
+            fabBtn.addEventListener('click', () => drawer.classList.add('open'));
+        }
+        if (closeBtn && drawer) {
+            closeBtn.addEventListener('click', () => drawer.classList.remove('open'));
+        }
+    },
+
+    // 2. نظام التبويبات داخل لوحة التحكم
+    setupTabs() {
+        const tabs = document.querySelectorAll('.admin-tab');
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const targetId = tab.getAttribute('data-target');
+                
+                // إزالة التنشيط عن كل التبويبات والمحتويات
+                document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.admin-tab-content').forEach(c => c.style.display = 'none');
+                
+                // تنشيط التبويب الحالي والمحتوى المرتبط به
+                tab.classList.add('active');
+                const targetContent = document.getElementById(targetId);
+                if (targetContent) {
+                    targetContent.style.display = 'block';
+                }
+            });
+        });
+    },
+
+    // 3. إدارة النوافذ المنبثقة (Modals)
+    setupModal() {
+        const modal = document.getElementById('auth-modal');
+        const closeBtn = document.getElementById('close-auth-modal');
+
+        if (closeBtn && modal) {
+            closeBtn.addEventListener('click', () => modal.style.display = 'none');
+        }
+
+        // إغلاق النافذة عند النقر خارجها
+        window.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+    },
+
+    // فتح نافذة تسجيل الدخول للإدارة
+    toggleAdminAuth() {
+        const modal = document.getElementById('auth-modal');
+        if (modal) {
+            modal.style.display = 'flex';
+        }
+    },
+
+    // التحقق من كلمة المرور
+    verifyPassword() {
+        const passInput = document.getElementById('admin-password-input');
+        const errorText = document.getElementById('auth-error');
+        const contentBody = document.getElementById('admin-content-body');
+        const authBtnText = document.getElementById('auth-btn-text');
+
+        if (passInput && passInput.value === CONFIG.ADMIN_PASSWORD) {
+            document.getElementById('auth-modal').style.display = 'none';
+            if (contentBody) contentBody.style.display = 'block';
+            if (authBtnText) authBtnText.innerText = '✅ تم تسجيل الدخول بنجاح';
+            passInput.value = '';
+            if (errorText) errorText.innerText = '';
+        } else {
+            if (errorText) errorText.innerText = 'كلمة المرور غير صحيحة، حاول مرة أخرى.';
+        }
+    },
+
+    // 4. التوجيه المباشر إلى الواتساب بدون حظر
+    sendWhatsAppRequest(certTitle = null) {
+        let message = certTitle 
+            ? `مرحباً أ/ أحمد عادل، أود الحصول على (مفتاح تصريح) للشهادة التالية: [${certTitle}].`
+            : `مرحباً أ/ أحمد عادل، أود الحصول على (مفتاح تصريح شامل) للاطلاع على كافة الشهادات والوثائق.`;
+
+        const url = `https://wa.me/${CONFIG.WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+        window.location.href = url;
+    }
+};
+
+// تشغيل النظام فور تحميل الصفحة بالكامل
+document.addEventListener('DOMContentLoaded', () => App.init());
 static sendWhatsAppRequest(certTitle = null) {
     let message = certTitle 
         ? `مرحباً أ/ أحمد عادل، أود الحصول على (مفتاح تصريح) للشهادة التالية: [${certTitle}].`
