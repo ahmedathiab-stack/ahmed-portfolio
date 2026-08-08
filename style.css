@@ -103,12 +103,13 @@ input, select, textarea {
     top: 0;
     left: 0;
     width: 100vw;
+    height: 100%;
     height: 100vh;
     background: #e5ddd5;
     z-index: 99999;
     display: none;
     flex-direction: column;
-    overflow: hidden; /* أضف هذه لضمان بقاء العناصر محصورة داخل الشاشة مثل واتساب */
+    overflow: hidden; /* يمنع أي خروج عن حدود الشاشة */
 }
 
 #ai-chat-header { background: #075e54; color: #ffffff; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
