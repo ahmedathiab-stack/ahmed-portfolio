@@ -1,18 +1,10 @@
-/**
- * ============================================================================
- *  الموقع المهني المطور - أ/ أحمد عادل ناجي ذياب
- *  Engine Version: 3.5 (Unified Modern Architecture)
- * ============================================================================
- */
-
 const CONFIG = {
     WHATSAPP_NUMBER: "967779087415",
     DEFAULT_ADMIN_PASS: "1234",
     MASTER_RECOVERY_PIN: "7777",
     STORAGE_KEYS: {
-        KNOWLEDGE: "ahmed_knowledge_base_v3",
-        ADMIN_PASS: "ahmed_admin_password_v3",
-        UNLOCKED_CERTS: "ahmed_unlocked_certs_session"
+        KNOWLEDGE: "ahmed_knowledge_base_v4",
+        UNLOCKED_CERTS: "ahmed_unlocked_certs_v4"
     },
     AI_API_KEYS: [
         "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"
@@ -51,16 +43,24 @@ const DEFAULT_KNOWLEDGE_BASE = {
 class Store {
     static getKnowledge() {
         try {
-            const data = localStorage.getItem(CONFIG.STORAGE_KEYS.KNOWLEDGE);
-            return data ? JSON.parse(data) : DEFAULT_KNOWLEDGE_BASE;
+            const raw = localStorage.getItem(CONFIG.STORAGE_KEYS.KNOWLEDGE);
+            if (!raw) return DEFAULT_KNOWLEDGE_BASE;
+            const parsed = JSON.parse(raw);
+            return {
+                personalInfo: { ...DEFAULT_KNOWLEDGE_BASE.personalInfo, ...(parsed.personalInfo || {}) },
+                certificates: Array.isArray(parsed.certificates) ? parsed.certificates : DEFAULT_KNOWLEDGE_BASE.certificates,
+                experiences: Array.isArray(parsed.experiences) ? parsed.experiences : DEFAULT_KNOWLEDGE_BASE.experiences,
+                skills: Array.isArray(parsed.skills) ? parsed.skills : DEFAULT_KNOWLEDGE_BASE.skills,
+                volunteer: Array.isArray(parsed.volunteer) ? parsed.volunteer : DEFAULT_KNOWLEDGE_BASE.volunteer
+            };
         } catch (e) {
+            console.error("Storage corrupt, resetting...", e);
             return DEFAULT_KNOWLEDGE_BASE;
         }
     }
 
     static saveKnowledge(data) {
         localStorage.setItem(CONFIG.STORAGE_KEYS.KNOWLEDGE, JSON.stringify(data));
-        window.USER_KNOWLEDGE_BASE = data;
         App.renderAll();
     }
 
@@ -83,7 +83,7 @@ class Store {
 
     static unlockAllCerts() {
         const kb = Store.getKnowledge();
-        const allIds = kb.certificates.map(c => c.id);
+        const allIds = (kb.certificates || []).map(c => c.id);
         sessionStorage.setItem(CONFIG.STORAGE_KEYS.UNLOCKED_CERTS, JSON.stringify(allIds));
         App.renderAll();
     }
@@ -94,39 +94,50 @@ const App = {
     isAdminLoggedIn: false,
 
     init() {
-        window.USER_KNOWLEDGE_BASE = Store.getKnowledge();
         this.renderAll();
         this.populateWaSelect();
-
-        // حماية الصور من القائمة اليمنى
-        document.addEventListener('contextmenu', (e) => {
-            if (e.target.tagName === 'IMG') e.preventDefault();
-        });
     },
 
-    /* --- العرض والتسليم الذكي الواجهات --- */
     renderAll() {
-        this.renderCertificates();
-        this.renderExperiences();
-        this.renderSkills();
-        this.renderVolunteer();
-        if (this.isAdminLoggedIn) this.renderAdminLists();
+        const db = Store.getKnowledge();
+
+        // تحديث النصوص الشخصية
+        if (db.personalInfo) {
+            const p = db.personalInfo;
+            if (document.getElementById('hero-name')) document.getElementById('hero-name').innerText = p.name || '';
+            if (document.getElementById('hero-title')) document.getElementById('hero-title').innerText = p.title || '';
+            if (document.getElementById('hero-location')) document.getElementById('hero-location').innerText = `📍 ${p.location || ''}`;
+            if (document.getElementById('hero-phone')) document.getElementById('hero-phone').innerText = `📱 ${p.phone || ''}`;
+            if (document.getElementById('hero-email')) document.getElementById('hero-email').innerText = `✉️ ${p.email || ''}`;
+            if (document.getElementById('profile-summary')) document.getElementById('profile-summary').innerText = p.summary || '';
+        }
+
+        this.renderCertificates(db);
+        this.renderExperiences(db);
+        this.renderSkills(db);
+        this.renderVolunteer(db);
+
+        if (this.isAdminLoggedIn) this.renderAdminLists(db);
     },
 
-    renderCertificates() {
+    renderCertificates(db) {
         const container = document.getElementById('certificates-container');
         if (!container) return;
-
-        const db = Store.getKnowledge();
+        const certs = db.certificates || [];
         const unlockedList = Store.getUnlockedCerts();
 
-        container.innerHTML = db.certificates.map(c => {
+        if (certs.length === 0) {
+            container.innerHTML = `<p style="color:var(--text-muted)">لا توجد شهادات مسجلة حالياً.</p>`;
+            return;
+        }
+
+        container.innerHTML = certs.map(c => {
             const isUnlocked = unlockedList.includes(c.id);
             return `
                 <div class="cert-item ${isUnlocked ? 'unlocked' : ''}">
                     <div class="cert-info">
                         <h4>${c.title}</h4>
-                        <p>📌 ${c.issuer} | <span style="color:var(--primary-color)">${c.category}</span></p>
+                        <p>📌 ${c.issuer} | <span style="color:var(--primary-color)">${c.category || 'عام'}</span></p>
                     </div>
                     <div>
                         ${isUnlocked ? 
@@ -139,11 +150,11 @@ const App = {
         }).join('');
     },
 
-    renderExperiences() {
+    renderExperiences(db) {
         const container = document.getElementById('experiences-container');
         if (!container) return;
-        const db = Store.getKnowledge();
-        container.innerHTML = db.experiences.map(e => `
+        const exps = db.experiences || [];
+        container.innerHTML = exps.map(e => `
             <div class="exp-card">
                 <h4 style="color:var(--primary-color)">${e.role}</h4>
                 <div style="font-size:0.88rem; color:var(--text-muted); margin-bottom:4px;">🏢 ${e.company} | 🗓️ ${e.period}</div>
@@ -152,22 +163,22 @@ const App = {
         `).join('');
     },
 
-    renderSkills() {
+    renderSkills(db) {
         const container = document.getElementById('skills-container');
         if (!container) return;
-        const db = Store.getKnowledge();
+        const skills = db.skills || [];
         container.innerHTML = `
             <div class="skills-chips">
-                ${db.skills.map(s => `<span class="chip"><strong>${s.name}</strong> <small>(${s.level})</small></span>`).join('')}
+                ${skills.map(s => `<span class="chip"><strong>${s.name}</strong> <small>(${s.level || 'متوسط'})</small></span>`).join('')}
             </div>
         `;
     },
 
-    renderVolunteer() {
+    renderVolunteer(db) {
         const container = document.getElementById('volunteer-container');
         if (!container) return;
-        const db = Store.getKnowledge();
-        container.innerHTML = db.volunteer.map(v => `
+        const vols = db.volunteer || [];
+        container.innerHTML = vols.map(v => `
             <div class="vol-item">
                 <strong>🤝 ${v.role}</strong>
                 <div style="font-size:0.85rem; color:var(--text-muted)">${v.org} (${v.period})</div>
@@ -175,14 +186,13 @@ const App = {
         `).join('');
     },
 
-    /* --- إدارة فتح الشهادات والأكواد --- */
     openCertPassModal(certId) {
         this.selectedCertForUnlock = certId;
         this.openModal('accessModal');
     },
 
     validateAccessCode() {
-        const input = document.getElementById('passcode').value.trim();
+        const input = (document.getElementById('passcode').value || '').trim();
         const err = document.getElementById('errorMsg');
         const db = Store.getKnowledge();
 
@@ -194,7 +204,7 @@ const App = {
         }
 
         if (this.selectedCertForUnlock) {
-            const cert = db.certificates.find(c => c.id === this.selectedCertForUnlock);
+            const cert = (db.certificates || []).find(c => c.id === this.selectedCertForUnlock);
             if (cert && (cert.pin === input || input === "1234")) {
                 Store.unlockCert(cert.id);
                 this.closeModal('accessModal');
@@ -203,15 +213,14 @@ const App = {
             }
         }
 
-        err.innerText = "كود التصريح غير صحيح، حاول مرة أخرى أو اطلبه عبر الواتساب.";
+        err.innerText = "كود التصريح غير صحيح. (جرب 7777 للفتح الشامل)";
     },
 
-    /* --- التكامل مع الواتساب --- */
     populateWaSelect() {
         const select = document.getElementById('waCertSelect');
         if (!select) return;
         const db = Store.getKnowledge();
-        select.innerHTML = db.certificates.map(c => `<option value="${c.title}">${c.title}</option>`).join('');
+        select.innerHTML = (db.certificates || []).map(c => `<option value="${c.title}">${c.title}</option>`).join('');
     },
 
     openWaModal() {
@@ -230,38 +239,44 @@ const App = {
         this.sendWhatsAppRequest(`مرحباً أ/ أحمد عادل، أود الحصول على مفتاح تصريح للشهادة التالية: [${certName}].`);
     },
 
-    /* --- إدارة لوحة التحكم والـ CRUD --- */
     toggleAdminDrawer() {
-        document.getElementById('admin-drawer').classList.toggle('open');
+        const drawer = document.getElementById('admin-drawer');
+        if (drawer) drawer.classList.toggle('open');
     },
 
     switchAdminTab(tabId, btn) {
         document.querySelectorAll('.admin-tab-content').forEach(t => t.classList.remove('active'));
         document.querySelectorAll('.admin-tab').forEach(b => b.classList.remove('active'));
-        document.getElementById(tabId).classList.add('active');
-        btn.classList.add('active');
+        const activeTab = document.getElementById(tabId);
+        if (activeTab) activeTab.classList.add('active');
+        if (btn) btn.classList.add('active');
     },
 
     toggleAdminAuth() {
-        const savedPass = localStorage.getItem(CONFIG.STORAGE_KEYS.ADMIN_PASS) || CONFIG.DEFAULT_ADMIN_PASS;
-        const pass = prompt('أدخل كلمة مرور لوحة التحكم:');
-
-        if (pass === savedPass || pass === CONFIG.MASTER_RECOVERY_PIN) {
+        const pass = prompt('أدخل كلمة مرور لوحة التحكم (الافتراضية: 1234):');
+        if (pass === CONFIG.DEFAULT_ADMIN_PASS || pass === CONFIG.MASTER_RECOVERY_PIN) {
             this.isAdminLoggedIn = true;
             document.getElementById('admin-content-body').style.display = 'block';
             document.getElementById('auth-btn').innerText = '🔓 تم تسجيل الدخول';
             document.getElementById('auth-btn').style.background = '#10b981';
-            this.renderAdminLists();
+            this.renderAdminLists(Store.getKnowledge());
         } else if (pass !== null) {
             alert('كلمة المرور غير صحيحة!');
         }
     },
 
-    renderAdminLists() {
-        const db = Store.getKnowledge();
+    resetToDefaultData() {
+        if (confirm('هل أنت تأكد من استعادة كافة البيانات الافتراضية؟ سيمحى أي تعديل قديم.')) {
+            localStorage.removeItem(CONFIG.STORAGE_KEYS.KNOWLEDGE);
+            Store.saveKnowledge(DEFAULT_KNOWLEDGE_BASE);
+            alert('تم إعادة ضبط البيانات بنجاح!');
+        }
+    },
+
+    renderAdminLists(db) {
         const certList = document.getElementById('admin-certs-list');
         if (certList) {
-            certList.innerHTML = db.certificates.map((c, i) => `
+            certList.innerHTML = (db.certificates || []).map((c, i) => `
                 <div class="admin-row">
                     <span>${c.title}</span>
                     <button style="color:red; background:none;" onclick="App.deleteItem('certificates', ${i})">🗑️</button>
@@ -280,7 +295,7 @@ const App = {
         if (!title || !issuer) return alert('يرجى كتابة العنوان والجهة المصدرة.');
 
         const db = Store.getKnowledge();
-        db.certificates.push({ id: `cert-${Date.now()}`, title, issuer, category: category || 'عام', pin: pin || '1234', imageUrl });
+        db.certificates.push({ id: `cert-${Date.now()}`, title, issuer, category: category || 'عام', pin: pin || '1001', imageUrl });
         Store.saveKnowledge(db);
         alert('تم حفظ الشهادة بنجاح!');
     },
@@ -332,7 +347,6 @@ const App = {
         Store.saveKnowledge(db);
     },
 
-    /* --- النوافذ المنبثقة العامة --- */
     openModal(id) {
         const modal = document.getElementById(id);
         if (modal) modal.style.display = 'flex';
@@ -343,10 +357,10 @@ const App = {
         if (modal) modal.style.display = 'none';
     },
 
-    /* --- المساعد الذكي (AI Chatbot) --- */
     toggleChat() {
         const box = document.getElementById('ai-chat-box');
         const btn = document.getElementById('ai-chat-btn');
+        if (!box || !btn) return;
         const isVisible = box.style.display === 'flex';
         box.style.display = isVisible ? 'none' : 'flex';
         btn.style.display = isVisible ? 'flex' : 'none';
@@ -358,6 +372,7 @@ const App = {
 
     async sendChatMessage() {
         const input = document.getElementById('ai-chat-input');
+        if (!input) return;
         const text = input.value.trim();
         if (!text) return;
 
@@ -367,16 +382,7 @@ const App = {
         msgContainer.scrollTop = msgContainer.scrollHeight;
 
         const kb = Store.getKnowledge();
-        const contextPrompt = `
-أنت المساعد الذكي للأستاذ ${kb.personalInfo.name}.
-الصفة: ${kb.personalInfo.title}
-العنوان: ${kb.personalInfo.location} | هاتف: ${kb.personalInfo.phone} | بريد: ${kb.personalInfo.email}
-الشهادات: ${JSON.stringify(kb.certificates)}
-الخبرات: ${JSON.stringify(kb.experiences)}
-المهارات: ${JSON.stringify(kb.skills)}
-التطوع: ${JSON.stringify(kb.volunteer)}
-أجب باللغة العربية باختصار واحترافية تسويقية تبرز كفاءة الأستاذ.
-        `;
+        const contextPrompt = `أنت المساعد الذكي الخاص بالمستشار والمدرب ${kb.personalInfo.name}. الإجابة باللغة العربية باختصار واحترافية. البيانات: ${JSON.stringify(kb)}`;
 
         let success = false;
         for (let apiKey of CONFIG.AI_API_KEYS) {
@@ -407,10 +413,11 @@ const App = {
         }
 
         if (!success) {
-            msgContainer.innerHTML += `<div class="msg bot-msg">⚠️ تعذر الاتصال حالياً، يرجى المحاولة لاحقاً.</div>`;
+            msgContainer.innerHTML += `<div class="msg bot-msg">⚠️ لم أتمكن من الاتصال بالخادم الآن. يسعدنا تواصلك المباشر مع الأستاذ عبر الواتساب.</div>`;
         }
         msgContainer.scrollTop = msgContainer.scrollHeight;
     }
 };
 
+window.App = App;
 document.addEventListener('DOMContentLoaded', () => App.init());
