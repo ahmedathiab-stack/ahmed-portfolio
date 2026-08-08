@@ -43,12 +43,36 @@ input, select, textarea {
     background: #fff; color: var(--text-main);
 }
 
+.hero {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    color: #ffffff; padding: 50px 20px; text-align: center; border-bottom-left-radius: 24px;
+    border-bottom-right-radius: 24px; box-shadow: var(--shadow-lg); margin-bottom: 30px;
+}
+.hero h1 { font-size: 2.2rem; font-weight: 800; margin-bottom: 8px; }
+.hero .subtitle { font-size: 1.1rem; opacity: 0.9; margin-bottom: 18px; }
+.contact-info {
+    display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; font-size: 0.9rem;
+    background: rgba(255, 255, 255, 0.12); padding: 10px 22px; border-radius: 30px; backdrop-filter: blur(6px); width: fit-content; margin: 0 auto;
+}
+
 .card { background: var(--bg-card); border-radius: var(--radius-lg); padding: 28px; margin-bottom: 24px; border: 1px solid var(--border-color); box-shadow: var(--shadow-sm); }
 .card h2 { font-size: 1.35rem; color: var(--primary-color); margin-bottom: 12px; border-bottom: 2px solid var(--bg-subtle); padding-bottom: 8px; }
+.section-desc { color: var(--text-muted); font-size: 0.92rem; margin-bottom: 20px; }
+
+.master-access-bar {
+    background: linear-gradient(135deg, #f0fdf4 0%, #e0f2fe 100%); border: 1px solid #bbf7d0;
+    border-radius: var(--radius-md); padding: 18px 22px; margin-bottom: 24px; display: flex;
+    justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;
+}
+.master-access-bar span { font-weight: 700; color: #166534; }
 
 .cert-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
 .cert-item { background: var(--bg-subtle); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 16px; display: flex; flex-direction: column; justify-content: space-between; gap: 12px; }
 .cert-item.unlocked { border-right: 4px solid var(--accent-color); background: #f0fff4; }
+
+.exp-card, .vol-item { background: var(--bg-subtle); border-right: 4px solid var(--primary-color); padding: 14px 18px; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; margin-bottom: 12px; }
+.skills-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.chip { background: var(--bg-subtle); padding: 6px 14px; border-radius: 20px; font-size: 0.88rem; border: 1px solid var(--border-color); }
 
 .admin-fab { position: fixed; top: 20px; left: 20px; background: var(--text-main); color: #fff; width: 48px; height: 48px; border-radius: 50%; font-size: 20px; box-shadow: var(--shadow-lg); z-index: 1000; }
 .admin-drawer { position: fixed; top: 0; left: -400px; width: 380px; max-width: 85vw; height: 100vh; background: #ffffff; box-shadow: var(--shadow-lg); z-index: 10001; transition: left 0.4s ease; display: flex; flex-direction: column; }
@@ -58,7 +82,7 @@ input, select, textarea {
 .admin-drawer-body { padding: 20px; overflow-y: auto; flex: 1; }
 
 .admin-tabs-nav { display: flex; gap: 6px; border-bottom: 2px solid var(--border-color); padding-bottom: 8px; margin-bottom: 16px; overflow-x: auto; }
-.admin-tab { padding: 6px 12px; background: var(--bg-subtle); border-radius: 6px; font-size: 0.85rem; color: var(--text-main); white-space: nowrap; }
+.admin-tab { padding: 6px 12px; background: var(--bg-subtle); border-radius: 6px; font-size: 0.85rem; color: var(--text-main); white-space: nowrap; cursor: pointer; }
 .admin-tab.active { background: var(--primary-color); color: #fff; }
 .admin-tab-content { display: none; }
 .admin-tab-content.active { display: block; }
@@ -71,7 +95,7 @@ input, select, textarea {
 .close-btn { position: absolute; top: 15px; left: 15px; font-size: 22px; cursor: pointer; color: var(--text-muted); }
 .error-text { color: var(--danger-color); font-size: 0.85rem; margin-top: 8px; }
 
-/* تحديث الشات ليكون في وضع ملء الشاشة تماماً مثل واتساب */
+/* الشات بوضع ملء الشاشة الكامل */
 #ai-chat-btn { position: fixed; bottom: 20px; right: 20px; background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: #ffffff; padding: 12px 22px; border-radius: 30px; font-size: 0.95rem; font-weight: 700; box-shadow: var(--shadow-lg); z-index: 9999; }
 
 .full-screen-chat {
@@ -98,53 +122,9 @@ input, select, textarea {
 #ai-chat-input { flex: 1; padding: 12px 18px; margin-bottom: 0; border-radius: 25px; border: 1px solid #ccc; outline: none; background: #fff; font-size: 1rem; }
 #ai-chat-send { background: #075e54; color: #fff; width: 45px; height: 45px; border-radius: 50%; font-size: 1.1rem; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 
-/* تنسيقات إضافية لصور الشهادات وأزرار الإدارة */
+/* الشهادات والصور والأزرار */
 .cert-img-box { width: 100%; max-height: 180px; overflow: hidden; border-radius: var(--radius-sm); margin-bottom: 10px; }
 .cert-thumbnail { width: 100%; height: 100%; object-fit: cover; border-radius: var(--radius-sm); }
 .btn-action-edit, .btn-action-delete { padding: 3px 8px; font-size: 0.8rem; border-radius: 4px; margin-left: 3px; border: none; cursor: pointer; }
 .btn-action-edit { background-color: #3b82f6; color: #fff; }
 .btn-action-delete { background-color: #ef4444; color: #fff; }
-/* تنسيقات إضافية لصور الشهادات وأزرار الإدارة */
-.cert-img-box {
-    width: 100%;
-    max-height: 180px;
-    overflow: hidden;
-    border-radius: var(--radius-sm);
-    margin-bottom: 10px;
-}
-
-.cert-thumbnail {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: var(--radius-sm);
-}
-
-.btn-action-edit, .btn-action-delete {
-    padding: 3px 8px;
-    font-size: 0.8rem;
-    border-radius: 4px;
-    margin-left: 3px;
-    border: none;
-    cursor: pointer;
-}
-
-.btn-action-edit {
-    background-color: #3b82f6;
-    color: #fff;
-}
-
-.btn-action-delete {
-    background-color: #ef4444;
-    color: #fff;
-}
-
-.btn-secondary-outline {
-    background: transparent;
-    border: 1px solid var(--border-color);
-    padding: 6px;
-    width: 100%;
-    border-radius: var(--radius-sm);
-    cursor: pointer;
-    font-size: 0.85rem;
-}
