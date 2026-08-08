@@ -115,7 +115,16 @@ input, select, textarea {
 #ai-chat-header { background: #075e54; color: #ffffff; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
 .chat-avatar { width: 38px; height: 38px; background: #fff; color: #075e54; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.1rem; }
 
-#ai-chat-messages { flex: 1; padding: 20px; overflow-y: auto; background: #efeae2; display: flex; flex-direction: column; gap: 12px; }
+#ai-chat-messages { 
+    flex: 1 1 auto; /* يجعل الرسائل تتقلص وتتمدد بمرونة تامة دون الضغط على الإطارات الأخرى */
+    padding: 15px; 
+    overflow-y: auto; 
+    background: #efeae2; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 12px; 
+    min-height: 0; /* عنصر حاسم لكي تعمل خاصية الـ flex وتمنع تمدد الرسائل الزائد */
+}
 .msg { max-width: 75%; padding: 10px 14px; border-radius: 12px; font-size: 0.95rem; line-height: 1.5; word-break: break-word; }
 .bot-msg { background: #ffffff; color: var(--text-main); align-self: flex-start; border-radius: 0 12px 12px 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
 .user-msg { background: #dcf8c6; color: #111; align-self: flex-end; border-radius: 12px 0 12px 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
