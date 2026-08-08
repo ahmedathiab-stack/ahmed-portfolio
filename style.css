@@ -2,6 +2,120 @@
    ملف التنسيقات الرئيسي (style.css) - أحمد عادل ناجي ذياب
    ========================================================= */
 
+/* =========================================================
+   تنسيقات اللوحة الجانبية، الأيقونة العائمة، وزر الواتساب
+   ========================================================= */
+
+/* زر اللوحة العائم (FAB) في الزاوية السفلية */
+.admin-fab {
+    position: fixed;
+    bottom: 25px;
+    left: 25px;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    font-size: 1.4rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+    cursor: pointer;
+    z-index: 999;
+    transition: transform var(--transition-fast);
+}
+
+.admin-fab:hover {
+    transform: scale(1.1) rotate(30deg);
+}
+
+/* اللوحة الجانبية (Drawer) */
+.admin-drawer {
+    position: fixed;
+    top: 0;
+    left: -380px; /* مخفية جهة اليسار */
+    width: 360px;
+    height: 100%;
+    background: var(--bg-card);
+    box-shadow: 4px 0 20px rgba(0,0,0,0.15);
+    z-index: 1001;
+    transition: left var(--transition-normal);
+    overflow-y: auto;
+    direction: rtl;
+}
+
+.admin-drawer.open {
+    left: 0;
+}
+
+.admin-drawer-header {
+    background: var(--primary-color);
+    color: white;
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.close-drawer {
+    font-size: 1.6rem;
+    cursor: pointer;
+    line-height: 1;
+}
+
+/* زر طلب الواتساب */
+.btn-whatsapp {
+    background: #25D366;
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 0.88rem;
+    font-weight: 600;
+    transition: background var(--transition-fast);
+}
+
+.btn-whatsapp:hover {
+    background: #128C7E;
+}
+
+/* قوائم التحكم بالحذف والتعديل داخل اللوحة */
+.admin-list {
+    margin-top: 15px;
+    max-height: 250px;
+    overflow-y: auto;
+}
+
+.admin-item-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--bg-subtle);
+    padding: 8px 12px;
+    margin-top: 6px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-color);
+    font-size: 0.88rem;
+}
+
+.btn-action-edit {
+    background: var(--accent-color);
+    color: white;
+    border: none;
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-left: 4px;
+}
+
+.btn-action-delete {
+    background: var(--danger-color);
+    color: white;
+    border: none;
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+}
 /* 1. المتغيرات العامة (CSS Variables) */
 :root {
     --primary-color: #1b365d;
