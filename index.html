@@ -5,148 +5,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>أحمد عادل ناجي ذياب | معرض الأعمال والاعتمادات الموثقة</title>
-<div class="contact-info">
-    <span>
-        📧 البريد: 
-        <a href="mailto:your-email@example.com" style="color: inherit; text-decoration: underline;">your-email@example.com</a>
-    </span>
-    <span>
-        📱 الهاتف: 
-        <a href="tel:+967770000000" style="color: inherit; text-decoration: underline;">+967 770 000 000</a>
-    </span>
-    <span>
-        💬 واتساب: 
-        <a href="https://wa.me/967770000000?text=مرحباً%20أحمد،%20أود%20التواصل%20مستفسراً%20عن..." target="_blank" style="color: inherit; text-decoration: underline;">مراسلة مباشرة</a>
-    </span>
-</div>
+
     <!-- Google Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-<!-- زر اللوحة الجانبية العائم (FAB) -->
-    <!-- زر اللوحة العائم (FAB) -->
-<button id="toggle-drawer-btn" class="admin-fab" title="لوحة التحكم">⚙️</button>
 
-<!-- اللوحة الجانبية (Drawer) -->
-<div id="admin-drawer" class="admin-drawer">
-    <div class="admin-drawer-header">
-        <h3>لوحة التحكم والإدارة</h3>
-        <span id="close-drawer-btn" class="close-drawer">&times;</span>
-    </div>
-    <div style="padding: 20px;">
-        <!-- زر تسجيل الدخول -->
-        <button class="btn-submit" onclick="App.toggleAdminAuth()">
-            <span id="auth-btn-text">🔒 تسجيل الدخول للوحة</span>
-        </button>
-
-        <!-- محتوى لوحة التحكم (مخفي لحين إدخال كلمة المرور الصحيحة 1234) -->
-        <div id="admin-content-body" style="display: none; margin-top: 20px;">
-            <!-- تبويبات الأقسام -->
-            <div class="admin-tabs-nav">
-                <button class="admin-tab active" data-target="tab-certs">الشهادات</button>
-                <button class="admin-tab" data-target="tab-exp">الخبرات</button>
-                <button class="admin-tab" data-target="tab-skills">المهارات</button>
-                <button class="admin-tab" data-target="tab-vol">التطوع</button>
-            </div>
-
-            <!-- 1. تبويب الشهادات -->
-            <div id="tab-certs" class="admin-tab-content" style="display: block;">
-                <p class="section-desc">إدارة الشهادات والاعتمادات</p>
-                <input type="text" id="cert-title-input" placeholder="عنوان الشهادة">
-                <input type="text" id="cert-issuer-input" placeholder=" الجهة المصدرة">
-                <button class="btn-submit" onclick="App.addItem('certs')">إضافة شهادة</button>
-                <div class="admin-list" id="list-certs"></div>
-            </div>
-
-            <!-- 2. تبويب الخبرات -->
-            <div id="tab-exp" class="admin-tab-content">
-                <p class="section-desc">إدارة الخبرات العملية</p>
-                <input type="text" id="exp-title-input" placeholder="المسمى الوظيفي">
-                <input type="text" id="exp-company-input" placeholder="اسم الشركة أو الجهة">
-                <button class="btn-submit" onclick="App.addItem('exp')">إضافة خبرة</button>
-                <div class="admin-list" id="list-exp"></div>
-            </div>
-
-            <!-- 3. تبويب المهارات -->
-            <div id="tab-skills" class="admin-tab-content">
-                <p class="section-desc">إدارة المهارات والقدرات</p>
-                <input type="text" id="skill-name-input" placeholder="اسم المهارة">
-                <button class="btn-submit" onclick="App.addItem('skills')">إضافة مهارة</button>
-                <div class="admin-list" id="list-skills"></div>
-            </div>
-
-            <!-- 4. تبويب الأعمال التطوعية -->
-            <div id="tab-vol" class="admin-tab-content">
-                <p class="section-desc">إدارة الأعمال التطوعية</p>
-                <input type="text" id="vol-title-input" placeholder="عنوان العمل التطوعي">
-                <button class="btn-submit" onclick="App.addItem('vol')">إضافة تطوع</button>
-                <div class="admin-list" id="list-vol"></div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- النافذة المنبثقة لتسجيل الدخول -->
-<div id="auth-modal" class="modal">
-    <div class="modal-content">
-        <span id="close-auth-modal" class="close-btn">&times;</span>
-        <h3>تسجيل دخول المشرف</h3>
-        <p>أدخل كلمة المرور (الافتراضية: 1234)</p>
-        <input type="password" id="admin-password-input" placeholder="كلمة المرور">
-        <button class="btn-submit" onclick="App.verifyPassword()">دخول</button>
-        <div id="auth-error" class="error-text"></div>
-    </div>
-</div>
-<button id="toggle-drawer-btn" class="admin-fab" title="لوحة التحكم">⚙️</button>
-
-<!-- اللوحة الجانبية (Drawer) -->
-<div id="admin-drawer" class="admin-drawer">
-    <div class="admin-drawer-header">
-        <h3>لوحة التحكم والإدارة</h3>
-        <span id="close-drawer-btn" class="close-drawer">&times;</span>
-    </div>
-    <div style="padding: 20px;">
-        <!-- زر فتح نافذة تسجيل الدخول -->
-        <button class="btn-submit" onclick="App.toggleAdminAuth()">
-            <span id="auth-btn-text">🔒 تسجيل الدخول للوحة</span>
-        </button>
-
-        <!-- محتوى لوحة التحكم (مخفي حتى يتم تسجيل الدخول) -->
-        <div id="admin-content-body" style="display: none; margin-top: 20px;">
-            <div class="admin-tabs-nav">
-                <button class="admin-tab active" data-target="tab-certs">الشهادات</button>
-                <button class="admin-tab" data-target="tab-exp">الخبرات</button>
-            </div>
-
-            <div id="tab-certs" class="admin-tab-content" style="display: block;">
-                <p class="section-desc">إدارة الشهادات وإضافة عناصر جديدة</p>
-                <input type="text" placeholder="عنوان الشهادة الجديدة">
-                <button class="btn-submit">إضافة الشهادة</button>
-            </div>
-
-            <div id="tab-exp" class="admin-tab-content">
-                <p class="section-desc">إدارة الخبرات العملية</p>
-                <input type="text" placeholder="مسمى الخبرة">
-                <button class="btn-submit">إضافة الخبرة</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- النافذة المنبثقة لتسجيل الدخول (Modal) -->
-<div id="auth-modal" class="modal">
-    <div class="modal-content">
-        <span id="close-auth-modal" class="close-btn">&times;</span>
-        <h3>تسجيل دخول المشرف</h3>
-        <p>أدخل كلمة المرور للوصول إلى لوحة التحكم</p>
-        <input type="password" id="admin-password-input" placeholder="كلمة المرور (1234)">
-        <button class="btn-submit" onclick="App.verifyPassword()">دخول</button>
-        <div id="auth-error" class="error-text"></div>
-    </div>
-</div>
     <style>
         /* =========================================================
-           نظام التصميم والتنسيقات الموحدة (Design System)
-           ========================================================= */
+            نظام التصميم والتنسيقات الموحدة (Design System)
+            ========================================================= */
         :root {
             --primary-color: #0f766e;
             --primary-hover: #0d9488;
@@ -221,6 +88,11 @@
             backdrop-filter: blur(5px);
             width: fit-content;
             margin: 0 auto;
+        }
+
+        .contact-info a {
+            color: inherit;
+            text-decoration: underline;
         }
 
         /* Standard Card Style */
@@ -370,6 +242,11 @@
             align-items: center;
         }
 
+        .close-drawer {
+            cursor: pointer;
+            font-size: 20px;
+        }
+
         .admin-drawer-body {
             padding: 20px;
             overflow-y: auto;
@@ -461,113 +338,10 @@
             color: var(--text-muted);
         }
 
-        /* AI Chatbot Styles */
-        #ai-chat-btn {
-            position: fixed;
-            bottom: 25px;
-            right: 25px;
-            background: linear-gradient(135deg, #0f766e, #0369a1);
-            color: #ffffff;
-            border-radius: 30px;
-            padding: 12px 22px;
-            font-size: 15px;
-            font-weight: 700;
-            box-shadow: var(--shadow-lg);
-            z-index: 9999;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        #ai-chat-box {
-            display: none;
-            position: fixed;
-            bottom: 0;
-            right: 0;
-            width: 100vw;
-            height: 100dvh;
-            background: #efeae2;
-            flex-direction: column;
-            z-index: 10000;
-        }
-
-        @media (min-width: 640px) {
-            #ai-chat-box {
-                bottom: 25px;
-                right: 25px;
-                width: 380px;
-                height: 580px;
-                border-radius: var(--radius-lg);
-                box-shadow: var(--shadow-lg);
-                overflow: hidden;
-            }
-        }
-
-        #ai-chat-header {
-            background: #0f766e;
-            color: white;
-            padding: 14px 18px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        #ai-chat-messages {
-            flex: 1;
-            padding: 16px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .msg {
-            padding: 10px 14px;
-            border-radius: 12px;
-            max-width: 82%;
-            font-size: 0.92rem;
-            line-height: 1.5;
-            box-shadow: var(--shadow-sm);
-        }
-
-        .user-msg {
-            background: #dcf8c6;
-            align-self: flex-end;
-            border-top-right-radius: 2px;
-        }
-
-        .bot-msg {
-            background: #ffffff;
-            align-self: flex-start;
-            border-top-left-radius: 2px;
-        }
-
-        #ai-chat-input-area {
-            background: #f0f2f5;
-            padding: 12px;
-            display: flex;
-            gap: 8px;
-            border-top: 1px solid var(--border-color);
-        }
-
-        #ai-chat-input {
-            flex: 1;
-            border: 1px solid var(--border-color);
-            padding: 10px 16px;
-            border-radius: 20px;
-            outline: none;
-            font-family: inherit;
-        }
-
-        #ai-chat-send {
-            background: #0f766e;
-            color: white;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .error-text {
+            color: #dc2626;
+            font-size: 0.85rem;
+            margin-top: 8px;
         }
     </style>
 </head>
@@ -575,25 +349,81 @@
 <body>
 
     <!-- زر فتح لوحة التحكم الجانبية العائم -->
-   <!-- زر اللوحة العائم في الشاشة -->
-<button id="toggle-drawer-btn" class="admin-fab" title="لوحة التحكم">
-    ⚙️
-</button>
+    <button id="toggle-drawer-btn" class="admin-fab" title="لوحة التحكم" onclick="App.toggleAdminDrawer()">
+        ⚙️
+    </button>
 
-<!-- اللوحة الجانبية للإدارة -->
-<div id="admin-drawer" class="admin-drawer">
-    <div class="admin-drawer-header">
-        <h3>لوحة التحكم والإدارة</h3>
-        <span class="close-drawer" onclick="App.toggleAdminDrawer()">&times;</span>
-    </div>
-    <div style="padding: 20px;">
-        <!-- محتوى اللوحة هنا -->
-        <button id="auth-btn" class="btn-submit" onclick="App.toggleAdminAuth()">🔒 تسجيل الدخول للوحة</button>
-        <div id="admin-content-body" style="display: none; margin-top: 15px;">
-            <!-- الأقسام والإضافات -->
+    <!-- اللوحة الجانبية للإدارة -->
+    <div id="admin-drawer" class="admin-drawer">
+        <div class="admin-drawer-header">
+            <h3>لوحة التحكم والإدارة</h3>
+            <span class="close-drawer" onclick="App.toggleAdminDrawer()">&times;</span>
+        </div>
+        <div class="admin-drawer-body">
+            <!-- زر تسجيل الدخول -->
+            <button class="btn-submit" onclick="App.toggleAdminAuth()">
+                <span id="auth-btn-text">🔒 تسجيل الدخول للوحة</span>
+            </button>
+
+            <!-- محتوى لوحة التحكم (مخفي لحين إدخال كلمة المرور الصحيحة) -->
+            <div id="admin-content-body" style="display: none; margin-top: 20px;">
+                <!-- تبويبات الأقسام -->
+                <div class="admin-tabs-nav">
+                    <button class="admin-tab active" data-target="tab-certs">الشهادات</button>
+                    <button class="admin-tab" data-target="tab-exp">الخبرات</button>
+                    <button class="admin-tab" data-target="tab-skills">المهارات</button>
+                    <button class="admin-tab" data-target="tab-vol">التطوع</button>
+                </div>
+
+                <!-- 1. تبويب الشهادات -->
+                <div id="tab-certs" class="admin-tab-content active">
+                    <p class="section-desc">إدارة الشهادات والاعتمادات</p>
+                    <input type="text" id="cert-title-input" placeholder="عنوان الشهادة">
+                    <input type="text" id="cert-issuer-input" placeholder="الجهة المصدرة">
+                    <button class="btn-submit" onclick="App.addItem('certs')">إضافة شهادة</button>
+                    <div class="admin-list" id="list-certs"></div>
+                </div>
+
+                <!-- 2. تبويب الخبرات -->
+                <div id="tab-exp" class="admin-tab-content">
+                    <p class="section-desc">إدارة الخبرات العملية</p>
+                    <input type="text" id="exp-title-input" placeholder="المسمى الوظيفي">
+                    <input type="text" id="exp-company-input" placeholder="اسم الشركة أو الجهة">
+                    <button class="btn-submit" onclick="App.addItem('exp')">إضافة خبرة</button>
+                    <div class="admin-list" id="list-exp"></div>
+                </div>
+
+                <!-- 3. تبويب المهارات -->
+                <div id="tab-skills" class="admin-tab-content">
+                    <p class="section-desc">إدارة المهارات والقدرات</p>
+                    <input type="text" id="skill-name-input" placeholder="اسم المهارة">
+                    <button class="btn-submit" onclick="App.addItem('skills')">إضافة مهارة</button>
+                    <div class="admin-list" id="list-skills"></div>
+                </div>
+
+                <!-- 4. تبويب الأعمال التطوعية -->
+                <div id="tab-vol" class="admin-tab-content">
+                    <p class="section-desc">إدارة الأعمال التطوعية</p>
+                    <input type="text" id="vol-title-input" placeholder="عنوان العمل التطوعي">
+                    <button class="btn-submit" onclick="App.addItem('vol')">إضافة تطوع</button>
+                    <div class="admin-list" id="list-vol"></div>
+                </div>
+            </div>
         </div>
     </div>
-</div>
+
+    <!-- النافذة المنبثقة لتسجيل الدخول -->
+    <div id="auth-modal" class="modal">
+        <div class="modal-content">
+            <span id="close-auth-modal" class="close-btn">&times;</span>
+            <h3>تسجيل دخول المشرف</h3>
+            <p>أدخل كلمة المرور (الافتراضية: 1234)</p>
+            <input type="password" id="admin-password-input" placeholder="كلمة المرور">
+            <button class="btn-submit" onclick="App.verifyPassword()">دخول</button>
+            <div id="auth-error" class="error-text"></div>
+        </div>
+    </div>
+
     <!-- Header Section -->
     <header class="hero">
         <div class="container">
@@ -601,7 +431,7 @@
             <p class="subtitle">مدرب برامج محاسبة وأنظمة مالية | مدرب معتمد (ICDL & English)</p>
             <div class="contact-info">
                 <span>📍 جعار - خنفر - أبين - اليمن</span>
-                <span>📱 +967 79087415</span>
+                <span>📱 +967 770000000</span>
                 <span>✉️ Ahmed.a.n.thiab@gmail.com</span>
             </div>
         </div>
@@ -653,156 +483,61 @@
         </section>
 
     </main>
+<!-- ==================== Modals (النوافذ المنبثقة) ==================== -->
 
-    <!-- ==================== Unified Admin Drawer ==================== -->
-    <aside id="admin-drawer" class="admin-drawer">
-        <div class="admin-drawer-header">
-            <h3>⚙️ لوحة التحكم والإدارة</h3>
-            <span class="close-btn" style="color:white; position:static;" onclick="toggleAdminDrawer()">&times;</span>
-        </div>
-
-        <div style="padding: 15px; border-bottom: 1px solid var(--border-color);">
-            <button id="auth-btn" class="btn-primary" style="width: 100%;" onclick="toggleAdminAuth()">🔒 تسجيل الدخول للوحة</button>
-        </div>
-
-        <div id="admin-content-body" class="admin-drawer-body" style="display: none;">
-            
-            <div style="background: #f8fafc; padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size:0.85rem; display:flex; justify-size:space-between; align-items:center;">
-                <span>🤖 التكيف الذكي:</span>
-                <button id="aiToggleBtn" onclick="toggleAIAdaptability()" class="btn-primary" style="padding: 4px 10px; font-size: 0.75rem;">تفعيل (ON)</button>
-            </div>
-
-            <div class="admin-tabs-nav">
-                <button class="admin-tab active" onclick="openAdminTab('certs')">الشهادات</button>
-                <button class="admin-tab" onclick="openAdminTab('skills')">المهارات</button>
-                <button class="admin-tab" onclick="openAdminTab('exp')">الخبرات</button>
-                <button class="admin-tab" onclick="openAdminTab('vol')">التطوع</button>
-                <button class="admin-tab" onclick="openAdminTab('keys')">🔑 المفاتيح</button>
-                <button class="admin-tab" onclick="openAdminTab('security')">🔐 الأمان</button>
-            </div>
-
-            <!-- Tab: Certs -->
-            <div id="tab-certs" class="admin-tab-content active">
-                <input type="hidden" id="certEditIndex" value="-1">
-                <input type="text" id="certTitle" placeholder="اسم الشهادة">
-                <input type="text" id="certIssuer" placeholder="الجهة المصدرة">
-                <input type="text" id="certCategory" placeholder="الفئة">
-                <input type="url" id="certImage" placeholder="رابط الصورة">
-                <input type="password" id="certPin" placeholder="رمز PIN الخاص بالشهادة">
-                <button class="btn-submit" onclick="saveCertificate()">حفظ الشهادة</button>
-                <div id="admin-certs-list" style="margin-top: 15px;"></div>
-            </div>
-
-            <!-- Tab: Skills -->
-            <div id="tab-skills" class="admin-tab-content">
-                <input type="hidden" id="skillEditIndex" value="-1">
-                <input type="text" id="skillCategory" placeholder="المجال / التخصص">
-                <input type="text" id="skillName" placeholder="اسم المهارة">
-                <select id="skillLevel">
-                    <option value="مبتدئ">مبتدئ</option>
-                    <option value="متوسط">متوسط</option>
-                    <option value="متقدم">متقدم</option>
-                    <option value="خبير">خبير</option>
-                </select>
-                <button class="btn-submit" onclick="saveSkill()">حفظ المهارة</button>
-                <div id="admin-skills-list" style="margin-top: 15px;"></div>
-            </div>
-
-            <!-- Tab: Exp -->
-            <div id="tab-exp" class="admin-tab-content">
-                <input type="hidden" id="expEditIndex" value="-1">
-                <input type="text" id="expRole" placeholder="المسمى الوظيفي">
-                <input type="text" id="expCompany" placeholder="اسم الشركة">
-                <input type="text" id="expPeriod" placeholder="الفترة">
-                <textarea id="expDesc" placeholder="الوصف والمسؤوليات"></textarea>
-                <button class="btn-submit" onclick="saveExperience()">حفظ الخبرة</button>
-                <div id="admin-exp-list" style="margin-top: 15px;"></div>
-            </div>
-
-            <!-- Tab: Vol -->
-            <div id="tab-vol" class="admin-tab-content">
-                <input type="hidden" id="volEditIndex" value="-1">
-                <input type="text" id="volRole" placeholder="الدور التطوعي">
-                <input type="text" id="volOrg" placeholder="الجهة / المنظمة">
-                <input type="text" id="volPeriod" placeholder="الفترة">
-                <button class="btn-submit" onclick="saveVolunteer()">حفظ العمل التطوعي</button>
-                <div id="admin-vol-list" style="margin-top: 15px;"></div>
-            </div>
-
-            <!-- Tab: Keys -->
-            <div id="tab-keys" class="admin-tab-content">
-                <h4 style="margin-bottom: 10px;">مولد المفاتيح</h4>
-                <select id="keyType">
-                    <option value="master">مفتاح شامل (جميع الشهادات)</option>
-                    <option value="single_cert">مفتاح لشهادة محددة</option>
-                </select>
-                <select id="keyDuration">
-                    <option value="once">استخدام لمرة واحدة</option>
-                    <option value="1">لمدة 24 ساعة</option>
-                    <option value="7">لمدة 7 أيام</option>
-                </select>
-                <button class="btn-submit" onclick="generateAdvancedKey()">توليد المفتاح</button>
-            </div>
-
-            <!-- Tab: Security -->
-            <div id="tab-security" class="admin-tab-content">
-                <h4 style="margin-bottom: 10px;">تغيير كلمة المرور</h4>
-                <input type="password" id="currentPassInput" placeholder="كلمة المرور الحالية">
-                <input type="password" id="newPassInput" placeholder="كلمة المرور الجديدة">
-                <button class="btn-submit" onclick="changeAdminPassword()">تحديث كلمة المرور</button>
-            </div>
-
-        </div>
-    </aside>
-
-    <!-- Modal: WhatsApp Request -->
+    <!-- Modal: WhatsApp Request (نافذة طلب مفتاح عبر الواتساب) -->
     <div id="wa-modal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal('wa-modal')">&times;</span>
             <h3>💬 طلب مفتاح تصريح عبر الواتساب</h3>
-            <p style="font-size: 0.9rem; color: var(--text-muted); margin-top:5px;">حدد نوع المفتاح للتواصل المباشر مع أحمد:</p>
+            <p style="font-size: 0.9rem; color: var(--text-muted); margin-top: 5px;">
+                حدد نوع المفتاح للتواصل المباشر مع الأستاذ أحمد:
+            </p>
             
-            <div style="display:flex; flex-direction:column; gap:10px; margin-top:20px;">
-                <button class="btn-whatsapp" style="justify-content:center;" onclick="sendWaRequest('master')">
+            <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 20px;">
+                <button class="btn-whatsapp" style="justify-content: center; width: 100%;" onclick="sendWaRequest('master')">
                     طلب مفتاح شامل (جميع الشهادات)
                 </button>
                 
                 <hr style="border: 0; border-top: 1px solid var(--border-color);">
                 
-                <label style="font-size:0.85rem;">أو اختر شهادة محددة:</label>
-                <select id="waCertSelect" style="padding:10px; border-radius:6px; border:1px solid var(--border-color);"></select>
-                <button class="btn-primary" onclick="sendWaRequest('single')">
+                <label style="font-size: 0.85rem; font-weight: 600;">أو اختر شهادة محددة:</label>
+                <select id="waCertSelect" style="padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); font-family: inherit;"></select>
+                
+                <button class="btn-primary" style="width: 100%;" onclick="sendWaRequest('single')">
                     طلب مفتاح للشهادة المختارة
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Modal: Access Code -->
+    <!-- Modal: Access Code (نافذة إدخال كود التصريح) -->
     <div id="accessModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal('accessModal')">&times;</span>
             <h3 id="modalTitle">طلب تصريح معاينة</h3>
-            <p id="modalDesc" style="font-size:0.88rem; color:var(--text-muted); margin: 8px 0;">أدخل رمز الوصول الخاص بهذه الوثيقة أو الرمز الشامل:</p>
-            <input type="password" id="passcode" placeholder="أدخل كود التصريح هنا" style="width:100%; padding:10px; border-radius:6px; border:1px solid var(--border-color); margin-bottom:12px;">
-            <button class="btn-submit" onclick="validateCode()">فحص التصريح والفتح</button>
-            <p id="errorMsg" style="color:red; font-size:0.85rem; margin-top:8px;"></p>
+            <p id="modalDesc" style="font-size: 0.88rem; color: var(--text-muted); margin: 8px 0;">
+                أدخل رمز الوصول الخاص بهذه الوثيقة أو الرمز الشامل:
+            </p>
+            <input type="password" id="passcode" placeholder="أدخل كود التصريح هنا" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 12px; font-family: inherit;">
+            <button class="btn-submit" style="width: 100%;" onclick="validateCode()">فحص التصريح والفتح</button>
+            <p id="errorMsg" class="error-text"></p>
         </div>
     </div>
 
-    <!-- AI Chatbot UI -->
+    <!-- ==================== AI Chatbot UI (مساعد الذكاء الاصطناعي) ==================== -->
     <button id="ai-chat-btn" onclick="toggleChat()">💬 اسأل السكرتير الذكي</button>
 
     <div id="ai-chat-box">
         <div id="ai-chat-header">
-            <div style="display:flex; align-items:center; gap:10px;">
-                <div style="width:36px; height:36px; background:#fff; color:#0f766e; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold;">أ</div>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div class="chat-avatar">أ</div>
                 <div>
-                    <div style="font-size:0.95rem; font-weight:700;">مساعد أحمد ذياب الذكي</div>
-                    <div style="font-size:0.75rem; opacity:0.85;">متصل حالياً</div>
+                    <div style="font-size: 0.95rem; font-weight: 700;">مساعد أحمد ذياب الذكي</div>
+                    <div style="font-size: 0.75rem; opacity: 0.85;">متصل حالياً</div>
                 </div>
             </div>
-            <span style="cursor:pointer; font-size:18px;" onclick="toggleChat()">✖</span>
+            <span style="cursor: pointer; font-size: 18px;" onclick="toggleChat()">✖</span>
         </div>
 
         <div id="ai-chat-messages">
@@ -815,42 +550,161 @@
         </div>
     </div>
 
-    <!-- External Script File -->
+    <!-- Tonal CSS for Chatbot & Extra UI -->
+    <style>
+        /* Floating Chat Button */
+        #ai-chat-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: #ffffff;
+            border: none;
+            padding: 12px 22px;
+            border-radius: 30px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            box-shadow: var(--shadow-lg);
+            cursor: pointer;
+            z-index: 9999;
+            transition: var(--transition);
+        }
+
+        #ai-chat-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 28px rgba(0,0,0,0.2);
+        }
+
+        /* Chat Container Box */
+        #ai-chat-box {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            width: 360px;
+            max-width: 90vw;
+            height: 500px;
+            max-height: 80vh;
+            background: #ffffff;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            display: none;
+            flex-direction: column;
+            z-index: 9999;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        #ai-chat-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: #ffffff;
+            padding: 14px 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-avatar {
+            width: 36px;
+            height: 36px;
+            background: #ffffff;
+            color: var(--primary-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        #ai-chat-messages {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            background-color: #f8fafc;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .msg {
+            max-width: 80%;
+            padding: 10px 14px;
+            border-radius: 12px;
+            font-size: 0.88rem;
+            line-height: 1.5;
+            word-break: break-word;
+        }
+
+        .bot-msg {
+            background: #ffffff;
+            color: var(--text-main);
+            align-self: flex-start;
+            border-bottom-right-radius: 2px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+        }
+
+        .user-msg {
+            background: var(--primary-color);
+            color: #ffffff;
+            align-self: flex-end;
+            border-bottom-left-radius: 2px;
+        }
+
+        #ai-chat-input-area {
+            display: flex;
+            padding: 10px;
+            background: #ffffff;
+            border-top: 1px solid var(--border-color);
+            gap: 8px;
+        }
+
+        #ai-chat-input {
+            flex: 1;
+            padding: 10px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            outline: none;
+            font-family: inherit;
+            font-size: 0.9rem;
+        }
+
+        #ai-chat-send {
+            background: var(--primary-color);
+            color: #ffffff;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+    </style>
+
+    <!-- External Logic File -->
     <script src="script.js"></script>
 
-    <!-- Inline Script for Chatbot & UI State -->
+    <!-- Inline Script for Interactive Logic & AI Assistant -->
     <script>
-        // تنبيه أمني: يوصى بربط المفاتيح عبر خادم خلفي (Backend Proxy) لمنع استغلال المفتاح.
+        // تنبيه أمني: يوصى بربط المفاتيح عبر خادم خلفي (Backend Proxy) لمنع استغلال المفتاح في البيئة الإنتاجية.
         const AI_API_KEYS = [
             "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"
         ];
 
-        /* Admin Drawer Controls */
-        function toggleAdminDrawer() {
-            document.getElementById('admin-drawer').classList.toggle('open');
-        }
-
-        function openAdminTab(tabName) {
-            document.querySelectorAll('.admin-tab-content').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.admin-tab').forEach(btn => btn.classList.remove('active'));
-            
-            const targetTab = document.getElementById(`tab-${tabName}`);
-            if (targetTab) targetTab.classList.add('active');
-            
-            if (event && event.currentTarget) {
-                event.currentTarget.classList.add('active');
-            }
-        }
-
-        /* Generic Modals */
+        /* التحكم بالنوافذ المنبثقة العامة */
         function openModal(id) {
-            document.getElementById(id).style.display = 'flex';
-        }
-        function closeModal(id) {
-            document.getElementById(id).style.display = 'none';
+            const modal = document.getElementById(id);
+            if (modal) modal.style.display = 'flex';
         }
 
-        /* Chatbot Controls */
+        function closeModal(id) {
+            const modal = document.getElementById(id);
+            if (modal) modal.style.display = 'none';
+        }
+
+        /* التحكم بواجهة المحادثة الذكية */
         function toggleChat() {
             const box = document.getElementById('ai-chat-box');
             const btn = document.getElementById('ai-chat-btn');
@@ -858,9 +712,10 @@
             const isVisible = box.style.display === 'flex';
             box.style.display = isVisible ? 'none' : 'flex';
             btn.style.display = isVisible ? 'flex' : 'none';
-            document.body.style.overflow = isVisible ? 'auto' : 'hidden';
 
-            if (!isVisible) document.getElementById('ai-chat-input').focus();
+            if (!isVisible) {
+                document.getElementById('ai-chat-input').focus();
+            }
         }
 
         function handleKey(e) {
@@ -872,7 +727,7 @@
             return `
 اسم المستشار: ${kb.personalInfo?.name || "أحمد عادل ناجي ذياب"}
 الوصف: ${kb.personalInfo?.title || "مدرب محاسبة وأنظمة مالية"}
-العنوان: جعار - خنفر - أبين - اليمن | هاتف: +967 79087415 | بريد: Ahmed.a.n.thiab@gmail.com
+العنوان: جعار - خنفر - أبين - اليمن | هاتف: +967 770000000 | بريد: Ahmed.a.n.thiab@gmail.com
 الشهادات الحالية: ${JSON.stringify(kb.certificates || [])}
 الخبرات الحالية: ${JSON.stringify(kb.experiences || [])}
 المهارات الحالية: ${JSON.stringify(kb.skills || {})}
@@ -937,7 +792,7 @@
             }, 100);
         }
 
-        /* Protect images from direct context menu download */
+        /* حماية الصور من التنزيل المباشر عبر القائمة اليمنى */
         document.addEventListener('contextmenu', function(e) {
             if (e.target.tagName === 'IMG') {
                 e.preventDefault();
@@ -945,5 +800,5 @@
         });
     </script>
 </body>
-
 </html>
+    
