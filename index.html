@@ -395,49 +395,6 @@
   });
 </script>
 <!-- === نهاية الكود === --></body>
-    /* حاوية أزرار التنقل لجعلها في منتصف الشاشة */
-.tab-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 15px;
-  margin: 30px auto;
-  padding: 10px;
-  max-width: 500px;
-}
-
-/* التنسيق الأساسي للأزرار (الشهادات والذكاء الاصطناعي) */
-.tab-btn {
-  flex: 1;
-  padding: 12px 20px;
-  font-size: 16px;
-  font-weight: bold;
-  color: #555;
-  background: #f8f9fa;
-  border: 2px solid #e0e0e0;
-  border-radius: 30px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-  text-align: center;
-}
-
-/* تأثير عند مرور الماوس */
-.tab-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 15px rgba(0,0,0,0.1);
-}
-
-/* شكل الزر المفعّل (أو زر الذكاء البارز) */
-.tab-btn.active, .tab-btn-ai {
-  background: linear-gradient(135deg, #007bff, #0056b3);
-  color: white !important;
-  border-color: transparent;
-  box-shadow: 0 6px 18px rgba(0, 123, 255, 0.35);
-}
-    <div class="tab-container">
-  <button class="tab-btn" onclick="showSection('certificates')">📜 عرض الشهادات</button>
-  <button class="tab-btn tab-btn-ai" onclick="toggleChat()">🤖 مراسلة الذكاء</button>
-</div>
+   
 
 </html>
