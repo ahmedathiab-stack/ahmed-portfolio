@@ -106,6 +106,19 @@
     </div>
 
     <script src="script.js"></script>
+    <script>
+  // منع الضغط بالزر الأيمن على الصور
+  document.addEventListener('contextmenu', function(e) {
+      if (e.target.tagName === 'IMG') {
+          e.preventDefault();
+      }
+  });
+
+  // منع سحب الصور لنسخها
+  document.querySelectorAll('img').forEach(img => {
+      img.addEventListener('dragstart', (e) => e.preventDefault());
+  });
+</script>
 </body>
 
 </html>
