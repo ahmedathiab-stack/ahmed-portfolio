@@ -7,6 +7,192 @@
     <title>أحمد عادل ناجي ذياب | Portfolio & Verified Credentials</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+      /* =========================================================
+         تنسيقات الشات بوت والمساعد الذكي (ستايل متناسق وعالي الجودة)
+         ========================================================= */
+      
+      /* زر الفتح العائم */
+      #ai-chat-btn {
+        position: fixed;
+        bottom: 25px;
+        right: 25px;
+        background: linear-gradient(135deg, #007bff, #0056b3);
+        color: #ffffff;
+        border: none;
+        border-radius: 30px;
+        padding: 14px 24px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        box-shadow: 0 8px 20px rgba(0, 123, 255, 0.35);
+        z-index: 9999;
+        transition: all 0.3s ease;
+        font-family: 'Tajawal', sans-serif;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      #ai-chat-btn:hover {
+        transform: translateY(-3px) scale(1.02);
+        box-shadow: 0 12px 25px rgba(0, 123, 255, 0.45);
+      }
+
+      /* حاوية المحادثة ملء الشاشة المتجاوبة */
+      #ai-chat-box {
+        display: none;
+        position: fixed;
+        top: 0; 
+        left: 0;
+        width: 100vw;
+        height: 100dvh;
+        background: #efeae2;
+        flex-direction: column;
+        z-index: 10000;
+        font-family: 'Tajawal', sans-serif;
+      }
+
+      /* الشريط العلوي للمحادثة */
+      #ai-chat-header {
+        background: #075E54;
+        color: white;
+        padding: 14px 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        flex-shrink: 0;
+      }
+
+      #ai-chat-header .user-info { 
+        display: flex; 
+        align-items: center; 
+        gap: 12px; 
+      }
+
+      #ai-chat-header .user-avatar {
+        width: 42px; 
+        height: 42px;
+        background: #E5DDD5; 
+        border-radius: 50%;
+        display: flex; 
+        align-items: center; 
+        justify-content: center;
+        font-weight: bold; 
+        color: #075E54; 
+        font-size: 20px;
+      }
+
+      #ai-chat-header .status-info { 
+        display: flex; 
+        flex-direction: column; 
+      }
+
+      #ai-chat-header .status-info .name { 
+        font-weight: 700; 
+        font-size: 16px; 
+      }
+
+      #ai-chat-header .status-info .status { 
+        font-size: 12px; 
+        opacity: 0.85; 
+      }
+
+      #ai-chat-header .close-btn { 
+        cursor: pointer; 
+        font-size: 22px; 
+        padding: 5px; 
+        transition: opacity 0.2s;
+      }
+
+      #ai-chat-header .close-btn:hover {
+        opacity: 0.7;
+      }
+
+      /* منطقة الرسائل */
+      #ai-chat-messages {
+        flex: 1;
+        padding: 20px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        box-sizing: border-box;
+      }
+
+      /* فقاعات المحادثة */
+      .msg {
+        padding: 12px 16px;
+        border-radius: 12px;
+        max-width: 80%;
+        font-size: 15px;
+        line-height: 1.6;
+        position: relative;
+        word-wrap: break-word;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      }
+
+      .user-msg {
+        background: #DCF8C6;
+        color: #111;
+        align-self: flex-end;
+        border-top-right-radius: 2px;
+      }
+
+      .bot-msg {
+        background: #ffffff;
+        color: #222;
+        align-self: flex-start;
+        border-top-left-radius: 2px;
+      }
+
+      /* منطقة الإدخال السفلية */
+      #ai-chat-input-area {
+        background: #f0f2f5;
+        padding: 12px 16px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        border-top: 1px solid #d1d7db;
+        flex-shrink: 0;
+      }
+
+      #ai-chat-input {
+        flex: 1;
+        border: 1px solid #cccccc;
+        padding: 12px 18px;
+        border-radius: 25px;
+        outline: none;
+        font-size: 15px;
+        background: #ffffff;
+        font-family: inherit;
+      }
+
+      #ai-chat-input:focus {
+        border-color: #075E54;
+      }
+
+      #ai-chat-send {
+        background: #075E54;
+        color: white;
+        border: none;
+        width: 45px; 
+        height: 45px;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 18px;
+        display: flex; 
+        align-items: center; 
+        justify-content: center;
+        transition: background 0.2s ease;
+      }
+
+      #ai-chat-send:hover {
+        background: #054840;
+      }
+    </style>
 </head>
 
 <body>
@@ -18,7 +204,7 @@
             <p class="subtitle">مدرب برامج محاسبة وأنظمة مالية | مدرب معتمد (ICDL & English)</p>
             <div class="contact-info">
                 <span>📍 جعار - خنفر - أبين - اليمن</span> |
-                <span>📱 96779087415+</span> |
+                <span>📱 +967 79087415</span> |
                 <span>✉️ Ahmed.a.n.thiab@gmail.com</span>
             </div>
         </div>
@@ -28,9 +214,7 @@
         <!-- Profile Summary -->
         <section class="card">
             <h2>📌 الملخص المهني</h2>
-            <p>مدرب معتمد ومحاسب أكاديمي حاصل على بكالوريوس المحاسبة من جامعة أبين، أجمع بين الخبرة المالية العملية
-                والمهارات التدريبية والتيسيرية. متخصص في تأهيل الكوادر وتدريب الأنظمة المحاسبية الآلية والبرامج
-                المكتبية.</p>
+            <p>مدرب معتمد ومحاسب أكاديمي حاصل على بكالوريوس المحاسبة من جامعة أبين، أجمع بين الخبرة المالية العملية والمهارات التدريبية والتيسيرية. متخصص في تأهيل الكوادر وتدريب الأنظمة المحاسبية الآلية والبرامج المكتبية.</p>
         </section>
 
         <!-- Master Access Bar -->
@@ -42,11 +226,9 @@
         <!-- Protected Certificates Section -->
         <section class="card">
             <h2>🔐 السجل الأكاديمي والشهادات الموثقة</h2>
-            <p class="section-desc">جميع الوثائق محمية بنظام التصاريح المؤقتة. اختر وثيقة محددة أو استخدم التصريح
-                الممنوح لك.</p>
+            <p class="section-desc">جميع الوثائق محمية بنظام التصاريح المؤقتة. اختر وثيقة محددة أو استخدم التصريح الممنوح لك.</p>
 
             <div class="cert-grid">
-
                 <!-- 1. Accounting Group -->
                 <div class="cert-category">
                     <h3>📊 المؤهلات والشهادات المحاسبية</h3>
@@ -88,7 +270,6 @@
                         <button class="btn-lock" onclick="openModal('cert-lang-1')">🔒 معاينة</button>
                     </div>
                 </div>
-
             </div>
         </section>
     </div>
@@ -105,322 +286,155 @@
         </div>
     </div>
 
-    <script src="script.js"></script>
-    <script>
-  // منع الضغط بالزر الأيمن على الصور
-  document.addEventListener('contextmenu', function(e) {
-      if (e.target.tagName === 'IMG') {
-          e.preventDefault();
-      }
-  });
+    <!-- زر فتح الشات بوت -->
+    <button id="ai-chat-btn" onclick="toggleChat()">💬 اسأل السكرتير</button>
 
-  // منع سحب الصور لنسخها
-  document.querySelectorAll('img').forEach(img => {
-      img.addEventListener('dragstart', (e) => e.preventDefault());
-  });
-</script>
-   <!-- === بداية الشات بوت (ستايل واتساب ملء الشاشة - دعم مفاتيح متعددة) === -->
-<style>
-  /* زر فتح المحادثة العائم */
-  <style>
-  /* زر دخول المحادثة (بارز وأنيق بلون أزرق جذاب) */
-  #style>
-  /* زر فتح المحادثة */
-  #ai-chat-btn {
-  position: fixed;
-  bottom: 25px;
-  right: 25px;
-  background: linear-gradient(135deg, #007bff, #0056b3);
-  color: #ffffff;
-  border: none;
-  border-radius: 30px;
-  padding: 14px 24px;
-  font-size: 16px;
-  font-weight: bold;
-  cursor: pointer;
-  box-shadow: 0 8px 20px rgba(0, 123, 255, 0.35);
-  z-index: 9999;
-  transition: all 0.3s ease;
-  font-family: inherit;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
+    <!-- واجهة الشات بوت -->
+    <div id="ai-chat-box">
+        <div id="ai-chat-header">
+            <div class="user-info">
+                <div class="user-avatar">أ</div>
+                <div class="status-info">
+                    <span class="name">مساعد أحمد ذياب الذكي</span>
+                    <span class="status">متصل حالياً</span>
+                </div>
+            </div>
+            <span class="close-btn" onclick="toggleChat()">✖</span>
+        </div>
 
-#ai-chat-btn:hover {
-  transform: translateY(-3px) scale(1.02);
-  box-shadow: 0 12px 25px rgba(0, 123, 255, 0.45);
-}
+        <div id="ai-chat-messages">
+            <div class="msg bot-msg">أهلاً بك! 👋 أنا المساعد الذكي الخاص بالمستشار أحمد ذياب. كيف يمكنني مساعدتك اليوم؟</div>
+        </div>
 
-  /* تأثير عند مرور الماوس أو اللمس */
-  #ai-chat-btn:hover {
-    transform: translateY(-3px) scale(1.03);
-    box-shadow: 0 12px 25px rgba(0, 123, 255, 0.5);
-  }
-  #ai-chat-btn:hover { transform: scale(1.05); }
-
-  /* حاوية المحادثة (تتعدل تلقائياً مع حجم الشاشة وكيبورد الجوال) */
-  #ai-chat-box {
-  display: none;
-  position: fixed;
-  top: 0; left: 0;
-  width: 100vw;
-  height: 100dvh; /* يتكيف تلقائياً مع شاشات الجوال */
-  background: #efeae2; /* خلفية ناعمة ومريحة للعين */
-  flex-direction: column;
-  z-index: 10000;
-  font-family: system-ui, -apple-system, sans-serif;
-}
-
-  /* الشريط العلوي */
-  #ai-chat-header {
-    background: #075E54;
-    color: white;
-    padding: 12px 18px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    flex-shrink: 0; /* منع انكماش الهيدر */
-  }
-  #ai-chat-header .user-info { display: flex; align-items: center; gap: 12px; }
-  #ai-chat-header .user-avatar {
-    width: 42px; height: 42px;
-    background: #E5DDD5; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-weight: bold; color: #075E54; font-size: 20px;
-  }
-  #ai-chat-header .status-info { display: flex; flex-direction: column; }
-  #ai-chat-header .status-info .name { font-weight: bold; font-size: 16px; }
-  #ai-chat-header .status-info .status { font-size: 12px; opacity: 0.85; }
-  #ai-chat-header .close-btn { cursor: pointer; font-size: 22px; padding: 5px; }
-
-  /* منطقة الردود والرسائل (ينكمش ارتفاعها عند فتح الكيبورد لتستغل المساحة المتبقية) */
-  #ai-chat-messages {
-  flex: 1;
-  padding: 15px;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  box-sizing: border-box;
-}
-  }
-
-  /* تصميم الفقاعات */
-  .msg {
-    padding: 10px 14px;
-    border-radius: 8px;
-    max-width: 78%;
-    font-size: 15px;
-    line-height: 1.5;
-    position: relative;
-    word-wrap: break-word;
-  }
-  .user-msg {
-    background: #DCF8C6;
-    align-self: flex-end;
-    border-top-right-radius: 0;
-  }
-  .user-msg::after {
-    content: ''; position: absolute; right: -8px; top: 0;
-    border: 8px solid transparent;
-    border-left-color: #DCF8C6; border-top-color: #DCF8C6;
-  }
-  .bot-msg {
-    background: white;
-    align-self: flex-start;
-    border-top-left-radius: 0;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.15);
-  }
-  .bot-msg::after {
-    content: ''; position: absolute; left: -8px; top: 0;
-    border: 8px solid transparent;
-    border-right-color: white; border-top-color: white;
-  }
-
-  /* منطقة كتابة الأسئلة (استعادة شكلها وحجمها السابق بالكامل) */
-  ##ai-chat-input-area {
-  background: #f0f2f5;
-  padding: 10px 15px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  border-top: 1px solid #d1d7db;
-  flex-shrink: 0; /* يمنع انكماش حقل الكتابة */
-}
-  /* زر الفتح الخارجي فقط */
-#ai-chat-btn {
-  position: fixed;
-  bottom: 25px;
-  right: 25px;
-  background: linear-gradient(135deg, #007bff, #0056b3);
-  color: #ffffff;
-  border: none;
-  border-radius: 30px;
-  padding: 14px 24px;
-  font-size: 16px;
-  font-weight: bold;
-  cursor: pointer;
-  box-shadow: 0 8px 20px rgba(0, 123, 255, 0.35);
-  z-index: 9999;
-  transition: all 0.3s ease;
-  font-family: inherit;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-#ai-chat-btn:hover {
-  transform: translateY(-3px) scale(1.02);
-  box-shadow: 0 12px 25px rgba(0, 123, 255, 0.45);
-}
-  #ai-chat-send {
-    background: #075E54;
-    color: white;
-    border: none;
-    width: 45px; height: 45px;
-    border-radius: 50%;
-    cursor: pointer;
-    font-size: 18px;
-    display: flex; align-items: center; justify-content: center;
-  }
-    document.getElementById('ai-chat-input').addEventListener('focus', () => {
-  setTimeout(() => {
-    const msgContainer = document.getElementById('ai-chat-messages');
-    msgContainer.scrollTop = msgContainer.scrollHeight;
-  }, 300);
-});
-</style>
-</style>
-
-<button id="ai-chat-btn" onclick="toggleChat()">💬 اسأل السكرتير </button>
-<div id="ai-chat-box">
-  <div id="ai-chat-header">
-    <div class="user-info">
-      <div class="user-avatar">أ</div>
-      <div class="status-info">
-        <span class="name">مساعد أحمد ذياب الذكي</span>
-        <span class="status">متصل حالياً</span>
-      </div>
+        <div id="ai-chat-input-area">
+            <input type="text" id="ai-chat-input" placeholder="اكتب رسالتك هنا..." onkeypress="handleKey(event)">
+            <button id="ai-chat-send" onclick="sendMessage()">➤</button>
+        </div>
     </div>
-    <span class="close-btn" onclick="toggleChat()">✖</span>
-  </div>
 
-  <div id="ai-chat-messages">
-    <div class="msg bot-msg">أهلاً بك! 👋 أنا المساعد الذكي الخاص بأحمد. كيف يمكنني مساعدتك اليوم؟</div>
-  </div>
+    <!-- الملف البرمجي الخارجي -->
+    <script src="script.js"></script>
 
-  <div id="ai-chat-input-area">
-    <input type="text" id="ai-chat-input" placeholder="اكتب رسالتك هنا..." onkeypress="handleKey(event)">
-    <button id="ai-chat-send" onclick="sendMessage()">➤</button>
-  </div>
-</div>
+    <!-- البرمجة الخاصة بالمساعد الذكي والتشغيل -->
+    <script>
+      // السيرة الذاتية الدقيقة للمساعد الذكي
+      const USER_DATA = `
+      الاسم: أحمد عادل ناجي ذياب
+      العنوان: جعار - خنفر - أبين - اليمن
+      الهاتف: +967 79087415
+      البريد: Ahmed.a.n.thiab@gmail.com
+      المؤهل: بكالوريوس محاسبة من جامعة أبين (2026)
+      المهنة: مدرب برامج محاسبة وأنظمة مالية ومدرب معتمد (ICDL و لغة إنجليزية).
+      الشهادات والخبرات:
+      - بكالوريوس محاسبة (جامعة أبين)
+      - شهادة نظام إكسترا للمحاسبة والإدارة (بن مقيبل للأنظمة ومؤسسة بلقيس)
+      - دبلوم الرخصة الدولية لقيادة الحاسوب ICDL (وزارة التعليم الفني - معهد جبس)
+      - دبلوم عالي لغة إنجليزية بمستوى B2 (وزارة التعليم الفني - معهد جبس)
+      تنويه: جميع الشهادات محمية ويمكن معاينتها بطلب مفتاح التصريح الخاص.
+      `;
 
-<script>
-  // بيانات البوت المعرفية
-  const USER_DATA = `
-  الاسم: أحمد ذياب
-  المهنة: مطور موقع ومحترف تكنولوجيا
-  المهارات: بناء المواقع، Vercel، GitHub، حماية البيانات، إدارة المشاريع.
-  ملاحظة: الشهادات حالياً قيد التحديث والرفع على الموقع.
-  `;
+      // مفاتيح الاتصال الاحتياطية
+      const AI_API_KEYS = [
+        "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"
+        // يمكن إضافة مفاتيح إضافية هنا عند الحاجة
+      ];
 
-  // قائمة المفاتيح المتعددة: يجرب النظام المفتاح الأول، وإذا فشل ينقل فوراً للتالي
-  const AI_API_KEYS = [
-    "AQ.Ab8RN6IOpwK7xP5JHTiQJMojgC5hti0GieXWheo9De5-h4TBdw", // المفتاح الأول
-    "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", // المفتاح الثاني (Groq)
-    // "يمكنك إضافة مفتاح ثالث هنا مستقبلاً بين علامتي التنصيص"
-  ];
-
-  function toggleChat() {
-    const box = document.getElementById('ai-chat-box');
-    const btn = document.getElementById('ai-chat-btn');
-    
-    if (box.style.display === 'flex') {
-      box.style.display = 'none';
-      btn.style.display = 'block';
-      document.body.style.overflow = 'auto';
-    } else {
-      box.style.display = 'flex';
-      btn.style.display = 'none';
-      document.body.style.overflow = 'hidden';
-      document.getElementById('ai-chat-input').focus();
-    }
-  }
-
-  function handleKey(e) {
-    if (e.key === 'Enter') sendMessage();
-  }
-
-  async function sendMessage() {
-    const input = document.getElementById('ai-chat-input');
-    const text = input.value.trim();
-    if (!text) return;
-
-    const msgContainer = document.getElementById('ai-chat-messages');
-    msgContainer.innerHTML += `<div class="msg user-msg">${text}</div>`;
-    input.value = '';
-    msgContainer.scrollTop = msgContainer.scrollHeight;
-
-    let success = false;
-
-    // حلقة لتجربة المفاتيح المضافة بالترتيب
-    for (let i = 0; i < AI_API_KEYS.length; i++) {
-      const apiKey = AI_API_KEYS[i];
-      if (!apiKey || apiKey.includes("إضافة مفتاح")) continue;
-
-      try {
-        const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${apiKey}`
-          },
-          body: JSON.stringify({
-            model: "llama-3.3-70b-versatile",
-            messages: [
-              {
-                role: "system",
-                content: `أنت مساعد ذكي للموقع الشخصي لأحمد ذياب. أجب باللغة العربية بأسلوب محترف ومختصر بناءً على هذه البيانات فقط:\n${USER_DATA}`
-              },
-              { role: "user", content: text }
-            ]
-          })
-        });
-
-        const data = await response.json();
-
-        if (!data.error && data.choices && data.choices[0]) {
-          const reply = data.choices[0].message.content;
-          msgContainer.innerHTML += `<div class="msg bot-msg">${reply}</div>`;
-          success = true;
-          break; // تم الاتصال بنجاح، توقف عن التجربة
+      function toggleChat() {
+        const box = document.getElementById('ai-chat-box');
+        const btn = document.getElementById('ai-chat-btn');
+        
+        if (box.style.display === 'flex') {
+          box.style.display = 'none';
+          btn.style.display = 'flex';
+          document.body.style.overflow = 'auto';
+        } else {
+          box.style.display = 'flex';
+          btn.style.display = 'none';
+          document.body.style.overflow = 'hidden';
+          document.getElementById('ai-chat-input').focus();
         }
-      } catch (err) {
-        console.warn(`المفتاح رقم ${i + 1} لم يعمل، جاري الانتقال للمفتاح التالي...`);
       }
-    }
 
-    if (!success) {
-      msgContainer.innerHTML += `<div class="msg bot-msg">⚠️ تعذر الاتصال بالمساعد حالياً. يرجى المراهنة على مفتاح يعمل.</div>`;
-    }
-
-    msgContainer.scrollTop = msgContainer.scrollHeight;
-  }
-
-  // كود منع نسخ الصور
-  document.addEventListener('contextmenu', function(e) {
-      if (e.target.tagName === 'IMG') {
-          e.preventDefault();
+      function handleKey(e) {
+        if (e.key === 'Enter') sendMessage();
       }
-  });
 
-  document.querySelectorAll('img').forEach(img => {
-      img.addEventListener('dragstart', (e) => e.preventDefault());
-  });
-</script>
-<!-- === نهاية الكود === --></body>
-   
+      async function sendMessage() {
+        const input = document.getElementById('ai-chat-input');
+        const text = input.value.trim();
+        if (!text) return;
+
+        const msgContainer = document.getElementById('ai-chat-messages');
+        msgContainer.innerHTML += `<div class="msg user-msg">${text}</div>`;
+        input.value = '';
+        msgContainer.scrollTop = msgContainer.scrollHeight;
+
+        let success = false;
+
+        for (let i = 0; i < AI_API_KEYS.length; i++) {
+          const apiKey = AI_API_KEYS[i];
+          if (!apiKey || apiKey.includes("إضافة مفتاح")) continue;
+
+          try {
+            const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
+              },
+              body: JSON.stringify({
+                model: "llama-3.3-70b-versatile",
+                messages: [
+                  {
+                    role: "system",
+                    content: `أنت المساعد الذكي الرسمي لـ (أحمد عادل ناجي ذياب). أجب باللغة العربية باحترافية واختصار مستنداً فقط للبيانات التالية:\n${USER_DATA}`
+                  },
+                  { role: "user", content: text }
+                ]
+              })
+            });
+
+            const data = await response.json();
+
+            if (!data.error && data.choices && data.choices[0]) {
+              const reply = data.choices[0].message.content;
+              msgContainer.innerHTML += `<div class="msg bot-msg">${reply}</div>`;
+              success = true;
+              break;
+            }
+          } catch (err) {
+            console.warn(`تنبيه: المفتاح رقم ${i + 1} لم يستجب.`);
+          }
+        }
+
+        if (!success) {
+          msgContainer.innerHTML += `<div class="msg bot-msg">⚠️ تعذر الاتصال حالياً. يرجى المحاولة لاحقاً.</div>`;
+        }
+
+        setTimeout(() => {
+          msgContainer.scrollTop = msgContainer.scrollHeight;
+        }, 100);
+      }
+
+      // ضبط التركيز والنزول عند كتابة الرسائل على الهاتف
+      document.getElementById('ai-chat-input').addEventListener('focus', () => {
+        setTimeout(() => {
+          const msgContainer = document.getElementById('ai-chat-messages');
+          msgContainer.scrollTop = msgContainer.scrollHeight;
+        }, 300);
+      });
+
+      // منع سحب ونسخ الصور
+      document.addEventListener('contextmenu', function(e) {
+          if (e.target.tagName === 'IMG') {
+              e.preventDefault();
+          }
+      });
+
+      document.querySelectorAll('img').forEach(img => {
+          img.addEventListener('dragstart', (e) => e.preventDefault());
+      });
+    </script>
+</body>
 
 </html>
