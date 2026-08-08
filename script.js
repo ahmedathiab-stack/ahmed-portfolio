@@ -8,6 +8,113 @@ const USER_KNOWLEDGE_BASE = {
         location: "اليمن",
         summary: "محاسب متخصص يجمع بين الخصلة المالية واستخدام الحلول التقنية الحديثة ونظام إكسترا."
     },
+    // ============================================================
+// إدارة الإضافات والتحكم التكيّفي للذكاء الاصطناعي
+// ============================================================
+
+// حالة تكيّف الذكاء الاصطناعي (مفتاح التشغيل والإيقاف)
+let isAIAdaptabilityEnabled = localStorage.getItem("ai_adapt_status") !== "OFF";
+
+function toggleAIAdaptability() {
+    isAIAdaptabilityEnabled = !isAIAdaptabilityEnabled;
+    localStorage.setItem("ai_adapt_status", isAIAdaptabilityEnabled ? "ON" : "OFF");
+    
+    const btn = document.getElementById("aiToggleBtn");
+    if (btn) {
+        btn.innerText = isAIAdaptabilityEnabled ? "تفعيل (ON)" : "إيقاف (OFF)";
+        btn.style.background = isAIAdaptabilityEnabled ? "#38a169" : "#e53e3e";
+    }
+    alert(`تم ${isAIAdaptabilityEnabled ? "تفعيل" : "إيقاف"} حرية الذكاء الاصطناعي في التكيف والتعديل.`);
+}
+
+// التنقل بين تبويبات لوحة التحكم
+function switchAdminTab(tab) {
+    document.querySelectorAll('.admin-tab-content').forEach(el => el.style.display = 'none');
+    document.getElementById(`tab-${tab}`).style.display = 'block';
+}
+
+// دالة إضافة شهادة جديدة وتحديث القاعدة والذكاء فوراً
+function addNewCertificate() {
+    const title = document.getElementById("addCertTitle").value.trim();
+    const issuer = document.getElementById("addCertIssuer").value.trim();
+    const status = document.getElementById("addCertStatus").value;
+
+    if (!title) return alert("يرجى إدخال عنوان الشهادة");
+
+    const newCert = {
+        id: `cert-custom-${Date.now()}`,
+        title: title,
+        category: "عام",
+        status: status,
+        issuer: issuer || "غير محدد"
+    };
+
+    USER_KNOWLEDGE_BASE.certificates.push(newCert);
+    saveDynamicData();
+    alert("✅ تم إضافة الشهادة بنجاح، وتكيف الذكاء الاصطناعي معها فوراً!");
+    closeAdminModal();
+}
+
+// دالة إضافة خبرة جديدة
+function addNewExperience() {
+    const role = document.getElementById("addExpRole").value.trim();
+    const company = document.getElementById("addExpCompany").value.trim();
+    const period = document.getElementById("addExpPeriod").value.trim();
+    const tasks = document.getElementById("addExpTasks").value.split("\n").filter(t => t.trim() !== "");
+
+    if (!role || !company) return alert("يرجى إدخال البيانات الأساسية للخبرة");
+
+    USER_KNOWLEDGE_BASE.experiences.push({ role, company, period, tasks });
+    saveDynamicData();
+    alert("✅ تم إضافة الخبرة وتحديث قاعدة بيانات الذكاء الاصطناعي!");
+    closeAdminModal();
+}
+
+// دالة إضافة مهارة جديدة
+function addNewSkill() {
+    const skill = document.getElementById("addSkillName").value.trim();
+    const cat = document.getElementById("addSkillCat").value;
+
+    if (!skill) return alert("أدخل اسم المهارة");
+
+    if (!USER_KNOWLEDGE_BASE.skills[cat]) USER_KNOWLEDGE_BASE.skills[cat] = [];
+    USER_KNOWLEDGE_BASE.skills[cat].push(skill);
+    saveDynamicData();
+    alert("✅ تم إضافة المهارة بنجاح!");
+    closeAdminModal();
+}
+
+// دالة إضافة عمل تطوعي
+function addNewVolunteer() {
+    const role = document.getElementById("addVolRole").value.trim();
+    const org = document.getElementById("addVolOrg").value.trim();
+    const period = document.getElementById("addVolPeriod").value.trim();
+
+    if (!USER_KNOWLEDGE_BASE.volunteer) USER_KNOWLEDGE_BASE.volunteer = [];
+    USER_KNOWLEDGE_BASE.volunteer.push({ role, org, period });
+    saveDynamicData();
+    alert("✅ تم إضافة العمل التطوعي بنجاح!");
+    closeAdminModal();
+}
+
+// حفظ البيانات في المتصفح لاستعادتها دائماً
+function saveDynamicData() {
+    localStorage.setItem("user_kb_custom", JSON.stringify(USER_KNOWLEDGE_BASE));
+}
+
+// استعادة البيانات المضافة عند تحميل الصفحة
+function loadDynamicData() {
+    const saved = localStorage.getItem("user_kb_custom");
+    if (saved) {
+        const parsed = JSON.parse(saved);
+        Object.assign(USER_KNOWLEDGE_BASE, parsed);
+    }
+}
+
+// تشغيل الاستعادة تلقائياً عند الفتح
+document.addEventListener("DOMContentLoaded", () => {
+    loadDynamicData();
+});
     
     // الشهادات (مقسمة بين مكتملة وقيد التجهيز)
     certificates: [
