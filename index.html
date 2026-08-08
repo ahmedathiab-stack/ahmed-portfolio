@@ -16,6 +16,21 @@
     <input type="password" id="certPin" placeholder="عين رمز PIN خاص بالشهادة">
     <button class="btn-submit" onclick="addNewCertificate()">إضافة الشهادة</button>
 </div>
+    <!-- شريط المفتاح الشامل أعلى الشهادات -->
+<div class="master-access-bar">
+    <div>
+        <span>🔑 هل لديك مفتاح تصريح شامل؟</span>
+        <p style="font-size: 0.82rem; color: #4a5568; margin-top: 2px;">يمكنك فتح جميع الشهادات دفعة واحدة هنا</p>
+    </div>
+    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+        <button class="btn-master" onclick="openMasterKeyModal()">إدخال المفتاح الشامل</button>
+        
+        <!-- زر التحويل المباشر إلى الواتساب -->
+        <button class="btn-whatsapp" onclick="requestMasterKeyViaWhatsApp()">
+            💬 طلب مفتاح عبر واتساب
+        </button>
+    </div>
+</div>
     <!-- ==================== قسم الشهادات ==================== -->
 <section class="card">
     <h2>📜 الشهادات والدورات التدريبية</h2>
