@@ -1,150 +1,247 @@
+/* =========================================================
+   ملف التنسيقات الرئيسي (style.css) - أحمد عادل ناجي ذياب
+   ========================================================= */
+
+/* 1. المتغيرات العامة (CSS Variables) */
+:root {
+    --primary-color: #1b365d;
+    --primary-light: #2c5282;
+    --accent-color: #3182ce;
+    --accent-hover: #2b6cb0;
+    --success-color: #38a169;
+    --success-hover: #2f855a;
+    --danger-color: #e53e3e;
+    --bg-main: #f4f7f6;
+    --bg-card: #ffffff;
+    --bg-subtle: #f8fafc;
+    --text-primary: #2d3748;
+    --text-secondary: #666666;
+    --text-muted: #718096;
+    --border-color: #e2e8f0;
+    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.04);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+    --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.15);
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 16px;
+    --transition-fast: 0.2s ease;
+    --transition-normal: 0.3s ease;
+}
+
+/* 2. إعادة الضبط العامة (Global Reset) */
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-    font-family: 'Tajawal', sans-serif;
+    font-family: 'Tajawal', system-ui, -apple-system, sans-serif;
 }
 
 body {
-    background-color: #f4f7f6;
-    color: #333;
+    background-color: var(--bg-main);
+    color: var(--text-primary);
     line-height: 1.6;
+    direction: rtl;
+    text-align: right;
+    -webkit-font-smoothing: antialiased;
 }
 
 .container {
-    max-width: 900px;
+    max-width: 920px;
     margin: 0 auto;
     padding: 0 20px;
 }
 
+/* 3. الهيدر والترويسة (Hero Header) */
 .hero {
-    background: linear-gradient(135deg, #1b365d, #2c5282);
-    color: #fff;
-    padding: 40px 0;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+    color: #ffffff;
+    padding: 45px 0;
     text-align: center;
+    box-shadow: var(--shadow-md);
 }
 
 .hero h1 {
-    font-size: 2.2rem;
-    margin-bottom: 10px;
+    font-size: 2.3rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
 }
 
 .hero .subtitle {
-    font-size: 1.1rem;
+    font-size: 1.15rem;
     color: #e2e8f0;
-    margin-bottom: 15px;
+    margin-bottom: 18px;
+    font-weight: 500;
 }
 
 .contact-info {
-    font-size: 0.9rem;
+    font-size: 0.95rem;
     color: #cbd5e0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
 }
 
+.contact-info span {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* 4. المحتوى الرئيسي والبطاقات (Main Content & Cards) */
 .main-content {
-    margin-top: 25px;
+    margin-top: 30px;
+    margin-bottom: 40px;
 }
 
 .card {
-    background: #fff;
-    border-radius: 8px;
-    padding: 25px;
+    background: var(--bg-card);
+    border-radius: var(--radius-md);
+    padding: 28px;
     margin-bottom: 25px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+    transition: box-shadow var(--transition-normal);
+}
+
+.card:hover {
+    box-shadow: var(--shadow-md);
 }
 
 .card h2 {
-    color: #1b365d;
+    color: var(--primary-color);
     border-bottom: 2px solid #edf2f7;
-    padding-bottom: 10px;
-    margin-bottom: 15px;
+    padding-bottom: 12px;
+    margin-bottom: 18px;
+    font-size: 1.4rem;
 }
 
 .section-desc {
-    font-size: 0.9rem;
-    color: #666;
-    margin-bottom: 20px;
+    font-size: 0.92rem;
+    color: var(--text-secondary);
+    margin-bottom: 22px;
 }
 
-/* Master Access Bar */
+/* 5. شريط التصريح الشامل (Master Access Bar) */
 .master-access-bar {
     background: #ebf8ff;
     border: 1px solid #bee3f8;
-    border-radius: 8px;
-    padding: 15px 20px;
+    border-radius: var(--radius-md);
+    padding: 16px 22px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 25px;
+    gap: 15px;
+    box-shadow: 0 2px 5px rgba(49, 130, 206, 0.05);
 }
 
 .master-access-bar span {
-    font-weight: 500;
-    color: #2b6cb0;
+    font-weight: 600;
+    color: var(--accent-hover);
+    font-size: 0.98rem;
 }
 
 .btn-master {
-    background: #2b6cb0;
+    background: var(--accent-hover);
     color: white;
     border: none;
-    padding: 8px 16px;
-    border-radius: 5px;
+    padding: 10px 18px;
+    border-radius: var(--radius-sm);
     cursor: pointer;
-    font-size: 0.9rem;
+    font-size: 0.92rem;
+    font-weight: 500;
+    transition: all var(--transition-fast);
+    white-space: nowrap;
 }
 
 .btn-master:hover {
-    background: #2c5282;
+    background: var(--primary-light);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(44, 82, 130, 0.25);
 }
 
-/* Certificate Grid */
+/* 6. قسم الشهادات (Certificate Grid & Items) */
 .cert-category {
-    margin-bottom: 20px;
+    margin-bottom: 25px;
 }
 
 .cert-category h3 {
-    font-size: 1.05rem;
+    font-size: 1.1rem;
     color: #4a5568;
-    margin-bottom: 10px;
-    border-right: 4px solid #3182ce;
-    padding-right: 10px;
+    margin-bottom: 12px;
+    border-right: 4px solid var(--accent-color);
+    padding-right: 12px;
+    font-weight: 700;
 }
 
 .cert-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    padding: 12px 18px;
-    border-radius: 6px;
-    margin-bottom: 10px;
+    background: var(--bg-subtle);
+    border: 1px solid var(--border-color);
+    padding: 14px 20px;
+    border-radius: var(--radius-sm);
+    margin-bottom: 12px;
+    transition: all var(--transition-fast);
+}
+
+.cert-item:hover {
+    border-color: #cbd5e0;
+    background: #ffffff;
+    transform: translateX(-3px);
 }
 
 .cert-info h4 {
-    font-size: 0.95rem;
-    color: #2d3748;
+    font-size: 1rem;
+    color: var(--text-primary);
+    font-weight: 600;
+    margin-bottom: 3px;
 }
 
 .cert-info p {
-    font-size: 0.85rem;
-    color: #718096;
+    font-size: 0.88rem;
+    color: var(--text-muted);
 }
 
+/* أزرار الشهادات والحالات الخاصة */
 .btn-lock {
-    background: #3182ce;
+    background: var(--accent-color);
     color: white;
     border: none;
-    padding: 6px 14px;
-    border-radius: 4px;
+    padding: 8px 16px;
+    border-radius: var(--radius-sm);
     cursor: pointer;
-    font-size: 0.85rem;
+    font-size: 0.88rem;
+    font-weight: 500;
+    transition: all var(--transition-fast);
+    white-space: nowrap;
 }
 
 .btn-lock:hover {
-    background: #2b6cb0;
+    background: var(--accent-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(49, 130, 206, 0.3);
 }
 
-/* Modal Styling */
+/* حالة فك التشفير عن الشهادة */
+.cert-item.unlocked {
+    border-right: 4px solid var(--success-color);
+    background: #f0fff4;
+}
+
+.cert-item.unlocked .btn-lock {
+    background: var(--success-color);
+}
+
+.cert-item.unlocked .btn-lock:hover {
+    background: var(--success-hover);
+}
+
+/* 7. النافذة المنبثقة (Modal Styling) */
 .modal {
     display: none;
     position: fixed;
@@ -152,53 +249,147 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.6);
+    background: rgba(15, 23, 42, 0.65);
+    backdrop-filter: blur(4px);
     justify-content: center;
     align-items: center;
     z-index: 1000;
+    animation: fadeIn var(--transition-fast);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
 .modal-content {
-    background: white;
-    padding: 30px;
-    border-radius: 8px;
+    background: var(--bg-card);
+    padding: 32px 28px;
+    border-radius: var(--radius-md);
     width: 90%;
-    max-width: 400px;
+    max-width: 420px;
     text-align: center;
     position: relative;
+    box-shadow: var(--shadow-lg);
+    animation: slideUp var(--transition-fast);
+}
+
+@keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
 }
 
 .close-btn {
     position: absolute;
-    top: 10px;
-    left: 15px;
-    font-size: 1.5rem;
+    top: 12px;
+    left: 18px;
+    font-size: 1.6rem;
+    color: var(--text-muted);
     cursor: pointer;
+    transition: color var(--transition-fast);
+    line-height: 1;
+}
+
+.close-btn:hover {
+    color: var(--danger-color);
+}
+
+.modal-content h3 {
+    color: var(--primary-color);
+    margin-bottom: 10px;
+    font-size: 1.25rem;
+}
+
+.modal-content p {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-bottom: 15px;
 }
 
 .modal-content input {
     width: 100%;
-    padding: 10px;
-    margin: 15px 0;
-    border: 1px solid #ccc;
-    border-radius: 4px;
+    padding: 12px 15px;
+    margin: 10px 0 18px 0;
+    border: 1.5px solid var(--border-color);
+    border-radius: var(--radius-sm);
     text-align: center;
     font-size: 1rem;
+    outline: none;
+    transition: border-color var(--transition-fast);
+}
+
+.modal-content input:focus {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.15);
 }
 
 .btn-submit {
-    background: #38a169;
+    background: var(--success-color);
     color: white;
     border: none;
-    padding: 10px 20px;
-    border-radius: 4px;
+    padding: 12px 20px;
+    border-radius: var(--radius-sm);
     cursor: pointer;
     width: 100%;
     font-size: 1rem;
+    font-weight: 600;
+    transition: all var(--transition-fast);
+}
+
+.btn-submit:hover {
+    background: var(--success-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(56, 161, 105, 0.3);
 }
 
 .error-text {
-    color: #e53e3e;
-    font-size: 0.85rem;
-    margin-top: 10px;
+    color: var(--danger-color);
+    font-size: 0.88rem;
+    margin-top: 12px;
+    font-weight: 500;
+}
+
+/* 8. الاستجابة للشاشات الصغيرة (Responsive Media Queries) */
+@media (max-width: 650px) {
+    .hero {
+        padding: 30px 15px;
+    }
+    
+    .hero h1 {
+        font-size: 1.8rem;
+    }
+
+    .hero .subtitle {
+        font-size: 1rem;
+    }
+
+    .contact-info {
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .master-access-bar {
+        flex-direction: column;
+        text-align: center;
+        gap: 12px;
+    }
+
+    .btn-master {
+        width: 100%;
+    }
+
+    .cert-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .btn-lock {
+        width: 100%;
+        text-align: center;
+    }
+
+    .card {
+        padding: 20px 16px;
+    }
 }
