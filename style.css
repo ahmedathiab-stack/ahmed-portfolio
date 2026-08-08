@@ -2,6 +2,42 @@
    ملف التنسيقات الرئيسي (style.css) - أحمد عادل ناجي ذياب
    ========================================================= */
 
+/* تنسيقات نافذة الإدارة والتبويبات */
+.admin-tab {
+    padding: 8px 16px;
+    background: #edf2f7;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px 4px 0 0;
+    font-weight: bold;
+}
+.admin-tab.active {
+    background: #2b6cb0;
+    color: white;
+}
+.admin-tab-content input, 
+.admin-tab-content select, 
+.admin-tab-content textarea {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #cbd5e0;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+.btn-submit {
+    width: 100%;
+    padding: 10px;
+    background: #38a169;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+}
+.btn-submit:hover {
+    background: #2f855a;
+}
 /* 1. المتغيرات العامة (CSS Variables) */
 :root {
     --primary-color: #1b365d;
