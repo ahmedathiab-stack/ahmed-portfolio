@@ -2,42 +2,6 @@
    ملف التنسيقات الرئيسي (style.css) - أحمد عادل ناجي ذياب
    ========================================================= */
 
-/* تنسيقات نافذة الإدارة والتبويبات */
-.admin-tab {
-    padding: 8px 16px;
-    background: #edf2f7;
-    border: none;
-    cursor: pointer;
-    border-radius: 4px 4px 0 0;
-    font-weight: bold;
-}
-.admin-tab.active {
-    background: #2b6cb0;
-    color: white;
-}
-.admin-tab-content input, 
-.admin-tab-content select, 
-.admin-tab-content textarea {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 10px;
-    border: 1px solid #cbd5e0;
-    border-radius: 4px;
-    box-sizing: border-box;
-}
-.btn-submit {
-    width: 100%;
-    padding: 10px;
-    background: #38a169;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: bold;
-}
-.btn-submit:hover {
-    background: #2f855a;
-}
 /* 1. المتغيرات العامة (CSS Variables) */
 :root {
     --primary-color: #1b365d;
@@ -51,7 +15,7 @@
     --bg-card: #ffffff;
     --bg-subtle: #f8fafc;
     --text-primary: #2d3748;
-    --text-secondary: #666666;
+    --text-secondary: #4a5568;
     --text-muted: #718096;
     --border-color: #e2e8f0;
     --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.04);
@@ -97,14 +61,14 @@ body {
 }
 
 .hero h1 {
-    font-size: 2.3rem;
+    font-size: 2.2rem;
     font-weight: 700;
     margin-bottom: 8px;
     letter-spacing: -0.5px;
 }
 
 .hero .subtitle {
-    font-size: 1.15rem;
+    font-size: 1.1rem;
     color: #e2e8f0;
     margin-bottom: 18px;
     font-weight: 500;
@@ -116,14 +80,14 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 12px;
+    gap: 16px;
     flex-wrap: wrap;
 }
 
 .contact-info span {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
+    gap: 6px;
 }
 
 /* 4. المحتوى الرئيسي والبطاقات (Main Content & Cards) */
@@ -151,7 +115,7 @@ body {
     border-bottom: 2px solid #edf2f7;
     padding-bottom: 12px;
     margin-bottom: 18px;
-    font-size: 1.4rem;
+    font-size: 1.35rem;
 }
 
 .section-desc {
@@ -177,7 +141,7 @@ body {
 .master-access-bar span {
     font-weight: 600;
     color: var(--accent-hover);
-    font-size: 0.98rem;
+    font-size: 0.95rem;
 }
 
 .btn-master {
@@ -188,7 +152,7 @@ body {
     border-radius: var(--radius-sm);
     cursor: pointer;
     font-size: 0.92rem;
-    font-weight: 500;
+    font-weight: 600;
     transition: all var(--transition-fast);
     white-space: nowrap;
 }
@@ -199,7 +163,7 @@ body {
     box-shadow: 0 4px 10px rgba(44, 82, 130, 0.25);
 }
 
-/* 6. قسم الشهادات (Certificate Grid & Items) */
+/* 6. قسم الشهادات (Certificates Section) */
 .cert-category {
     margin-bottom: 25px;
 }
@@ -243,7 +207,7 @@ body {
     color: var(--text-muted);
 }
 
-/* أزرار الشهادات والحالات الخاصة */
+/* أزرار الشهادات وحالات الفتح */
 .btn-lock {
     background: var(--accent-color);
     color: white;
@@ -252,7 +216,7 @@ body {
     border-radius: var(--radius-sm);
     cursor: pointer;
     font-size: 0.88rem;
-    font-weight: 500;
+    font-weight: 600;
     transition: all var(--transition-fast);
     white-space: nowrap;
 }
@@ -263,21 +227,129 @@ body {
     box-shadow: 0 3px 8px rgba(49, 130, 206, 0.3);
 }
 
-/* حالة فك التشفير عن الشهادة */
 .cert-item.unlocked {
     border-right: 4px solid var(--success-color);
     background: #f0fff4;
 }
 
-.cert-item.unlocked .btn-lock {
+.cert-item.unlocked .btn-lock,
+.unlocked-btn {
+    background: var(--success-color) !important;
+}
+
+.cert-item.unlocked .btn-lock:hover,
+.unlocked-btn:hover {
+    background: var(--success-hover) !important;
+}
+
+/* 7. تنسيقات عناصر الخبرات والمهارات والتطوع الديناميكية */
+.exp-card {
+    border-right: 3px solid var(--accent-color);
+    padding: 12px 18px;
+    margin-bottom: 16px;
+    background: var(--bg-subtle);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+
+.exp-card h4 {
+    color: var(--primary-color);
+    font-size: 1.05rem;
+}
+
+.exp-card small {
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.exp-card ul {
+    margin-top: 8px;
+    padding-right: 20px;
+    color: var(--text-secondary);
+    font-size: 0.93rem;
+}
+
+.vol-card {
+    padding: 10px 14px;
+    background: var(--bg-subtle);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    margin-bottom: 10px;
+    font-size: 0.92rem;
+}
+
+/* 8. لوحة الإدارة والتبويبات (Admin Panel & Tabs) */
+.admin-tabs-nav {
+    display: flex;
+    gap: 4px;
+    border-bottom: 2px solid var(--border-color);
+    margin-bottom: 18px;
+}
+
+.admin-tab {
+    padding: 10px 18px;
+    background: #edf2f7;
+    border: none;
+    cursor: pointer;
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+    font-weight: 600;
+    color: var(--text-secondary);
+    transition: all var(--transition-fast);
+}
+
+.admin-tab:hover {
+    background: #e2e8f0;
+}
+
+.admin-tab.active {
+    background: var(--primary-light);
+    color: white;
+}
+
+.admin-tab-content {
+    display: none;
+    animation: fadeIn var(--transition-fast);
+}
+
+.admin-tab-content input, 
+.admin-tab-content select, 
+.admin-tab-content textarea {
+    width: 100%;
+    padding: 11px 14px;
+    margin-bottom: 14px;
+    border: 1.5px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color var(--transition-fast);
+}
+
+.admin-tab-content input:focus,
+.admin-tab-content select:focus,
+.admin-tab-content textarea:focus {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.15);
+}
+
+.btn-submit {
+    width: 100%;
+    padding: 12px;
     background: var(--success-color);
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 0.98rem;
+    font-weight: 700;
+    transition: all var(--transition-fast);
 }
 
-.cert-item.unlocked .btn-lock:hover {
+.btn-submit:hover {
     background: var(--success-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(56, 161, 105, 0.25);
 }
 
-/* 7. النافذة المنبثقة (Modal Styling) */
+/* 9. النافذة المنبثقة (Modal Styling) */
 .modal {
     display: none;
     position: fixed;
@@ -359,49 +431,30 @@ body {
     box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.15);
 }
 
-.btn-submit {
-    background: var(--success-color);
-    color: white;
-    border: none;
-    padding: 12px 20px;
-    border-radius: var(--radius-sm);
-    cursor: pointer;
-    width: 100%;
-    font-size: 1rem;
-    font-weight: 600;
-    transition: all var(--transition-fast);
-}
-
-.btn-submit:hover {
-    background: var(--success-hover);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(56, 161, 105, 0.3);
-}
-
 .error-text {
     color: var(--danger-color);
     font-size: 0.88rem;
     margin-top: 12px;
-    font-weight: 500;
+    font-weight: 600;
 }
 
-/* 8. الاستجابة للشاشات الصغيرة (Responsive Media Queries) */
+/* 10. الاستجابة للشاشات الصغيرة (Responsive Media Queries) */
 @media (max-width: 650px) {
     .hero {
-        padding: 30px 15px;
+        padding: 32px 15px;
     }
     
     .hero h1 {
-        font-size: 1.8rem;
+        font-size: 1.75rem;
     }
 
     .hero .subtitle {
-        font-size: 1rem;
+        font-size: 0.98rem;
     }
 
     .contact-info {
         flex-direction: column;
-        gap: 6px;
+        gap: 8px;
     }
 
     .master-access-bar {
@@ -422,6 +475,15 @@ body {
 
     .btn-lock {
         width: 100%;
+        text-align: center;
+    }
+
+    .admin-tabs-nav {
+        flex-wrap: wrap;
+    }
+
+    .admin-tab {
+        flex: 1 1 45%;
         text-align: center;
     }
 
