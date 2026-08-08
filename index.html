@@ -442,8 +442,25 @@
 <body>
 
     <!-- زر فتح لوحة التحكم الجانبية العائم -->
-    <button class="admin-fab" onclick="toggleAdminDrawer()" title="لوحة الإدارة">⚙️</button>
+   <!-- زر اللوحة العائم في الشاشة -->
+<button id="toggle-drawer-btn" class="admin-fab" title="لوحة التحكم">
+    ⚙️
+</button>
 
+<!-- اللوحة الجانبية للإدارة -->
+<div id="admin-drawer" class="admin-drawer">
+    <div class="admin-drawer-header">
+        <h3>لوحة التحكم والإدارة</h3>
+        <span class="close-drawer" onclick="App.toggleAdminDrawer()">&times;</span>
+    </div>
+    <div style="padding: 20px;">
+        <!-- محتوى اللوحة هنا -->
+        <button id="auth-btn" class="btn-submit" onclick="App.toggleAdminAuth()">🔒 تسجيل الدخول للوحة</button>
+        <div id="admin-content-body" style="display: none; margin-top: 15px;">
+            <!-- الأقسام والإضافات -->
+        </div>
+    </div>
+</div>
     <!-- Header Section -->
     <header class="hero">
         <div class="container">
