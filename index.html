@@ -7,82 +7,13 @@
     <title>أحمد عادل ناجي ذياب | Portfolio & Verified Credentials</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
-<!-- نافذة لوحة تحكم المسؤول الشاملة -->
-<div id="adminModal" class="modal">
-    <div class="modal-content" style="max-width: 600px; text-align: right; max-height: 85vh; overflow-y: auto;">
-        <span class="close-btn" onclick="closeAdminModal()">&times;</span>
-        <h3>⚙️ لوحة التحكم والإضافة الشاملة</h3>
-        <!-- قسم الشهادات -->
-<div id="certificates-container" class="grid-container"></div>
-
-<!-- قسم الخبرات -->
-<div id="experiences-container" class="list-container"></div>
-
-<!-- قسم المهارات -->
-<div id="skills-container" class="skills-wrapper"></div>
-
-<!-- قسم الأعمال التطوعية -->
-<div id="volunteer-container" class="list-container"></div>
-        <!-- مفتاح التحكم بذكاء الموقع -->
-        <div style="background: #edf2f7; padding: 10px; border-radius: 6px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">
-            <span>🤖 السماح للذكاء بالتكيف والتعديل التلقائي:</span>
-            <button id="aiToggleBtn" onclick="toggleAIAdaptability()" style="padding: 5px 15px; border-radius: 4px; border: none; cursor: pointer; background: #38a169; color: white;">تفعيل (ON)</button>
-        </div>
-
-        <!-- تبويبات الإضافة -->
-        <div style="display: flex; gap: 5px; margin-bottom: 15px; border-bottom: 2px solid #e2e8f0;">
-            <button onclick="switchAdminTab('cert')" class="admin-tab active">شهادة</button>
-            <button onclick="switchAdminTab('exp')" class="admin-tab">خبرة</button>
-            <button onclick="switchAdminTab('skill')" class="admin-tab">مهارة</button>
-            <button onclick="switchAdminTab('vol')" class="admin-tab">عمل تطوعي</button>
-        </div>
-
-        <!-- نموذج إضافة شهادة -->
-        <div id="tab-cert" class="admin-tab-content">
-            <input type="text" id="addCertTitle" placeholder="اسم الشهادة (مثال: شهادة IFRS)">
-            <input type="text" id="addCertIssuer" placeholder="الجهة المصدرة">
-            <select id="addCertStatus">
-                <option value="متاح">متاح ومعتمد</option>
-                <option value="قيد الحصول / قيد الرفع">قيد الحصول / قيد الرفع</option>
-            </select>
-            <button onclick="addNewCertificate()" class="btn-submit">إضافة الشهادة</button>
-        </div>
-
-        <!-- نموذج إضافة خبرة -->
-        <div id="tab-exp" class="admin-tab-content" style="display:none;">
-            <input type="text" id="addExpRole" placeholder=" المسمى الوظيفي (مثال: محاسب رئيسي)">
-            <input type="text" id="addExpCompany" placeholder="اسم الشركة / الجهة">
-            <input type="text" id="addExpPeriod" placeholder="الفترة (مثال: 2024 - الحالي)">
-            <textarea id="addExpTasks" placeholder="المهام (افصل بين كل مهمة بسطر جديد)"></textarea>
-            <button onclick="addNewExperience()" class="btn-submit">إضافة الخبرة</button>
-        </div>
-
-        <!-- نموذج إضافة مهارة -->
-        <div id="tab-skill" class="admin-tab-content" style="display:none;">
-            <input type="text" id="addSkillName" placeholder="اسم المهارة">
-            <select id="addSkillCat">
-                <option value="accounting">محاسبة ومالية</option>
-                <option value="tech">تقنية معلومات</option>
-                <option value="languages">لغات</option>
-            </select>
-            <button onclick="addNewSkill()" class="btn-submit">إضافة المهارة</button>
-        </div>
-
-        <!-- نموذج إضافة عمل تطوعي -->
-        <div id="tab-vol" class="admin-tab-content" style="display:none;">
-            <input type="text" id="addVolRole" placeholder="المسمى التطوعي">
-            <input type="text" id="addVolOrg" placeholder="المنظمة / الجمعية">
-            <input type="text" id="addVolPeriod" placeholder="الفترة">
-            <button onclick="addNewVolunteer()" class="btn-submit">إضافة العمل التطوعي</button>
-        </div>
-    </div>
-</div>
+    
     <style>
       /* =========================================================
-         تنسيقات الشات بوت والمساعد الذكي (ستايل متناسق وعالي الجودة)
+         تنسيقات الشات بوت ولوحة التحكم والأزرار
          ========================================================= */
       
-      /* زر الفتح العائم */
+      /* زر الفتح العائم للشات بوت */
       #ai-chat-btn {
         position: fixed;
         bottom: 25px;
@@ -109,7 +40,7 @@
         box-shadow: 0 12px 25px rgba(0, 123, 255, 0.45);
       }
 
-      /* حاوية المحادثة ملء الشاشة المتجاوبة */
+      /* حاوية المحادثة ملء الشاشة */
       #ai-chat-box {
         display: none;
         position: fixed;
@@ -261,6 +192,46 @@
       #ai-chat-send:hover {
         background: #054840;
       }
+
+      /* تنسيقات لوحة تحكم المسؤول */
+      .admin-tab {
+        padding: 8px 16px;
+        background: #edf2f7;
+        border: none;
+        cursor: pointer;
+        border-radius: 4px 4px 0 0;
+        font-weight: bold;
+        font-family: inherit;
+      }
+      .admin-tab.active {
+        background: #2b6cb0;
+        color: white;
+      }
+      .admin-tab-content input, 
+      .admin-tab-content select, 
+      .admin-tab-content textarea {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 10px;
+        border: 1px solid #cbd5e0;
+        border-radius: 4px;
+        box-sizing: border-box;
+        font-family: inherit;
+      }
+      .btn-submit {
+        width: 100%;
+        padding: 10px;
+        background: #38a169;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: bold;
+        font-family: inherit;
+      }
+      .btn-submit:hover {
+        background: #2f855a;
+      }
     </style>
 </head>
 
@@ -290,57 +261,94 @@
         <div class="master-access-bar">
             <span>🔒 هل لديك تصريح دخول شامل لكافة الوثائق؟</span>
             <button class="btn-master" onclick="openModal('ALL')">إدخال مفتاح التصريح الشامل</button>
+            <button class="btn-master" onclick="openAdminModal()" style="background:#2b6cb0; margin-right: 10px;">⚙️ لوحة الإدارة</button>
         </div>
 
         <!-- Protected Certificates Section -->
         <section class="card">
             <h2>🔐 السجل الأكاديمي والشهادات الموثقة</h2>
-            <p class="section-desc">جميع الوثائق محمية بنظام التصاريح المؤقتة. اختر وثيقة محددة أو استخدم التصريح الممنوح لك.</p>
-
-            <div class="cert-grid">
-                <!-- 1. Accounting Group -->
-                <div class="cert-category">
-                    <h3>📊 المؤهلات والشهادات المحاسبية</h3>
-
-                    <div class="cert-item" id="item-cert-acc-1">
-                        <div class="cert-info">
-                            <h4>بكالوريوس محاسبة</h4>
-                            <p>جامعة أبين (2026)</p>
-                        </div>
-                        <button class="btn-lock" onclick="openModal('cert-acc-1')">🔒 معاينة</button>
-                    </div>
-
-                    <div class="cert-item" id="item-cert-acc-2">
-                        <div class="cert-info">
-                            <h4>شهادة نظام إكسترا للمحاسبة والإدارة</h4>
-                            <p>بن مقيبل للأنظمة ومؤسسة بلقيس (2022)</p>
-                        </div>
-                        <button class="btn-lock" onclick="openModal('cert-acc-2')">🔒 معاينة</button>
-                    </div>
-                </div>
-
-                <!-- 2. IT & Vocational Group -->
-                <div class="cert-category">
-                    <h3>💻 تقنية المعلومات والمهارات المهنية</h3>
-
-                    <div class="cert-item" id="item-cert-it-1">
-                        <div class="cert-info">
-                            <h4>دبلوم الرخصة الدولية قيادة الحاسوب (ICDL)</h4>
-                            <p>وزارة التعليم الفني - معهد جبس (2020)</p>
-                        </div>
-                        <button class="btn-lock" onclick="openModal('cert-it-1')">🔒 معاينة</button>
-                    </div>
-
-                    <div class="cert-item" id="item-cert-lang-1">
-                        <div class="cert-info">
-                            <h4>دبلوم عالي لغة إنجليزية (B2)</h4>
-                            <p>وزارة التعليم الفني - معهد جبس (2022)</p>
-                        </div>
-                        <button class="btn-lock" onclick="openModal('cert-lang-1')">🔒 معاينة</button>
-                    </div>
-                </div>
-            </div>
+            <p class="section-desc"> جميع الوثائق محمية بنظام التصاريح المؤقتة. اختر وثيقة محددة أو استخدم التصريح الممنوح لك.</p>
+            <div id="certificates-container" class="cert-grid"></div>
         </section>
+
+        <!-- Section الخبرات -->
+        <section class="card">
+            <h2>💼 الخبرات المهنية والعملية</h2>
+            <div id="experiences-container" class="list-container"></div>
+        </section>
+
+        <!-- Section المهارات -->
+        <section class="card">
+            <h2>⚡ المهارات والقدرات</h2>
+            <div id="skills-container" class="skills-wrapper"></div>
+        </section>
+
+        <!-- Section الأعمال التطوعية -->
+        <section class="card">
+            <h2>🤝 الأعمال التطوعية والمبادرات</h2>
+            <div id="volunteer-container" class="list-container"></div>
+        </section>
+    </div>
+
+    <!-- نافذة لوحة تحكم المسؤول الشاملة -->
+    <div id="adminModal" class="modal">
+        <div class="modal-content" style="max-width: 600px; text-align: right; max-height: 85vh; overflow-y: auto;">
+            <span class="close-btn" onclick="closeAdminModal()">&times;</span>
+            <h3>⚙️ لوحة التحكم والإضافة الشاملة</h3>
+            
+            <!-- مفتاح التحكم بذكاء الموقع -->
+            <div style="background: #edf2f7; padding: 10px; border-radius: 6px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">
+                <span>🤖 السماح للذكاء بالتكيف والتعديل التلقائي:</span>
+                <button id="aiToggleBtn" onclick="toggleAIAdaptability()" style="padding: 5px 15px; border-radius: 4px; border: none; cursor: pointer; background: #38a169; color: white;">تفعيل (ON)</button>
+            </div>
+
+            <!-- تبويبات الإضافة -->
+            <div style="display: flex; gap: 5px; margin-bottom: 15px; border-bottom: 2px solid #e2e8f0;">
+                <button onclick="switchAdminTab('cert')" class="admin-tab active">شهادة</button>
+                <button onclick="switchAdminTab('exp')" class="admin-tab">خبرة</button>
+                <button onclick="switchAdminTab('skill')" class="admin-tab">مهارة</button>
+                <button onclick="switchAdminTab('vol')" class="admin-tab">عمل تطوعي</button>
+            </div>
+
+            <!-- نموذج إضافة شهادة -->
+            <div id="tab-cert" class="admin-tab-content">
+                <input type="text" id="addCertTitle" placeholder="اسم الشهادة (مثال: شهادة IFRS)">
+                <input type="text" id="addCertIssuer" placeholder="الجهة المصدرة">
+                <select id="addCertStatus">
+                    <option value="متاح">متاح ومعتمد</option>
+                    <option value="قيد الحصول / قيد الرفع">قيد الحصول / قيد الرفع</option>
+                </select>
+                <button onclick="addNewCertificate()" class="btn-submit">إضافة الشهادة</button>
+            </div>
+
+            <!-- نموذج إضافة خبرة -->
+            <div id="tab-exp" class="admin-tab-content" style="display:none;">
+                <input type="text" id="addExpRole" placeholder="المسمى الوظيفي (مثال: محاسب رئيسي)">
+                <input type="text" id="addExpCompany" placeholder="اسم الشركة / الجهة">
+                <input type="text" id="addExpPeriod" placeholder="الفترة (مثال: 2024 - الحالي)">
+                <textarea id="addExpTasks" placeholder="المهام (افصل بين كل مهمة بسطر جديد)"></textarea>
+                <button onclick="addNewExperience()" class="btn-submit">إضافة الخبرة</button>
+            </div>
+
+            <!-- نموذج إضافة مهارة -->
+            <div id="tab-skill" class="admin-tab-content" style="display:none;">
+                <input type="text" id="addSkillName" placeholder="اسم المهارة">
+                <select id="addSkillCat">
+                    <option value="accounting">محاسبة ومالية</option>
+                    <option value="tech">تقنية معلومات</option>
+                    <option value="languages">لغات</option>
+                </select>
+                <button onclick="addNewSkill()" class="btn-submit">إضافة المهارة</button>
+            </div>
+
+            <!-- نموذج إضافة عمل تطوعي -->
+            <div id="tab-vol" class="admin-tab-content" style="display:none;">
+                <input type="text" id="addVolRole" placeholder="المسمى التطوعي">
+                <input type="text" id="addVolOrg" placeholder="المنظمة / الجمعية">
+                <input type="text" id="addVolPeriod" placeholder="الفترة">
+                <button onclick="addNewVolunteer()" class="btn-submit">إضافة العمل التطوعي</button>
+            </div>
+        </div>
     </div>
 
     <!-- Modal for Access Code -->
@@ -384,28 +392,10 @@
     <!-- الملف البرمجي الخارجي -->
     <script src="script.js"></script>
 
-    <!-- البرمجة الخاصة بالمساعد الذكي والتشغيل -->
+    <!-- البرمجة الخاصة بالمساعد الذكي والتفاعل الديناميكي -->
     <script>
-      // السيرة الذاتية الدقيقة للمساعد الذكي
-      const USER_DATA = `
-      الاسم: أحمد عادل ناجي ذياب
-      العنوان: جعار - خنفر - أبين - اليمن
-      الهاتف: +967 79087415
-      البريد: Ahmed.a.n.thiab@gmail.com
-      المؤهل: بكالوريوس محاسبة من جامعة أبين (2026)
-      المهنة: مدرب برامج محاسبة وأنظمة مالية ومدرب معتمد (ICDL و لغة إنجليزية).
-      الشهادات والخبرات:
-      - بكالوريوس محاسبة (جامعة أبين)
-      - شهادة نظام إكسترا للمحاسبة والإدارة (بن مقيبل للأنظمة ومؤسسة بلقيس)
-      - دبلوم الرخصة الدولية لقيادة الحاسوب ICDL (وزارة التعليم الفني - معهد جبس)
-      - دبلوم عالي لغة إنجليزية بمستوى B2 (وزارة التعليم الفني - معهد جبس)
-      تنويه: جميع الشهادات محمية ويمكن معاينتها بطلب مفتاح التصريح الخاص.
-      `;
-
-      // مفاتيح الاتصال الاحتياطية
       const AI_API_KEYS = [
         "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"
-        // يمكن إضافة مفاتيح إضافية هنا عند الحاجة
       ];
 
       function toggleChat() {
@@ -428,6 +418,20 @@
         if (e.key === 'Enter') sendMessage();
       }
 
+      // دالة لتوليد سياق المعرفة الحالية المحدثة للذكاء الاصطناعي
+      function getDynamicAIContext() {
+        let kb = typeof USER_KNOWLEDGE_BASE !== 'undefined' ? USER_KNOWLEDGE_BASE : {};
+        return `
+اسم المستشار: ${kb.personalInfo?.name || "أحمد عادل ناجي ذياب"}
+الوصف: ${kb.personalInfo?.title || "مدرب محاسبة وأنظمة مالية"}
+العنوان: جعار - خنفر - أبين - اليمن | هاتف: +967 79087415 | بريد: Ahmed.a.n.thiab@gmail.com
+الشهادات الحالية: ${JSON.stringify(kb.certificates || [])}
+الخبرات الحالية: ${JSON.stringify(kb.experiences || [])}
+المهارات الحالية: ${JSON.stringify(kb.skills || {})}
+الأعمال التطوعية: ${JSON.stringify(kb.volunteer || [])}
+        `;
+      }
+
       async function sendMessage() {
         const input = document.getElementById('ai-chat-input');
         const text = input.value.trim();
@@ -439,6 +443,7 @@
         msgContainer.scrollTop = msgContainer.scrollHeight;
 
         let success = false;
+        const currentContext = getDynamicAIContext();
 
         for (let i = 0; i < AI_API_KEYS.length; i++) {
           const apiKey = AI_API_KEYS[i];
@@ -456,7 +461,7 @@
                 messages: [
                   {
                     role: "system",
-                    content: `أنت المساعد الذكي الرسمي لـ (أحمد عادل ناجي ذياب). أجب باللغة العربية باحترافية واختصار مستنداً فقط للبيانات التالية:\n${USER_DATA}`
+                    content: `أنت المساعد الذكي الرسمي لـ (أحمد عادل ناجي ذياب). أجب باللغة العربية باحترافية واختصار مستنداً فقط للبيانات المحدثة التالية:\n${currentContext}`
                   },
                   { role: "user", content: text }
                 ]
@@ -485,23 +490,19 @@
         }, 100);
       }
 
-      // ضبط التركيز والنزول عند كتابة الرسائل على الهاتف
-      document.getElementById('ai-chat-input').addEventListener('focus', () => {
-        setTimeout(() => {
-          const msgContainer = document.getElementById('ai-chat-messages');
-          msgContainer.scrollTop = msgContainer.scrollHeight;
-        }, 300);
-      });
+      // دوال النافذة المنبثقة للوحة التحكم
+      function openAdminModal() {
+        document.getElementById('adminModal').style.display = 'flex';
+      }
+      function closeAdminModal() {
+        document.getElementById('adminModal').style.display = 'none';
+      }
 
-      // منع سحب ونسخ الصور
+      // منع سحب ونسخ الصور لحمايتها
       document.addEventListener('contextmenu', function(e) {
           if (e.target.tagName === 'IMG') {
               e.preventDefault();
           }
-      });
-
-      document.querySelectorAll('img').forEach(img => {
-          img.addEventListener('dragstart', (e) => e.preventDefault());
       });
     </script>
 </body>
