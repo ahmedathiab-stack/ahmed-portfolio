@@ -8,6 +8,133 @@ const DEFAULT_KNOWLEDGE_BASE = {
         location: "جعار - خنفر - أبين - اليمن",
         summary: "مدرب معتمد ومحاسب أكاديمي حاصل على بكالوريوس المحاسبة من جامعة أبين، أجمع بين الخبرة المالية العملية والمهارات التدريبية والتيسيرية. متخصص في تأهيل الكوادر وتدريب الأنظمة المحاسبية الآلية والبرامج المكتبية."
     },
+    // 1. تعليمات شخصية الذكاء الاصطناعي (AI Persona Guidelines)
+function getAIBaseContext() {
+    const experiences = JSON.parse(localStorage.getItem('my_experiences') || '[]');
+    const volunteerWork = JSON.parse(localStorage.getItem('my_volunteer') || '[]');
+    const skills = JSON.parse(localStorage.getItem('my_skills') || '[]');
+    const certs = JSON.parse(localStorage.getItem('my_certificates') || '[]');
+
+    return `
+أنت المساعد الشخصي والممثل المهني الذكي لأحمد عادل ناجي ذياب.
+
+شخصيتك وطريقة حديثك:
+- تتحدث كإنسان طبيعي، لبق، ودود، واحترافي في آن واحد.
+- هدفك الأسمى هو التسويق لأحمد بأفضل صورة ممكنة، والدفاع عن مصالحه، وإبراز خبراته وقيمته المضافة.
+- تحدث دائماً بنبرة إيجابية، واعرض أعماله التطوعية وخبراته بدقة وجمالية تعكس شغفه وأثره دون تحريف للحقائق أو تقديمها بصورة غير مناسبة.
+
+بيانات أحمد الحالية:
+- الخبرات المهنية: ${JSON.stringify(experiences)}
+- الأعمال التطوعية: ${JSON.stringify(volunteerWork)}
+- المهارات والمجالات: ${JSON.stringify(skills)}
+- الشهادات والمؤهلات: ${JSON.stringify(certs.map(c => ({ title: c.title, issuer: c.issuer, category: c.category })))}
+`;
+}
+
+// 2. دالة عرض الشهادات مع دعم رابط الصورة
+function renderCertificates() {
+    const certs = JSON.parse(localStorage.getItem('my_certificates') || '[]');
+    const container = document.getElementById('certs-container');
+    if (!container) return;
+
+    if (certs.length === 0) {
+        container.innerHTML = '<p class="section-desc">لا توجد شهادات مضافة حالياً.</p>';
+        return;
+    }
+
+    // تجميع الشهادات حسب الفئة
+    const categories = {};
+    certs.forEach((cert, index) => {
+        const cat = cert.category || 'شهادات عامة';
+        if (!categories[cat]) categories[cat] = [];
+        categories[cat].push({ ...cert, originalIndex: index });
+    });
+
+    let html = '';
+    for (const [category, items] of Object.entries(categories)) {
+        html += `<div class="cert-category"><h3>${category}</h3>`;
+        items.forEach(item => {
+            const isUnlocked = item.unlocked || false;
+            const imgBtn = (isUnlocked && item.imageUrl) 
+                ? `<a href="${item.imageUrl}" target="_blank" class="btn-lock unlocked-btn" style="text-decoration:none; margin-left:8px;">🖼️ عرض الشهادة</a>` 
+                : '';
+
+            html += `
+                <div class="cert-item ${isUnlocked ? 'unlocked' : ''}">
+                    <div class="cert-info">
+                        <h4>${item.title}</h4>
+                        <p>${item.issuer}</p>
+                    </div>
+                    <div style="display:flex; align-items:center;">
+                        ${imgBtn}
+                        <button class="btn-lock" onclick="unlockCert(${item.originalIndex})">
+                            ${isUnlocked ? '🔓 تم الفتح' : '🔒 فتح الشهادة'}
+                        </button>
+                    </div>
+                </div>
+            `;
+        });
+        html += `</div>`;
+    }
+    container.innerHTML = html;
+}
+
+// 3. دالة إضافة المهارات بدعم المجالات المتعددة
+function addNewSkill() {
+    const category = document.getElementById('skillCategory').value.trim();
+    const name = document.getElementById('skillName').value.trim();
+    const level = document.getElementById('skillLevel').value;
+
+    if (!category || !name) {
+        alert('يرجى تحديد المجال اسم المهارة');
+        return;
+    }
+
+    const skills = JSON.parse(localStorage.getItem('my_skills') || '[]');
+    skills.push({ category, name, level });
+    localStorage.setItem('my_skills', JSON.stringify(skills));
+
+    document.getElementById('skillCategory').value = '';
+    document.getElementById('skillName').value = '';
+    
+    renderSkills();
+    alert('تمت إضافة المهارة بنجاح!');
+}
+
+// 4. دالة عرض المهارات مقسمة حسب المجال
+function renderSkills() {
+    const skills = JSON.parse(localStorage.getItem('my_skills') || '[]');
+    const container = document.getElementById('skills-container');
+    if (!container) return;
+
+    if (skills.length === 0) {
+        container.innerHTML = '<p class="section-desc">لم يتم إضافة مهارات بعد.</p>';
+        return;
+    }
+
+    const categories = {};
+    skills.forEach(skill => {
+        const cat = skill.category || 'مهارات عامة';
+        if (!categories[cat]) categories[cat] = [];
+        categories[cat].push(skill);
+    });
+
+    let html = '';
+    for (const [cat, items] of Object.entries(categories)) {
+        html += `<div style="margin-bottom: 18px;">
+            <h4 style="color: var(--primary-color); margin-bottom: 8px;">${cat}</h4>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">`;
+        
+        items.forEach(s => {
+            html += `<span style="background: var(--bg-subtle); border: 1px solid var(--border-color); padding: 6px 12px; border-radius: var(--radius-sm); font-size: 0.9rem;">
+                <strong>${s.name}</strong> <small style="color: var(--text-muted);">(${s.level})</small>
+            </span>`;
+        });
+        
+        html += `</div></div>`;
+    }
+    container.innerHTML = html;
+}
     certificates: [
         { id: "cert-acc-1", title: "بكالوريوس المحاسبة", category: "محاسبة", status: "متاح", issuer: "جامعة أبين (2026)" },
         { id: "cert-acc-2", title: "شهادة نظام إكسترا للمحاسبة والإدارة", category: "محاسبة", status: "متاح", issuer: "بن مقيبل للأنظمة ومؤسسة بلقيس (2022)" },
