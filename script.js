@@ -1,5 +1,5 @@
 // ============================================================
-// 1. مصفوفة روابط الشهادات (سنضع الروابط هنا عند تجهيز الملفات)
+// 1. مصفوفة روابط الشهادات والملفات
 // ============================================================
 const CERT_FILES = {
     "cert-acc-1": "certificates/bachelor-accounting.pdf", // رابط بكالوريوس المحاسبة
@@ -9,90 +9,186 @@ const CERT_FILES = {
 };
 
 // ============================================================
-// 2. جدول التصاريح والأكواد (يمكن تعديله أو ربطه بالسيرفر مستقبلاً)
+// 2. جدول التصاريح والأكواد المعتمدة
 // ============================================================
 const ACCESS_KEYS = {
-    // كود تصريح شامل (Master Key) يفتح كل شيء
+    // كود تصريح شامل (Master Key) يفتح جميع الشهادات
     "MASTER-2026": { scope: "ALL", expires: "2026-12-31" },
 
-    // كود مخصص لشهادات المحاسبة فقط (مثل إرساله لمنظمة تطلب مؤهل محاسبي)
+    // كود مخصص لشهادات المحاسبة فقط
     "ACC-ONLY": { scope: ["cert-acc-1", "cert-acc-2"], expires: "2026-12-31" },
 
-    // كود مخصص لشهادة واحدة فقط (مثال: شهادة إكسترا فقط)
+    // كود مخصص لشهادة واحدة فقط (مثال: شهادة إكسترا)
     "EXTRA-PASS": { scope: ["cert-acc-2"], expires: "2026-12-31" }
 };
 
-let activeTarget = null; // Target certificate ID or 'ALL'
+// متغير لتحديد الهدف الحالي ('ALL' أو معرف شهادة معين)
+let activeTarget = null;
+const SESSION_STORAGE_KEY = "unlocked_certificates_session";
 
+// ============================================================
+// 3. تهيئة الأحداث واستعادة الحالة عند تحميل الصفحة
+// ============================================================
+document.addEventListener("DOMContentLoaded", () => {
+    restoreUnlockedCertificates();
+    setupEventListeners();
+});
+
+function setupEventListeners() {
+    // تشغيل الفحص عند الضغط على Enter في حقل الإدخال
+    const passInput = document.getElementById("passcode");
+    if (passInput) {
+        passInput.addEventListener("keypress", (e) => {
+            if (e.key === "Enter") {
+                validateCode();
+            }
+        });
+    }
+
+    // إغلاق النافذة المنبثقة عند النقر خارجها
+    const modal = document.getElementById("accessModal");
+    if (modal) {
+        modal.addEventListener("click", (e) => {
+            if (e.target === modal) {
+                closeModal();
+            }
+        });
+    }
+
+    // إغلاق النافذة عند الضغط على زر Escape
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+            closeModal();
+        }
+    });
+}
+
+// ============================================================
+// 4. دمج وتطوير دوال النافذة المنبثقة (Modal Control)
+// ============================================================
 function openModal(targetId) {
     activeTarget = targetId;
-    document.getElementById("errorMsg").innerText = "";
-    document.getElementById("passcode").value = "";
+    const errorMsg = document.getElementById("errorMsg");
+    const passInput = document.getElementById("passcode");
     
-    if (targetId === "ALL") {
-        document.getElementById("modalTitle").innerText = "التصريح الشامل";
-        document.getElementById("modalDesc").innerText = "أدخل الكود الشامل لفتح جميع الوثائق والشهادات:";
-    } else {
-        document.getElementById("modalTitle").innerText = "طلب معاينة وثيقة";
-        document.getElementById("modalDesc").innerText = "أدخل الرمز الخاص بهذه الوثيقة أو الرمز الشامل:";
+    if (errorMsg) errorMsg.innerText = "";
+    if (passInput) {
+        passInput.value = "";
+        setTimeout(() => passInput.focus(), 100); // التركيز على الحقل تلقائياً
     }
-    
-    document.getElementById("accessModal").style.display = "flex";
+
+    const titleElem = document.getElementById("modalTitle");
+    const descElem = document.getElementById("modalDesc");
+
+    if (targetId === "ALL") {
+        if (titleElem) titleElem.innerText = "التصريح الشامل";
+        if (descElem) descElem.innerText = "أدخل الكود الشامل لفتح جميع الوثائق والشهادات:";
+    } else {
+        if (titleElem) titleElem.innerText = "طلب معاينة وثيقة";
+        if (descElem) descElem.innerText = "أدخل الرمز الخاص بهذه الوثيقة أو الرمز الشامل:";
+    }
+
+    const modal = document.getElementById("accessModal");
+    if (modal) modal.style.display = "flex";
 }
 
 function closeModal() {
-    document.getElementById("accessModal").style.display = "none";
+    const modal = document.getElementById("accessModal");
+    if (modal) modal.style.display = "none";
 }
 
+// ============================================================
+// 5. دالة فحص وتأكيد كود التصريح (Code Validation)
+// ============================================================
 function validateCode() {
-    const inputCode = document.getElementById("passcode").value.trim();
+    const inputElem = document.getElementById("passcode");
     const errorMsg = document.getElementById("errorMsg");
+    
+    if (!inputElem) return;
+
+    // تحويل المدخلات لأحرف كبيرة وإزالة الفراغات
+    const inputCode = inputElem.value.trim().toUpperCase();
     const keyData = ACCESS_KEYS[inputCode];
 
     if (!keyData) {
-        errorMsg.innerText = "❌ رمز التصريح غير صحيح!";
+        if (errorMsg) errorMsg.innerText = "❌ رمز التصريح غير صحيح!";
         return;
     }
 
-    // التحقق من صلاحية التاريخ
+    // التحقق من تاريخ الصلاحية
     const today = new Date().toISOString().split('T')[0];
     if (keyData.expires < today) {
-        errorMsg.innerText = "⚠️ عفواً، انتهت صلاحية هذا التصريح!";
+        if (errorMsg) errorMsg.innerText = "⚠️ عفواً، انتهت صلاحية هذا التصريح!";
         return;
     }
 
-    // التثبت من النطاق المسموح للرمز (Scope Validation)
+    // التحقق من نطاق التصريح المسموح (Scope Validation)
     if (keyData.scope === "ALL") {
         alert("🔓 تم تفعيل التصريح الشامل! يمكنك الآن معاينة جميع الوثائق.");
-        unlockCertificates(Object.keys(CERT_FILES));
+        const allIds = Object.keys(CERT_FILES);
+        unlockCertificates(allIds);
+        saveUnlockedToSession(allIds);
         closeModal();
     } 
     else if (Array.isArray(keyData.scope)) {
         if (activeTarget === "ALL" || keyData.scope.includes(activeTarget)) {
             alert("🔓 تم التأكد من التصريح بنجاح!");
             unlockCertificates(keyData.scope);
+            saveUnlockedToSession(keyData.scope);
             closeModal();
         } else {
-            errorMsg.innerText = "⚠️ هذا الرمز غير مصرح له بفتح هذه الوثيقة المحددة.";
+            if (errorMsg) errorMsg.innerText = "⚠️ هذا الرمز غير مصرح له بفتح هذه الوثيقة المحددة.";
         }
     }
 }
 
-// دالة فتح المعاينة وتحويل الزر لفتح الملف
+// ============================================================
+// 6. دالة فتح الشهادات وتحديث الواجهة (Unlock UI Logic)
+// ============================================================
 function unlockCertificates(allowedCertIds) {
     allowedCertIds.forEach(id => {
+        const certContainer = document.getElementById(`item-${id}`);
         const itemBtn = document.querySelector(`#item-${id} .btn-lock`);
+
+        if (certContainer) {
+            certContainer.classList.add("unlocked"); // إضافة كلاس التمييز البصري
+        }
+
         if (itemBtn) {
             itemBtn.innerText = "👁️ فتح الملف";
-            itemBtn.style.background = "#38a169";
-            itemBtn.onclick = function() {
+            itemBtn.classList.add("unlocked-btn");
+            itemBtn.onclick = function () {
                 const filePath = CERT_FILES[id];
                 if (filePath && !filePath.includes("undefined")) {
                     window.open(filePath, "_blank");
                 } else {
-                    alert("📄 هذه الشهادة مفعّلة في النظام، وسيكون ملفها متاحاً فور رفعه مجلداً للموقع!");
+                    alert("📄 هذه الشهادة مفعّلة في النظام، وسيكون ملفها متاحاً فور رفعه على السيرفر!");
                 }
             };
         }
     });
+}
+
+// ============================================================
+// 7. إدارة الذاكرة المؤقتة للشهادات المفتوحة (Session Storage)
+// ============================================================
+function saveUnlockedToSession(ids) {
+    try {
+        let currentSaved = JSON.parse(sessionStorage.getItem(SESSION_STORAGE_KEY)) || [];
+        const updatedList = Array.from(new Set([...currentSaved, ...ids]));
+        sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(updatedList));
+    } catch (e) {
+        console.warn("تعذر الحفظ في الذاكرة المؤقتة:", e);
+    }
+}
+
+function restoreUnlockedCertificates() {
+    try {
+        const saved = JSON.parse(sessionStorage.getItem(SESSION_STORAGE_KEY));
+        if (saved && Array.isArray(saved) && saved.length > 0) {
+            unlockCertificates(saved);
+        }
+    } catch (e) {
+        console.warn("تعذر استعادة الشهادات المفتوحة:", e);
+    }
 }
