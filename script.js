@@ -252,7 +252,25 @@ const App = {
             </div>
         `;
     },
+// توليد مفتاح مؤقت وعشوائي صالح لمدة محددة (مثلاً 10 دقائق)
+    generateTempKey() {
+        const randomPin = Math.floor(1000 + Math.random() * 9000).toString(); // رقم عشوائي من 4 أرقام
+        const expiryTime = new Date().getTime() + (10 * 60 * 1000); // صالح لمدة 10 دقائق من الآن
 
+        const tempKeyData = {
+            pin: randomPin,
+            expiresAt: expiryTime
+        };
+
+        // تخزين المفتاح المؤقت في sessionStorage
+        sessionStorage.setItem('ahmed_temp_access_key', JSON.stringify(tempKeyData));
+
+        const displayEl = document.getElementById('tempKeyDisplay');
+        if (displayEl) {
+            displayEl.innerHTML = `🔑 المفتاح المؤقت: <span style="background:#dcf8c6; padding:4px 8px; border-radius:4px; color:#111;">${randomPin}</span> (صالح لمدة 10 دقائق)`;
+        }
+        alert(`تم توليد المفتاح المؤقت بنجاح: ${randomPin}\nهذا المفتاح صالح لمدة 10 دقائق فقط.`);
+    },
     renderVolunteer(db) {
         const container = document.getElementById('volunteer-container');
         if (!container) return;
