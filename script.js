@@ -216,18 +216,23 @@ const App = {
 
     generateTempKey() {
         const durationSelect = document.getElementById('tempKeyDuration');
-        const typeVal = durationSelect ? durationSelect.value : "10";
+        const typeVal = durationSelect ? durationSelect.value : "24h";
         const randomPin = Math.floor(1000 + Math.random() * 9000).toString();
         
         let expiryTime = 0;
         let isSingleUse = false;
+        let durationText = "";
 
         if (typeVal === "single") {
             isSingleUse = true;
             expiryTime = new Date().getTime() + (24 * 60 * 60 * 1000);
-        } else {
-            const mins = parseInt(typeVal) || 10;
-            expiryTime = new Date().getTime() + (mins * 60 * 1000);
+            durationText = "لفتح لمرة واحدة فقط";
+        } else if (typeVal === "24h") {
+            expiryTime = new Date().getTime() + (24 * 60 * 60 * 1000);
+            durationText = "صالح لمدة 24 ساعة";
+        } else if (typeVal === "72h") {
+            expiryTime = new Date().getTime() + (72 * 60 * 60 * 1000);
+            durationText = "صالح لمدة 72 ساعة";
         }
 
         const tempKeyData = {
@@ -240,9 +245,9 @@ const App = {
 
         const displayEl = document.getElementById('tempKeyDisplay');
         if (displayEl) {
-            displayEl.innerHTML = `🔑 المفتاح المؤقت: <span style="background:#dcf8c6; padding:4px 8px; border-radius:4px; color:#111;">${randomPin}</span> (${isSingleUse ? 'لفتح لمرة واحدة فقط' : `صالح لمدة ${typeVal} دقائق`})`;
+            displayEl.innerHTML = `🔑 المفتاح المؤقت: <span style="background:#dcf8c6; padding:4px 8px; border-radius:4px; color:#111;">${randomPin}</span> (${durationText})`;
         }
-        alert(`تم توليد المفتاح المؤقت بنجاح: ${randomPin}\nالنوع: ${isSingleUse ? 'فتح لمرة واحدة فقط' : `صالح لمدة ${typeVal} دقائق`}`);
+        alert(`تم توليد المفتاح المؤقت بنجاح: ${randomPin}\nالنوع: ${durationText}`);
     },
 
     openCertPassModal(certId) {
