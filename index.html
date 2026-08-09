@@ -15,26 +15,33 @@
             <span class="close-drawer" onclick="App.toggleAdminDrawer()">&times;</span>
         </div>
         <div class="admin-drawer-body">
-            <div class="admin-card" style="background: var(--bg-subtle); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
-                <h4 style="color: var(--primary-color);">⏳ توليد مفتاح مؤقت وعشوائي</h4>
-                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px;">أنشئ كوداً عشوائياً ينتهي خلال 10 دقائق.</p>
-                <button class="btn-primary" onclick="App.generateTempKey()" style="width: 100%;">⚡ توليد مفتاح مؤقت جديد</button>
-                <div id="tempKeyDisplay" style="margin-top: 10px; font-weight: bold; text-align: center; color: #166534;"></div>
-            </div>
-            
-            <div class="admin-card" style="background: var(--bg-card); padding: 20px; border-radius: 12px; margin-bottom: 20px; border: 1px solid var(--border-color);">
-                <h4 style="color: var(--primary-color); margin-bottom: 10px;">📤 إضافة شهادة جديدة مع صورة من الجهاز</h4>
-                <input type="text" id="manualCertTitle" placeholder="عنوان الشهادة (مثلاً: دورة المحاسبة المتقدمة)">
-                <input type="text" id="manualCertIssuer" placeholder="الجهة المصدرة (مثلاً: جامعة أبين)">
-                <input type="date" id="manualCertDate">
-                <label style="display:block; margin:8px 0; font-weight:bold; font-size:0.9rem;">اختر صورة الشهادة:</label>
-                <input type="file" id="manualCertFile" accept="image/*">
-                <button onclick="uploadCertificateDirectly()" class="btn-primary" style="width:100%; padding:12px; margin-top:8px;">💾 حفظ وعرض الشهادة فوراً</button>
-            </div>
-
             <button id="auth-btn" class="btn-submit" onclick="App.toggleAdminAuth()">🔒 تسجيل الدخول</button>
             
+            <!-- أدوات الإدارة تظهر حصراً تحت زر تسجيل الدخول -->
             <div id="admin-content-body" style="display:none; margin-top:15px;">
+                <div class="admin-card" style="background: var(--bg-subtle); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                    <h4 style="color: var(--primary-color);">⏳ توليد مفتاح مؤقت وعشوائي</h4>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px;">اختر مدة الصلاحية أو نوع المفتاح:</p>
+                    <select id="tempKeyDuration" style="margin-bottom: 10px;">
+                        <option value="5">صالح لمدة 5 دقائق</option>
+                        <option value="10" selected>صالح لمدة 10 دقائق</option>
+                        <option value="30">صالح لمدة 30 دقيقة</option>
+                        <option value="single">فتح لمرة واحدة فقط (يُحذف فور استخدامه)</option>
+                    </select>
+                    <button class="btn-primary" onclick="App.generateTempKey()" style="width: 100%;">⚡ توليد مفتاح مؤقت جديد</button>
+                    <div id="tempKeyDisplay" style="margin-top: 10px; font-weight: bold; text-align: center; color: #166534;"></div>
+                </div>
+                
+                <div class="admin-card" style="background: var(--bg-card); padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid var(--border-color);">
+                    <h4 style="color: var(--primary-color); margin-bottom: 8px;">📤 إضافة شهادة جديدة من الجهاز</h4>
+                    <input type="text" id="manualCertTitle" placeholder="عنوان الشهادة">
+                    <input type="text" id="manualCertIssuer" placeholder="الجهة المصدرة">
+                    <input type="date" id="manualCertDate">
+                    <label style="display:block; margin:6px 0; font-weight:bold; font-size:0.85rem;">اختر صورة الشهادة:</label>
+                    <input type="file" id="manualCertFile" accept="image/*">
+                    <button onclick="uploadCertificateDirectly()" class="btn-primary" style="width:100%; padding:10px; margin-top:6px;">💾 حفظ وعرض الشهادة فوراً</button>
+                </div>
+
                 <div class="admin-tabs-nav">
                     <button class="admin-tab active" onclick="App.switchAdminTab('tab-certs', this)">الشهادات</button>
                     <button class="admin-tab" onclick="App.switchAdminTab('tab-exp', this)">الخبرات</button>
@@ -44,22 +51,14 @@
                 
                 <!-- تبويب الشهادات -->
                 <div id="tab-certs" class="admin-tab-content active">
-                    <div class="cert-upload-box" style="margin: 15px 0; padding: 15px; border: 2px dashed #ccc; border-radius: 8px; text-align: center;">
-                        <label for="cert-image-input" style="cursor: pointer; font-weight: bold; color: #075e54; display:block;">
-                            📁 اضغط هنا لرفع صورة الشهادة بالذكاء الاصطناعي
-                        </label>
-                        <input type="file" id="cert-image-input" accept="image/*" style="display: none;" onchange="extractCertificateFromImage(event)">
-                        <p id="loading-status" style="display:none; color: #075e54; margin-top: 10px;">⏳ جاري قراءة الشهادة واستخراج البيانات بالذكاء الاصطناعي...</p>
-                    </div>
-
                     <h4>إضافة/تعديل شهادة</h4>
                     <input type="hidden" id="certEditIndex" value="-1">
                     <input type="text" id="certTitle" placeholder="اسم الشهادة">
                     <input type="text" id="certIssuer" placeholder="الجهة المصدرة">
-                    <input type="text" id="certCategory" placeholder="التصنيف (محاسبة، تقنية...)">
+                    <input type="text" id="certCategory" placeholder="التصنيف">
                     <input type="text" id="certPin" placeholder="رقم سري للفتح (اختياري)">
-                    <input type="text" id="certImage" placeholder="رابط صورة الشهادة أو المستند (URL)">
-                    <button class="btn-submit" onclick="App.saveCertificate()">✅ حفظ وتحديث فوري للمعرض</button>
+                    <input type="text" id="certImage" placeholder="رابط صورة الشهادة (URL)">
+                    <button class="btn-submit" onclick="App.saveCertificate()">✅ حفظ وتحديث فوري</button>
                     <div id="admin-certs-list" class="admin-list"></div>
                 </div>
 
@@ -116,7 +115,6 @@
     </header>
 
     <main class="container">
-        <!-- شريط المفتاح الشامل واستعراض الوثائق -->
         <section class="master-access-bar">
             <div>
                 <span>🔓 المعرض مقفل بحماية الكود</span>
@@ -128,32 +126,27 @@
             </div>
         </section>
 
-        <!-- النبذة -->
         <section class="card">
             <h2>👤 نبذة تعريفية</h2>
             <p id="profile-summary" class="section-desc">مدرب معتمد ومحاسب أكاديمي حاصل على بكالوريوس المحاسبة من جامعة أبين، أجمع بين الخبرة المالية العملية والمهارات التدريبية والتيسيرية.</p>
         </section>
 
-        <!-- الشهادات الموثقة -->
         <section class="card">
             <h2>📜 الشهادات الموثقة</h2>
             <div id="certificates-container" class="cert-grid"></div>
             <div id="certifications-container" style="margin-top: 20px;"></div>
         </section>
 
-        <!-- الخبرات -->
         <section class="card">
             <h2>💼 الخبرات العملية</h2>
             <div id="experiences-container"></div>
         </section>
 
-        <!-- المهارات -->
         <section class="card">
             <h2>⚡ المهارات التقنية والمهنية</h2>
             <div id="skills-container"></div>
         </section>
 
-        <!-- التطوع -->
         <section class="card">
             <h2>🤝 العمل التطوعي والمجتمعي</h2>
             <div id="volunteer-container"></div>
@@ -165,7 +158,7 @@
         <div class="modal-content">
             <span class="close-btn" onclick="App.closeModal('accessModal')">&times;</span>
             <h3>مطلوب كود التصريح</h3>
-            <p style="font-size:0.9rem; color:var(--text-muted); margin: 10px 0;">أدخل الكود الخاص بهذا المستند أو استخدم الكود الشامل:</p>
+            <p style="font-size:0.9rem; color:var(--text-muted); margin: 10px 0;">أدخل الكود الخاص بالمستند أو المفتاح المؤقت:</p>
             <input type="password" id="passcode" placeholder="أدخل الكود هنا...">
             <button class="btn-submit" onclick="App.validateAccessCode()">تحقق وفتح المعاينة</button>
             <div id="errorMsg" class="error-text"></div>
