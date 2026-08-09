@@ -575,6 +575,9 @@ document.addEventListener('DOMContentLoaded', () => App.init());
 /**
  * ميزات استخراج الشهادات بالذكاء البصري (Vision) مع دعم التعبئة اليدوية والافتراضية دون حظر رفع الصور
  */
+a/**
+ * رفع صورة الشهادة وعرضها فوراً وبدون أي قيود أو رسائل خطأ (مع محاولة الاستخراج الذكي في الخلفية)
+ */
 async function extractCertificateFromImage(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -590,16 +593,16 @@ async function extractCertificateFromImage(event) {
     const reader = new FileReader();
     reader.onload = async function() {
         const base64Image = reader.result;
-        const defaultTitle = file.name.substring(0, file.name.lastIndexOf('.')) || "شهادة جديدة";
         
-        // تجهيز بيانات افتراضية في حال تعذر القراءة بالذكاء الاصطناعي
-        let extractedData = {
-            title: defaultTitle,
-            issuer: "تم الرفع من الجهاز (تعديل يدوي)",
-            date: new Date().toLocaleDateString('ar-YE')
-        };
+        // 1. استخراج اسم الملف الأساسي كعنوان افتراضي مضمون
+        const cleanName = file.name.substring(0, file.name.lastIndexOf('.')) || "شهادة جديدة";
+        
+        let finalTitle = cleanName;
+        let finalIssuer = "تم الرفع من الجهاز (تعديل يدوي)";
+        let finalDate = new Date().toLocaleDateString('ar-YE');
 
-        const prompt = "استخرج من صورة هذه الشهادة البيانات التالية بدقة وأعطني إياها حصراً على شكل كود JSON بهذا الشكل فقط دون أي كلام إضافي: {\"title\": \"عنوان الشهادة\", \"issuer\": \"جهة الإصدار\", \"date\": \"السنة أو التاريخ\"}";
+        // 2. محاولة قراءة البيانات بالذكاء الاصطناعي في الخلفية (اختيارية)
+        const prompt = "استخرج من صورة هذه الشهادة البيانات التالية بدقة وأعطني إياها حصراً على شكل كود JSON بهذا الشكل فقط دون أي نص إضافي: {\"title\": \"عنوان الشهادة\", \"issuer\": \"جهة الإصدار\", \"date\": \"التاريخ\"}";
 
         for (let apiKey of CONFIG.AI_API_KEYS) {
             try {
@@ -629,37 +632,45 @@ async function extractCertificateFromImage(event) {
                     content = content.replace(/```json/g, '').replace(/```/g, '').trim();
                     const parsed = JSON.parse(content);
                     if (parsed.title) {
-                        extractedData.title = parsed.title;
-                        if (parsed.issuer) extractedData.issuer = parsed.issuer;
-                        if (parsed.date) extractedData.date = parsed.date;
-                        break;
+                        finalTitle = parsed.title;
+                        if (parsed.issuer) finalIssuer = parsed.issuer;
+                        if (parsed.date) finalDate = parsed.date;
+                        break; // تم الاستخراج بنجاح
                     }
                 }
             } catch (err) {
-                console.warn("تعذر الاستخراج التلقائي، تم الاعتماد على التعبئة الافتراضية:", err);
+                // تجاهل خطأ الذكاء الاصطناعي تماماً والاستمرار بالقيم الافتراضية المضمنة
+                console.warn("الاستخراج التلقائي متوقف مؤقتاً، سيتم الاعتماد على رفع الصورة مباشرة.");
             }
         }
 
         if (statusEl) statusEl.style.display = 'none';
 
-        // حفظ الصورة والبيانات في كل الأحوال حتى لو فشل الذكاء الاصطناعي
-        extractedData.imageUrl = base64Image;
-        extractedData.id = `cert-img-${Date.now()}`;
+        // 3. حفظ الصورة والبيانات في التخزين المحلي في جميع الأحوال (بدون أي شروط تمنع الرفع)
+        const newCertData = {
+            id: `cert-img-${Date.now()}`,
+            title: finalTitle,
+            issuer: finalIssuer,
+            date: finalDate,
+            imageUrl: base64Image
+        };
 
         let savedCerts = JSON.parse(localStorage.getItem('my_certs') || '[]');
-        savedCerts.push(extractedData);
+        savedCerts.push(newCertData);
         localStorage.setItem('my_certs', JSON.stringify(savedCerts));
 
-        alert(`✅ تم رفع الشهادة بنجاح!\n- العنوان: ${extractedData.title}\n(يمكنك تعديل بياناتها يدوياً في أي وقت).`);
+        alert(`✅ تم رفع وعرض الشهادة بنجاح!\n- العنوان: ${finalTitle}\n(يمكنك تعديل تفاصيلها في أي وقت من لوحة التحكم).`);
         
-        App.renderAll();
+        // تحديث الواجهة فوراً
+        if (typeof App !== 'undefined' && App.renderAll) {
+            App.renderAll();
+        }
         if (typeof renderCertifications === 'function') {
             renderCertifications();
         }
     };
     reader.readAsDataURL(file);
 }
-
 function renderCertifications() {
     const certContainer = document.getElementById('certifications-container');
     if (!certContainer) return;
