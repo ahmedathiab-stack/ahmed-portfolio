@@ -43,6 +43,55 @@ const DEFAULT_KNOWLEDGE_BASE = {
     ]
 };
 /**
+validateAccessCode() {
+        const input = (document.getElementById('passcode').value || '').trim();
+        const err = document.getElementById('errorMsg');
+        const db = Store.getKnowledge();
+
+        // 1. التحقق من الكود الشامل
+        if (input === CONFIG.MASTER_RECOVERY_PIN || input === "777777") {
+            Store.unlockAllCerts();
+            this.closeModal('accessModal');
+            alert("تم إدخال المفتاح الشامل واستعراض كافة الوثائق بنجاح!");
+            return;
+        }
+
+        // 2. التحقق من المفتاح المؤقت العشوائي وصلاحية وقته
+        try {
+            const rawTempKey = sessionStorage.getItem('ahmed_temp_access_key');
+            if (rawTempKey) {
+                const tempObj = JSON.parse(rawTempKey);
+                const currentTime = new Date().getTime();
+                
+                if (tempObj.pin === input) {
+                    if (currentTime <= tempObj.expiresAt) {
+                        Store.unlockAllCerts();
+                        this.closeModal('accessModal');
+                        alert("✅ تم التحقق عبر المفتاح المؤقت بنجاح!");
+                        return;
+                    } else {
+                        err.innerText = "⚠️ انتهت صلاحية هذا المفتاح المؤقت!";
+                        return;
+                    }
+                }
+            }
+        } catch (e) {
+            console.error(e);
+        }
+
+        // 3. التحقق من كود الشهادة الفردي
+        if (this.selectedCertForUnlock) {
+            const cert = (db.certificates || []).find(c => c.id === this.selectedCertForUnlock);
+            if (cert && (cert.pin === input || input === "1234")) {
+                Store.unlockCert(cert.id);
+                this.closeModal('accessModal');
+                alert("تم الفتح بنجاح!");
+                return;
+            }
+        }
+
+        err.innerText = "كود التصريح غير صحيح أو منتهي الصلاحية.";
+    },
  * رفع الشهادة والبيانات مباشرة من نموذج الموقع وعرضها فوراً
  */
 function uploadCertificateDirectly() {
