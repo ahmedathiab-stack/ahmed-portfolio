@@ -691,7 +691,7 @@ async sendChatMessage() {
         const msgContainer = document.getElementById('ai-chat-messages');
         if (!msgContainer) return;
 
-        // تحديد لغة المستخدم هل هي إنجليزية أم عربية لدعم الرد الاحتياطي الذكي
+        // تحديد لغة المستخدم (إنجليزية أم عربية) للرد الاحتياطي الذكي
         const isEnglish = /^[A-Za-z0-9\s.,?!@#$%^&*()_+-=]+$/.test(text);
 
         // عرض رسالة المستخدم في الشات فوراً
@@ -699,7 +699,12 @@ async sendChatMessage() {
         input.value = '';
         msgContainer.scrollTop = msgContainer.scrollHeight;
 
-        const kb = Store.getKnowledge();
+        let kb = "";
+        try {
+            kb = typeof Store !== 'undefined' && Store.getKnowledge ? Store.getKnowledge() : {};
+        } catch (e) {
+            kb = {};
+        }
         
         const strictSystemPrompt = `You are the highly intelligent, professional, and friendly personal AI assistant of Trainer and Accountant Ahmed Adel Naji Thiab.
 CRITICAL RULES:
@@ -713,14 +718,19 @@ CRITICAL RULES:
         let success = false;
         let aiResponseText = "";
 
-        // التحقق من وجود مفاتيح صالحة
-        if (!CONFIG.AI_API_KEYS || CONFIG.AI_API_KEYS.length === 0) {
-            console.error("AI_API_KEYS is missing or empty in CONFIG!");
+        // التأكد من أن مفاتيح الـ API معرفة وتتم معاملتها بأمان تام سواء كانت مصفوفة أو نصاً واحداً
+        let keys = CONFIG && CONFIG.AI_API_KEYS ? CONFIG.AI_API_KEYS : [];
+        if (typeof keys === 'string') {
+            keys = [keys];
         }
 
-        for (let apiKey of CONFIG.AI_API_KEYS) {
-            if (!apiKey || apiKey.trim() === "" || apiKey.includes("KEY_NUMBER")) {
-                console.warn("Skipping invalid or placeholder API key.");
+        if (!Array.isArray(keys) || keys.length === 0) {
+            console.error("CONFIG.AI_API_KEYS is missing, empty, or not properly defined!");
+        }
+
+        for (let apiKey of keys) {
+            if (!apiKey || typeof apiKey !== 'string' || apiKey.trim() === "" || apiKey.includes("KEY_NUMBER")) {
+                console.warn("Skipping invalid or placeholder API key:", apiKey);
                 continue;
             }
             
@@ -749,39 +759,40 @@ CRITICAL RULES:
                     success = true;
                     break;
                 } else {
-                    console.warn("Groq API Error Details:", data);
+                    console.warn("Groq API Rejected Request:", data);
                 }
             } catch (err) {
-                console.warn("Network or Fetch exception:", err);
+                console.warn("Network or Fetch Exception caught:", err);
             }
         }
 
         if (success && aiResponseText) {
             msgContainer.innerHTML += `<div class="msg bot-msg">${aiResponseText}</div>`;
         } else {
-            // نظام الرد الاحتياطي الذكي (يدعم الإنجليزية والعربية بناءً على لغة المستخدم)
+            // نظام الرد الاحتياطي الذكي المزدوج (يدعم الإنجليزية والعربية)
             let fallbackReply = "";
             const lowerText = text.toLowerCase();
+            const whatsappNum = (CONFIG && CONFIG.WHATSAPP_NUMBER) ? CONFIG.WHATSAPP_NUMBER : '779087415';
 
             if (isEnglish) {
                 if (lowerText.includes('who') || lowerText.includes('about')) {
-                    fallbackReply = `Hello! I am the personal assistant of Trainer Ahmed Adel Naji Thiab. You can contact Ahmed directly via WhatsApp: +967 ${CONFIG.WHATSAPP_NUMBER || '779087415'}.`;
+                    fallbackReply = `Hello! I am the personal assistant of Trainer Ahmed Adel Naji Thiab. You can contact Ahmed directly via WhatsApp: +967 ${whatsappNum}.`;
                 } else if (lowerText.includes('whatsapp') || lowerText.includes('phone') || lowerText.includes('contact')) {
-                    fallbackReply = `📞 The official WhatsApp number to contact Trainer Ahmed Adel is: +967 ${CONFIG.WHATSAPP_NUMBER || '779087415'}.`;
+                    fallbackReply = `📞 The official WhatsApp number to contact Trainer Ahmed Adel is: +967 ${whatsappNum}.`;
                 } else {
-                    fallbackReply = `Hello! I'm Ahmed Adel's assistant. For direct courses, accounting systems (Extra System) inquiries, or booking, reach out via WhatsApp: +967 ${CONFIG.WHATSAPP_NUMBER || '779087415'}.`;
+                    fallbackReply = `Hello! I'm Ahmed Adel's assistant. For direct courses, accounting systems (Extra System) inquiries, or booking, reach out via WhatsApp: +967 ${whatsappNum}.`;
                 }
             } else {
-                fallbackReply = "أهلاً بك! أنا مساعد الأستاذ أحمد عادل ناجي ذياب. يسعدني جداً تواصلك. يمكنك الاستفسار عن الدورات المحاسبية (نظام إكسترا)، أو مراسلة الأستاذ مباشرة عبر الواتساب: +967779087415";
+                fallbackReply = `أهلاً بك! أنا مساعد الأستاذ أحمد عادل ناجي ذياب. يسعدني جداً تواصلك. يمكنك الاستفسار عن الدورات المحاسبية (نظام إكسترا)، أو مراسلة الأستاذ مباشرة عبر الواتساب: +967 ${whatsappNum}`;
                 
                 if (lowerText.includes('رقم') || lowerText.includes('واتس') || lowerText.includes('تواصل') || lowerText.includes('اتصال')) {
-                    fallbackReply = `📞 رقم الواتساب الرسمي للتواصل المباشر مع الأستاذ أحمد عادل ناجي ذياب هو: +967 ${CONFIG.WHATSAPP_NUMBER || '779087415'}، وهو متواجد دائماً للرد على الاستفسارات.`;
+                    fallbackReply = `📞 رقم الواتساب الرسمي للتواصل المباشر مع الأستاذ أحمد عادل ناجي ذياب هو: +967 ${whatsappNum}، وهو متواجد دائماً للرد على الاستفسارات.`;
                 } else if (lowerText.includes('اخبار') || lowerText.includes('آخر') || lowerText.includes('جديد') || lowerText.includes('دورات') || lowerText.includes('دورة')) {
                     fallbackReply = `🚀 يقدم الأستاذ أحمد أحدث الدورات التدريبية المتقدمة في الأنظمة المحاسبية وتطبيق (نظام إكسترا المحاسبي)، بالإضافة لتطوير المهارات المالية والإدارية.`;
                 } else if (lowerText.includes('شهادة') || lowerText.includes('بكالوريوس') || lowerText.includes('icdl') || lowerText.includes('تعليم') || lowerText.includes('جامعة')) {
                     fallbackReply = `🎓 المؤهلات والشهادات للأستاذ أحمد:\n- بكالوريوس المحاسبة (جامعة أبين)\n- دبلوم قيادة الحاسوب ICDL\n- شهادة اللغة الإنجليزية المستوى B2\n- شهادة معتمدة في نظام إكسترا للمحاسبة.`;
                 } else if (lowerText.includes('السعر') || lowerText.includes('تكلفة') || lowerText.includes('حجز') || lowerText.includes('تسجيل')) {
-                    fallbackReply = `💡 لحجز الدورات أو الاستفسار عن المواعيد والأسعار، يرجى التنسيق المباشر مع الأستاذ أحمد عبر الواتساب على الرقم: +967 ${CONFIG.WHATSAPP_NUMBER || '779087415'}.`;
+                    fallbackReply = `💡 لحجز الدورات أو الاستفسار عن المواعيد والأسعار، يرجى التنسيق المباشر مع الأستاذ أحمد عبر الواتساب على الرقم: +967 ${whatsappNum}.`;
                 }
             }
 
