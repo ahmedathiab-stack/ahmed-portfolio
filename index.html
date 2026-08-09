@@ -12,6 +12,15 @@
     <aside id="admin-drawer" class="admin-drawer">
         <div class="admin-drawer-header">
             <h3>إدارة المحتوى الشاملة</h3>
+            <!-- ضع هذا الكود داخل لوحة التحكم في ملف index.html حيث تريد ظهور مربع أوامر الذكاء الاصطناعي -->
+<div class="admin-card" style="background: var(--bg-card); padding: 15px; border-radius: 8px; margin-top: 15px; border: 1px dashed var(--primary-color);">
+    <h4 style="margin-bottom: 8px; color: var(--primary-color);">🤖 مساعد الإدارة الذكي</h4>
+    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px;">اكتب أمرك بالعربية أو الإنجليزية، وسيتم تعديل وتحديث الموقع سحابياً فوراً:</p>
+    
+    <textarea id="aiAdminCommandInput" placeholder="مثال: أضف مهارة تحدث اللغة الفرنسية بمستوى متقدم..." style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-main); color: var(--text-main); margin-bottom: 10px; resize: vertical;" rows="3"></textarea>
+    
+    <button onclick="App.executeAdminAICommand(document.getElementById('aiAdminCommandInput').value)" class="btn-primary" style="width: 100%;">تنفيذ الأمر بالذكاء الاصطناعي 🚀</button>
+</div>
             <span class="close-drawer" onclick="App.toggleAdminDrawer()">&times;</span>
         </div>
         <div class="admin-drawer-body">
