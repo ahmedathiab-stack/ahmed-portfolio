@@ -30,16 +30,6 @@
                     <button class="btn-primary" onclick="App.generateTempKey()" style="width: 100%;">⚡ توليد مفتاح مؤقت جديد</button>
                     <div id="tempKeyDisplay" style="margin-top: 10px; font-weight: bold; text-align: center; color: #166534;"></div>
                 </div>
-                
-                <div class="admin-card" style="background: var(--bg-card); padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid var(--border-color);">
-                    <h4 style="color: var(--primary-color); margin-bottom: 8px;">📤 إضافة شهادة جديدة من الجهاز</h4>
-                    <input type="text" id="manualCertTitle" placeholder="عنوان الشهادة">
-                    <input type="text" id="manualCertIssuer" placeholder="الجهة المصدرة">
-                    <input type="date" id="manualCertDate">
-                    <label style="display:block; margin:6px 0; font-weight:bold; font-size:0.85rem;">اختر صورة الشهادة:</label>
-                    <input type="file" id="manualCertFile" accept="image/*">
-                    <button onclick="uploadCertificateDirectly()" class="btn-primary" style="width:100%; padding:10px; margin-top:6px;">💾 حفظ وعرض الشهادة فوراً</button>
-                </div>
 
                 <div class="admin-tabs-nav">
                     <button class="admin-tab active" onclick="App.switchAdminTab('tab-certs', this)">الشهادات</button>
@@ -48,15 +38,21 @@
                     <button class="admin-tab" onclick="App.switchAdminTab('tab-vol', this)">التطوع</button>
                 </div>
                 
-                <!-- تبويب الشهادات -->
+                <!-- تبويب الشهادات المدمج (إضافة عبر الرابط أو رفع من الجهاز) -->
                 <div id="tab-certs" class="admin-tab-content active">
-                    <h4>إضافة/تعديل شهادة</h4>
+                    <h4 style="color: var(--primary-color); margin-bottom: 8px;">إضافة/تعديل شهادة</h4>
+                    <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom: 10px;">يمكنك وضع رابط لصورة الشهادة أو رفعها مباشرة من جهازك.</p>
                     <input type="hidden" id="certEditIndex" value="-1">
                     <input type="text" id="certTitle" placeholder="اسم الشهادة">
                     <input type="text" id="certIssuer" placeholder="الجهة المصدرة">
+                    <input type="date" id="certDate" style="margin-bottom: 12px; width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: var(--radius-sm);">
                     <input type="text" id="certCategory" placeholder="التصنيف">
                     <input type="text" id="certPin" placeholder="رقم سري للفتح (اختياري)">
-                    <input type="text" id="certImage" placeholder="رابط صورة الشهادة (URL)">
+                    <input type="text" id="certImage" placeholder="رابط صورة الشهادة (URL) - اختياري">
+                    
+                    <label style="display:block; margin:6px 0; font-weight:bold; font-size:0.85rem;">أو اختر صورة الشهادة من الجهاز:</label>
+                    <input type="file" id="certFile" accept="image/*">
+                    
                     <button class="btn-submit" onclick="App.saveCertificate()">✅ حفظ وتحديث فوري</button>
                     <div id="admin-certs-list" class="admin-list"></div>
                 </div>
