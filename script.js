@@ -427,23 +427,68 @@ const App = {
     },
 
     saveCertificate() {
-        const indexInput = document.getElementById('certEditIndex');
-        const titleInput = document.getElementById('certTitle');
-        const issuerInput = document.getElementById('certIssuer');
-        const categoryInput = document.getElementById('certCategory');
-        const pinInput = document.getElementById('certPin');
-        const imageInput = document.getElementById('certImage');
-        const fileInput = document.getElementById('certFile');
+    // 1. جلب عناصر الحقول من الصفحة
+    const indexInput = document.getElementById('certEditIndex');
+    const titleInput = document.getElementById('certTitle');
+    const issuerInput = document.getElementById('certIssuer');
+    const categoryInput = document.getElementById('certCategory');
+    const pinInput = document.getElementById('certPin');
+    const imageInput = document.getElementById('certImage');
+    const fileInput = document.getElementById('certFile');
 
-        const index = indexInput ? parseInt(indexInput.value) : -1;
-        const title = titleInput ? titleInput.value.trim() : '';
-        const issuer = issuerInput ? issuerInput.value.trim() : '';
-        const category = categoryInput ? categoryInput.value.trim() : '';
-        const pin = pinInput ? pinInput.value.trim() : '';
-        const imageUrlInput = imageInput ? imageInput.value.trim() : '';
+    // 2. استخلاص القيم ومعالجة النصوص
+    const index = indexInput ? parseInt(indexInput.value) : -1;
+    const title = titleInput ? titleInput.value.trim() : '';
+    const issuer = issuerInput ? issuerInput.value.trim() : '';
+    const category = categoryInput ? categoryInput.value.trim() : '';
+    const pin = pinInput ? pinInput.value.trim() : '';
+    const imageUrlInput = imageInput ? imageInput.value.trim() : '';
 
-        if (!title || !issuer) return alert('يرجى كتابة عنوان الشهادة والجهة المصدرة.');
+    // 3. التحقق من الحقول الأساسية
+    if (!title || !issuer) return alert('يرجى كتابة عنوان الشهادة والجهة المصدرة.');
 
+    const db = Store.getKnowledge();
+    const existingCert = index >= 0 && db.certificates[index] ? db.certificates[index] : null;
+
+    // 4. دالة معالجة الحفظ النهائي وتحديث الواجهة
+    const processSave = (finalImageUrl) => {
+        const certObj = { 
+            id: existingCert ? existingCert.id : `cert-${Date.now()}`, 
+            title, 
+            issuer, 
+            category: category || 'عام', 
+            pin: pin || '1001', 
+            imageUrl: finalImageUrl || (existingCert ? existingCert.imageUrl : '')
+        };
+
+        if (!Array.isArray(db.certificates)) db.certificates = [];
+
+        // التعديل أو الإضافة بدون تكرار
+        if (index >= 0 && index < db.certificates.length) {
+            db.certificates[index] = certObj;
+        } else {
+            db.certificates.push(certObj);
+        }
+
+        Store.saveKnowledge(db);
+        this.resetCertForm();
+        this.renderAdminLists(db);
+        if (typeof renderCertifications === 'function') renderCertifications();
+        
+        alert('✅ تم حفظ وتحديث الشهادة بنجاح بدون تكرار!');
+    };
+
+    // 5. التحقق مما إذا كان هناك ملف مرفوع (صورة) لتحويله إلى Base64، أو الاعتماد على الرابط المباشر
+    if (fileInput && fileInput.files && fileInput.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            processSave(e.target.result);
+        };
+        reader.readAsDataURL(fileInput.files[0]);
+    } else {
+        processSave(imageUrlInput);
+    }
+}
         const db = Store.getKnowledge();
         const existingCert = index >= 0 && db.certificates[index] ? db.certificates[index] : null;
 
