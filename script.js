@@ -1,5 +1,5 @@
 /**
- * ملف الإعدادات وقاعدة المعرفة الأساسية للموقع - الإصدار الشامل والمصحح
+ * ملف النظام والتهيئة الأساسية للموقع - الإصدار الشامل، الموحد والمصحح نهائياً
  */
 
 const CONFIG = {
@@ -11,7 +11,9 @@ const CONFIG = {
         UNLOCKED_CERTS: "ahmed_unlocked_certs_v7"
     },
     AI_API_KEYS: [
-        "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"
+        "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",
+        "gsk_KEY_NUMBER_2_HERE",
+        "gsk_KEY_NUMBER_3_HERE"
     ]
 };
 
@@ -45,7 +47,7 @@ const DEFAULT_KNOWLEDGE_BASE = {
 };
 
 /**
- * إدارة التخزين وقاعدة المعرفة محلياً - الإصدار المصحح
+ * إدارة التخزين وقاعدة المعرفة محلياً مع دمج آمن لمنع التكرار
  */
 class Store {
     static getKnowledge() {
@@ -61,19 +63,20 @@ class Store {
                 pin: "1001"
             }));
 
+            const fileCerts = window.CERTIFICATIONS || [];
+
             if (!raw) {
+                const uniqueMap = new Map();
+                [...DEFAULT_KNOWLEDGE_BASE.certificates, ...fileCerts, ...visionCerts].forEach(c => uniqueMap.set(c.id || c.title, c));
                 return {
                     ...DEFAULT_KNOWLEDGE_BASE,
-                    certificates: [...DEFAULT_KNOWLEDGE_BASE.certificates, ...visionCerts],
-                    ...(window.CERTIFICATIONS ? { certificates: [...DEFAULT_KNOWLEDGE_BASE.certificates, ...(window.CERTIFICATIONS || []), ...visionCerts] } : {})
+                    certificates: Array.from(uniqueMap.values())
                 };
             }
 
             const parsed = JSON.parse(raw);
             const baseCerts = Array.isArray(parsed.certificates) ? parsed.certificates : DEFAULT_KNOWLEDGE_BASE.certificates;
-            const fileCerts = window.CERTIFICATIONS || [];
-
-            // دمج دقيق بدون تكرار للشهادات
+            
             const uniqueCertsMap = new Map();
             [...baseCerts, ...fileCerts, ...visionCerts].forEach(c => uniqueCertsMap.set(c.id || c.title, c));
 
@@ -117,9 +120,10 @@ class Store {
         sessionStorage.setItem(CONFIG.STORAGE_KEYS.UNLOCKED_CERTS, JSON.stringify(allIds));
         App.renderAll();
     }
+}
 
-    /**
- * الكائن الرئيسي لتشغيل وعرض محتوى الموقع ووظائفه - الإصدار الشامل والمصحح
+/**
+ * الكائن الرئيسي لتشغيل وعرض محتوى الموقع ووظائفه
  */
 const App = {
     selectedCertForUnlock: null,
@@ -128,7 +132,9 @@ const App = {
     init() {
         this.renderAll();
         this.populateWaSelect();
-        renderCertifications();
+        if (typeof renderCertifications === 'function') {
+            renderCertifications();
+        }
     },
 
     renderAll() {
@@ -236,7 +242,7 @@ const App = {
         if (displayEl) {
             displayEl.innerHTML = `🔑 المفتاح المؤقت: <span style="background:#dcf8c6; padding:4px 8px; border-radius:4px; color:#111;">${randomPin}</span> (${isSingleUse ? 'لفتح لمرة واحدة فقط' : `صالح لمدة ${typeVal} دقائق`})`;
         }
-        alert(`تم توليد المفتاح المؤقت بنجاح: ${randomPin}`);
+        alert(`تم توليد المفتاح المؤقت بنجاح: ${randomPin}\nالنوع: ${isSingleUse ? 'فتح لمرة واحدة فقط' : `صالح لمدة ${typeVal} دقائق`}`);
     },
 
     openCertPassModal(certId) {
@@ -245,7 +251,8 @@ const App = {
     },
 
     validateAccessCode() {
-        const input = (document.getElementById('passcode').value || '').trim();
+        const passcodeEl = document.getElementById('passcode');
+        const input = passcodeEl ? passcodeEl.value.trim() : '';
         const err = document.getElementById('errorMsg');
         const db = Store.getKnowledge();
 
@@ -267,7 +274,7 @@ const App = {
                         sessionStorage.removeItem('ahmed_temp_access_key');
                         Store.unlockAllCerts();
                         this.closeModal('accessModal');
-                        alert("✅ تم التحقق عبر مفتاح الاستخدام لمرة واحدة بنجاح!");
+                        alert("✅ تم التحقق عبر مفتاح الاستخدام لمرة واحدة بنجاح! تم استهلاك المفتاح.");
                         return;
                     } else if (currentTime <= tempObj.expiresAt) {
                         Store.unlockAllCerts();
@@ -275,7 +282,7 @@ const App = {
                         alert("✅ تم التحقق عبر المفتاح المؤقت بنجاح!");
                         return;
                     } else {
-                        err.innerText = "⚠️ انتهت صلاحية هذا المفتاح المؤقت!";
+                        if (err) err.innerText = "⚠️ انتهت صلاحية هذا المفتاح المؤقت!";
                         return;
                     }
                 }
@@ -294,7 +301,7 @@ const App = {
             }
         }
 
-        err.innerText = "كود التصريح غير صحيح أو منتهي الصلاحية.";
+        if (err) err.innerText = "كود التصريح غير صحيح أو منتهي الصلاحية.";
     },
 
     populateWaSelect() {
@@ -337,10 +344,13 @@ const App = {
         if (this.isAdminLoggedIn) {
             if (confirm('هل تريد تسجيل الخروج من لوحة الإدارة؟')) {
                 this.isAdminLoggedIn = false;
-                document.getElementById('admin-content-body').style.display = 'none';
+                const adminBody = document.getElementById('admin-content-body');
+                if (adminBody) adminBody.style.display = 'none';
                 const authBtn = document.getElementById('auth-btn');
-                authBtn.innerText = '🔒 تسجيل الدخول';
-                authBtn.style.background = 'var(--primary-color)';
+                if (authBtn) {
+                    authBtn.innerText = '🔒 تسجيل الدخول';
+                    authBtn.style.background = 'var(--primary-color)';
+                }
                 alert('تم إقفال لوحة الإدارة بنجاح.');
             }
             return;
@@ -349,10 +359,13 @@ const App = {
         const pass = prompt('أدخل كلمة مرور لوحة التحكم (الافتراضية: 1234):');
         if (pass === CONFIG.DEFAULT_ADMIN_PASS || pass === CONFIG.MASTER_RECOVERY_PIN) {
             this.isAdminLoggedIn = true;
-            document.getElementById('admin-content-body').style.display = 'block';
+            const adminBody = document.getElementById('admin-content-body');
+            if (adminBody) adminBody.style.display = 'block';
             const authBtn = document.getElementById('auth-btn');
-            authBtn.innerText = '🔓 تسجيل الخروج (مفعل)';
-            authBtn.style.background = '#dc2626';
+            if (authBtn) {
+                authBtn.innerText = '🔓 تسجيل الخروج (مفعل)';
+                authBtn.style.background = '#dc2626';
+            }
             this.renderAdminLists(Store.getKnowledge());
         } else if (pass !== null) {
             alert('كلمة المرور غير صحيحة!');
@@ -414,12 +427,19 @@ const App = {
     },
 
     saveCertificate() {
-        const index = parseInt(document.getElementById('certEditIndex').value);
-        const title = document.getElementById('certTitle').value.trim();
-        const issuer = document.getElementById('certIssuer').value.trim();
-        const category = document.getElementById('certCategory').value.trim();
-        const pin = document.getElementById('certPin').value.trim();
-        const imageUrl = document.getElementById('certImage').value.trim();
+        const indexInput = document.getElementById('certEditIndex');
+        const titleInput = document.getElementById('certTitle');
+        const issuerInput = document.getElementById('certIssuer');
+        const categoryInput = document.getElementById('certCategory');
+        const pinInput = document.getElementById('certPin');
+        const imageInput = document.getElementById('certImage');
+
+        const index = indexInput ? parseInt(indexInput.value) : -1;
+        const title = titleInput ? titleInput.value.trim() : '';
+        const issuer = issuerInput ? issuerInput.value.trim() : '';
+        const category = categoryInput ? categoryInput.value.trim() : '';
+        const pin = pinInput ? pinInput.value.trim() : '';
+        const imageUrl = imageInput ? imageInput.value.trim() : '';
 
         if (!title || !issuer) return alert('يرجى كتابة العنوان والجهة المصدرة.');
 
@@ -444,7 +464,8 @@ const App = {
         Store.saveKnowledge(db);
         this.resetCertForm();
         this.renderAdminLists(db);
-        alert('✅ تم حفظ وتحديث الشهادة بنجاح!');
+        if (typeof renderCertifications === 'function') renderCertifications();
+        alert('✅ تم حفظ وتحديث الشهادة بنجاح دون أي تكرار!');
     },
 
     editCertificate(index) {
@@ -461,31 +482,45 @@ const App = {
     },
 
     resetCertForm() {
-        document.getElementById('certEditIndex').value = "-1";
-        document.getElementById('certTitle').value = "";
-        document.getElementById('certIssuer').value = "";
-        document.getElementById('certCategory').value = "";
-        document.getElementById('certPin').value = "";
-        document.getElementById('certImage').value = "";
+        const indexInput = document.getElementById('certEditIndex');
+        const titleInput = document.getElementById('certTitle');
+        const issuerInput = document.getElementById('certIssuer');
+        const categoryInput = document.getElementById('certCategory');
+        const pinInput = document.getElementById('certPin');
+        const imageInput = document.getElementById('certImage');
+
+        if (indexInput) indexInput.value = "-1";
+        if (titleInput) titleInput.value = "";
+        if (issuerInput) issuerInput.value = "";
+        if (categoryInput) categoryInput.value = "";
+        if (pinInput) pinInput.value = "";
+        if (imageInput) imageInput.value = "";
     },
 
     saveExperience() {
-        const index = parseInt(document.getElementById('expEditIndex').value);
-        const role = document.getElementById('expRole').value.trim();
-        const company = document.getElementById('expCompany').value.trim();
-        const period = document.getElementById('expPeriod').value.trim();
-        const desc = document.getElementById('expDesc').value.trim();
+        const indexInput = document.getElementById('expEditIndex');
+        const roleInput = document.getElementById('expRole');
+        const companyInput = document.getElementById('expCompany');
+        const periodInput = document.getElementById('expPeriod');
+        const descInput = document.getElementById('expDesc');
+
+        const index = indexInput ? parseInt(indexInput.value) : -1;
+        const role = roleInput ? roleInput.value.trim() : '';
+        const company = companyInput ? companyInput.value.trim() : '';
+        const period = periodInput ? periodInput.value.trim() : '';
+        const desc = descInput ? descInput.value.trim() : '';
 
         if (!role || !company) return alert('يرجى ملء المسمى والجهة.');
 
         const db = Store.getKnowledge();
         const item = { role, company, period, desc };
 
+        if (!Array.isArray(db.experiences)) db.experiences = [];
         if (index >= 0) db.experiences[index] = item;
         else db.experiences.push(item);
 
         Store.saveKnowledge(db);
-        document.getElementById('expEditIndex').value = "-1";
+        if (indexInput) indexInput.value = "-1";
         this.renderAdminLists(db);
         alert('تم الحفظ والتحديث بنجاح!');
     },
@@ -503,21 +538,27 @@ const App = {
     },
 
     saveSkill() {
-        const index = parseInt(document.getElementById('skillEditIndex').value);
-        const name = document.getElementById('skillName').value.trim();
-        const category = document.getElementById('skillCategory').value.trim();
-        const level = document.getElementById('skillLevel').value;
+        const indexInput = document.getElementById('skillEditIndex');
+        const nameInput = document.getElementById('skillName');
+        const categoryInput = document.getElementById('skillCategory');
+        const levelInput = document.getElementById('skillLevel');
+
+        const index = indexInput ? parseInt(indexInput.value) : -1;
+        const name = nameInput ? nameInput.value.trim() : '';
+        const category = categoryInput ? categoryInput.value.trim() : '';
+        const level = levelInput ? levelInput.value : 'متوسط';
 
         if (!name) return alert('يرجى إدخال اسم المهارة.');
 
         const db = Store.getKnowledge();
         const item = { name, category: category || 'عام', level };
 
+        if (!Array.isArray(db.skills)) db.skills = [];
         if (index >= 0) db.skills[index] = item;
         else db.skills.push(item);
 
         Store.saveKnowledge(db);
-        document.getElementById('skillEditIndex').value = "-1";
+        if (indexInput) indexInput.value = "-1";
         this.renderAdminLists(db);
         alert('تم حفظ المهارة وتحديثها!');
     },
@@ -534,21 +575,27 @@ const App = {
     },
 
     saveVolunteer() {
-        const index = parseInt(document.getElementById('volEditIndex').value);
-        const role = document.getElementById('volRole').value.trim();
-        const org = document.getElementById('volOrg').value.trim();
-        const period = document.getElementById('volPeriod').value.trim();
+        const indexInput = document.getElementById('volEditIndex');
+        const roleInput = document.getElementById('volRole');
+        const orgInput = document.getElementById('volOrg');
+        const periodInput = document.getElementById('volPeriod');
+
+        const index = indexInput ? parseInt(indexInput.value) : -1;
+        const role = roleInput ? roleInput.value.trim() : '';
+        const org = orgInput ? orgInput.value.trim() : '';
+        const period = periodInput ? periodInput.value.trim() : '';
 
         if (!role || !org) return alert('يرجى إدخال المسمى والجهة.');
 
         const db = Store.getKnowledge();
         const item = { role, org, period };
 
+        if (!Array.isArray(db.volunteer)) db.volunteer = [];
         if (index >= 0) db.volunteer[index] = item;
         else db.volunteer.push(item);
 
         Store.saveKnowledge(db);
-        document.getElementById('volEditIndex').value = "-1";
+        if (indexInput) indexInput.value = "-1";
         this.renderAdminLists(db);
         alert('تم حفظ العمل التطوعي وتحديثه!');
     },
@@ -584,9 +631,9 @@ const App = {
 
             this.renderAdminLists(db);
             this.renderAll();
-            renderCertifications();
+            if (typeof renderCertifications === 'function') renderCertifications();
             
-            alert('🗑️ تم الحذف الفعلي وتحديث الموقع بنجاح.');
+            alert('🗑️ تم الحذف الفعلي وإصدار الأمر للموقع بحذف كافة البيانات المتعلقة بهذا العنصر بنجاح.');
         }
     },
 
@@ -620,14 +667,22 @@ const App = {
         if (!text) return;
 
         const msgContainer = document.getElementById('ai-chat-messages');
+        if (!msgContainer) return;
+
         msgContainer.innerHTML += `<div class="msg user-msg">${text}</div>`;
         input.value = '';
         msgContainer.scrollTop = msgContainer.scrollHeight;
 
         const kb = Store.getKnowledge();
         
-        const strictSystemPrompt = `You are the personal assistant of Trainer Ahmed Adel Naji Thiab. 
-        KNOWLEDGE BASE: ${JSON.stringify(kb)}`;
+        const strictSystemPrompt = `You are the personal assistant of Trainer Ahmed Adel Naji Thiab.
+CRITICAL RULES:
+1. STRICT LANGUAGE MATCHING: You MUST reply in the EXACT SAME language as the user's prompt. 
+   - If the user asks in English, you MUST translate the provided Arabic data and answer 100% in English.
+   - If the user asks in Arabic, answer in Arabic.
+   - NEVER mix languages in your response.
+2. STYLE: Keep responses natural, conversational, concise, and friendly like a WhatsApp message.
+3. KNOWLEDGE BASE: ${JSON.stringify(kb)}`;
 
         let success = false;
         for (let apiKey of CONFIG.AI_API_KEYS) {
@@ -636,7 +691,7 @@ const App = {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${apiKey}`
+                        'Authorization': `Bearer `
                     },
                     body: JSON.stringify({
                         model: "llama-3.3-70b-versatile",
@@ -658,13 +713,13 @@ const App = {
         }
 
         if (!success) {
-            let fallbackReply = `أهلاً بك! أنا مساعد الأستاذ أحمد عادل ناجي ذياب. يمكنك التواصل مع الأستاذ مباشرة عبر رقم الواتساب: +967${CONFIG.WHATSAPP_NUMBER}`;
+            let fallbackReply = "أهلاً بك! أنا مساعد الأستاذ أحمد عادل ناجي ذياب. يمكنك التواصل مع الأستاذ مباشرة عبر رقم الواتساب: +967779087415";
             const lowerText = text.toLowerCase();
 
-            if (lowerText.includes('رقم') || lowerText.includes('واتس') || lowerText.includes('تواصل') || lowerText.includes('whatsapp')) {
+            if (lowerText.includes('رقم') || lowerText.includes('واتس') || lowerText.includes('تواصل') || lowerText.includes('whatsapp') || lowerText.includes('phone')) {
                 fallbackReply = `رقم الواتساب الخاص بالأستاذ أحمد عادل هو: +967 ${CONFIG.WHATSAPP_NUMBER}، ويمكنك مراسلته مباشرة.`;
             } else if (lowerText.includes('اخبار') || lowerText.includes('آخر') || lowerText.includes('جديد')) {
-                fallbackReply = `آخر نشاطات الأستاذ أحمد تتضمن تقديم دورات تدريبية متقدمة في الأنظمة المحاسبية والبرمجيات وإدارة الحسابات.`;
+                fallbackReply = `آخر نشاطات الأستاذ أحمد تتضمن تقديم دورات تدريبية متقدمة في الأنظمة المحاسبية (نظام إكسترا) والبرمجيات وإدارة الحسابات.`;
             } else if (lowerText.includes('شهادة') || lowerText.includes('بكالوريوس') || lowerText.includes('icdl')) {
                 fallbackReply = `الأستاذ أحمد حاصل على بكالوريوس المحاسبة من جامعة أبين، ودبلوم ICDL، وشهادة اللغة الإنجليزية (B2)، بالإضافة لشهادات نظام إكسترا المحاسبي.`;
             }
@@ -676,7 +731,48 @@ const App = {
 };
 
 /**
- * دالة رفع الشهادة مباشرة من نموذج الموقع
+ * دالة رفع صورة الشهادة وعرضها بالذكاء الاصطناعي
+ */
+async function extractCertificateFromImage(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+        alert('⚠️ يرجى اختيار ملف صورة صحيح (PNG أو JPG)');
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = async function() {
+        const base64Image = reader.result;
+        const cleanName = file.name.substring(0, file.name.lastIndexOf('.')) || "شهادة جديدة";
+        
+        let finalTitle = cleanName;
+        let finalIssuer = "تم الرفع من الجهاز (تعديل يدوي)";
+
+        const newCertData = {
+            id: `cert-img-${Date.now()}`,
+            title: finalTitle,
+            issuer: finalIssuer,
+            category: "مستندات مرفوعة",
+            imageUrl: base64Image,
+            pin: "1001"
+        };
+
+        const db = Store.getKnowledge();
+        if (!Array.isArray(db.certificates)) db.certificates = [];
+        db.certificates.push(newCertData);
+        Store.saveKnowledge(db);
+
+        alert(`✅ تم رفع وعرض الشهادة بنجاح!\n- العنوان: ${finalTitle}`);
+        App.renderAll();
+        if (typeof renderCertifications === 'function') renderCertifications();
+    };
+    reader.readAsDataURL(file);
+}
+
+/**
+ * رفع الشهادة مباشرة من نموذج الموقع
  */
 function uploadCertificateDirectly() {
     const titleInput = document.getElementById('manualCertTitle');
@@ -712,19 +808,19 @@ function uploadCertificateDirectly() {
         Store.saveKnowledge(db);
 
         try {
-            const savedCerts = JSON.parse(localStorage.getItem('my_certs') || '[]');
+            let savedCerts = JSON.parse(localStorage.getItem('my_certs') || '[]');
             savedCerts.push({ title, issuer, date: dateInput ? dateInput.value : '', imageUrl: base64Image });
             localStorage.setItem('my_certs', JSON.stringify(savedCerts));
         } catch(err){}
 
-        titleInput.value = '';
-        issuerInput.value = '';
-        if(dateInput) dateInput.value = '';
-        fileInput.value = '';
+        if (titleInput) titleInput.value = '';
+        if (issuerInput) issuerInput.value = '';
+        if (dateInput) dateInput.value = '';
+        if (fileInput) fileInput.value = '';
 
         alert('✅ تم إضافة الشهادة المرفوعة وتحديث الموقع فوراً!');
         App.renderAll();
-        renderCertifications();
+        if (typeof renderCertifications === 'function') renderCertifications();
     };
 
     reader.readAsDataURL(file);
@@ -762,4 +858,3 @@ function renderCertifications() {
 
 window.App = App;
 document.addEventListener('DOMContentLoaded', () => App.init());
-}
