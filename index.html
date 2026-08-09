@@ -10,35 +10,37 @@
     <button id="toggle-drawer-btn" class="admin-fab" onclick="App.toggleAdminDrawer()">⚙️</button>
     
     <aside id="admin-drawer" class="admin-drawer">
-        <div class="admin-drawer-header">
-            <h3>إدارة المحتوى الشاملة</h3>
-            <!-- ضع هذا الكود داخل لوحة التحكم في ملف index.html حيث تريد ظهور مربع أوامر الذكاء الاصطناعي -->
-<div class="admin-card" style="background: var(--bg-card); padding: 15px; border-radius: 8px; margin-top: 15px; border: 1px dashed var(--primary-color);">
-    <h4 style="margin-bottom: 8px; color: var(--primary-color);">🤖 مساعد الإدارة الذكي</h4>
-    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px;">اكتب أمرك بالعربية أو الإنجليزية، وسيتم تعديل وتحديث الموقع سحابياً فوراً:</p>
+     <div class="admin-drawer-body">
+    <button id="auth-btn" class="btn-submit" onclick="App.toggleAdminAuth()">🔒 تسجيل الدخول</button>
     
-    <textarea id="aiAdminCommandInput" placeholder="مثال: أضف مهارة تحدث اللغة الفرنسية بمستوى متقدم..." style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-main); color: var(--text-main); margin-bottom: 10px; resize: vertical;" rows="3"></textarea>
-    
-    <button onclick="App.executeAdminAICommand(document.getElementById('aiAdminCommandInput').value)" class="btn-primary" style="width: 100%;">تنفيذ الأمر بالذكاء الاصطناعي 🚀</button>
-</div>
-            <span class="close-drawer" onclick="App.toggleAdminDrawer()">&times;</span>
-        </div>
-        <div class="admin-drawer-body">
-            <button id="auth-btn" class="btn-submit" onclick="App.toggleAdminAuth()">🔒 تسجيل الدخول</button>
+    <!-- أدوات الإدارة تظهر حصراً تحت زر تسجيل الدخول (بعد إدخال كلمة المرور) -->
+    <div id="admin-content-body" style="display:none; margin-top:15px;">
+        
+        <!-- 🤖 مربع مساعد الإدارة الذكي (هنا مكانه الصحيح) -->
+        <div class="admin-card" style="background: var(--bg-card); padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px dashed var(--primary-color);">
+            <h4 style="margin-bottom: 8px; color: var(--primary-color);">🤖 مساعد الإدارة الذكي</h4>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px;">اكتب أمرك بالعربية أو الإنجليزية، وسيتم تعديل وتحديث الموقع سحابياً فوراً:</p>
             
-            <!-- أدوات الإدارة تظهر حصراً تحت زر تسجيل الدخول -->
-            <div id="admin-content-body" style="display:none; margin-top:15px;">
-                <div class="admin-card" style="background: var(--bg-subtle); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
-                    <h4 style="color: var(--primary-color);">⏳ توليد مفتاح مؤقت وعشوائي</h4>
-                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px;">اختر مدة الصلاحية أو نوع المفتاح:</p>
-                    <select id="tempKeyDuration" style="margin-bottom: 10px;">
-                        <option value="24h">صالح لمدة 24 ساعة</option>
-                        <option value="72h">صالح لمدة 72 ساعة</option>
-                        <option value="single" selected>فتح لمرة واحدة فقط (يُحذف فور استخدامه)</option>
-                    </select>
-                    <button class="btn-primary" onclick="App.generateTempKey()" style="width: 100%;">⚡ توليد مفتاح مؤقت جديد</button>
-                    <div id="tempKeyDisplay" style="margin-top: 10px; font-weight: bold; text-align: center; color: #166534;"></div>
-                </div>
+            <textarea id="aiAdminCommandInput" placeholder="مثال: أضف مهارة تحدث اللغة الفرنسية بمستوى متقدم..." style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-main); color: var(--text-main); margin-bottom: 10px; resize: vertical;" rows="3"></textarea>
+            
+            <button onclick="App.executeAdminAICommand(document.getElementById('aiAdminCommandInput').value)" class="btn-primary" style="width: 100%;">تنفيذ الأمر بالذكاء الاصطناعي 🚀</button>
+        </div>
+
+        <!-- ⏳ توليد مفتاح مؤقت وعشوائي -->
+        <div class="admin-card" style="background: var(--bg-subtle); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+            <h4 style="color: var(--primary-color);">⏳ توليد مفتاح مؤقت وعشوائي</h4>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px;">اختر مدة الصلاحية أو نوع المفتاح:</p>
+            <select id="tempKeyDuration" style="margin-bottom: 10px; width: 100%; padding: 8px;">
+                <option value="24h">صالح لمدة 24 ساعة</option>
+                <option value="72h">صالح لمدة 72 ساعة</option>
+                <option value="single" selected>فتح لمرة واحدة فقط (يُحذف فور استخدامه)</option>
+            </select>
+            <button class="btn-primary" onclick="App.generateTempKey()" style="width: 100%;">⚡ توليد مفتاح مؤقت جديد</button>
+            <div id="tempKeyDisplay" style="margin-top: 10px; font-weight: bold; text-align: center; color: #166534;"></div>
+        </div>
+
+    </div>
+</div>
 
                 <div class="admin-tabs-nav">
                     <button class="admin-tab active" onclick="App.switchAdminTab('tab-certs', this)">الشهادات</button>
