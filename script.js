@@ -519,6 +519,60 @@ const App = {
                         ]
                     })
                 });
+                async function sendChatMessage() {
+    const input = document.getElementById('ai-chat-input');
+    if (!input) return;
+    const text = input.value.trim();
+    if (!text) return;
+
+    const msgContainer = document.getElementById('ai-chat-messages');
+    msgContainer.innerHTML += `<div class="msg user-msg">${text}</div>`;
+    input.value = '';
+    msgContainer.scrollTop = msgContainer.scrollHeight;
+
+    // هنا يتم استدعاء البيانات بأمان ودون أخطاء
+    const kb = Store.getKnowledge();
+    
+    const strictSystemPrompt = `أنت المساعد الشخصي للمدرب أحمد عادل ناجي ذياب. 
+قواعد صارمة جداً:
+1. التزم بالرد حصراً ونهائياً **بلغة السائل** التي استخدمها في سؤاله (إذا سأل بالعربية أجب بالعربية وحدها تماماً، وإذا سأل بالإنجليزية أجب بالإنجليزية وحدها).
+2. ممنوع نهائياً خلط اللغات أو إدخال لغات غريبة.
+3. تحدث بطريقة طبيعية ومحاكاة تامة للبشر مثل أسلوب المراسلة عبر تطبيق واتساب (مختصر، ودود، وخالٍ من الحشو والتكرار الممل).
+بيانات الموقع المتوفرة لديك: ${JSON.stringify(kb)}`;
+
+    let success = false;
+    for (let apiKey of CONFIG.AI_API_KEYS) {
+        try {
+            const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
+                },
+                body: JSON.stringify({
+                    model: "llama-3.3-70b-versatile",
+                    messages: [
+                        { role: "system", content: strictSystemPrompt },
+                        { role: "user", content: text }
+                    ]
+                })
+            });
+            const data = await res.json();
+            if (data.choices && data.choices[0]) {
+                msgContainer.innerHTML += `<div class="msg bot-msg">${data.choices[0].message.content}</div>`;
+                success = true;
+                break;
+            }
+        } catch (err) {
+            console.warn(err);
+        }
+    }
+
+    if (!success) {
+        msgContainer.innerHTML += `<div class="msg bot-msg">⚠️ عذراً، واجهت مشكلة بسيطة في الاتصال. يمكنك مراسلة الأستاذ مباشرة عبر الواتساب.</div>`;
+    }
+    msgContainer.scrollTop = msgContainer.scrollHeight;
+}
                 const data = await res.json();
                 if (data.choices && data.choices[0]) {
                     msgContainer.innerHTML += `<div class="msg bot-msg">${data.choices[0].message.content}</div>`;
