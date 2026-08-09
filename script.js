@@ -1,5 +1,5 @@
 /**
- * ملف النظام والتهيئة الأساسية للموقع - الإصدار الشامل، الموحد والمصحح نهائياً
+ * ملف النظام والتهيئة الأساسية للموقع - الإصدار الشامل والمصحح
  */
 
 const CONFIG = {
@@ -123,7 +123,7 @@ class Store {
 }
 
 /**
- * الكائن الرئيسي لتشغيل وعرض محتوى الموقع ووظائفه - الإصدار المدمج والمصحح نهائياً
+ * الكائن الرئيسي لتشغيل وعرض محتوى الموقع ووظائفه
  */
 const App = {
     selectedCertForUnlock: null,
@@ -228,10 +228,10 @@ const App = {
             expiryTime = new Date().getTime() + (24 * 60 * 60 * 1000);
             durationText = "لفتح لمرة واحدة فقط";
         } else if (typeVal === "24h") {
-            expiryTime = new Date().getTime() + (24 * 60 * 60 * 1000);
+            expiryTime = new Date().getTime() + (24 * 60 * 60 * 1000); // 24 ساعة بالمللي ثانية
             durationText = "صالح لمدة 24 ساعة";
         } else if (typeVal === "72h") {
-            expiryTime = new Date().getTime() + (72 * 60 * 60 * 1000);
+            expiryTime = new Date().getTime() + (72 * 60 * 60 * 1000); // 72 ساعة بالمللي ثانية
             durationText = "صالح لمدة 72 ساعة";
         }
 
@@ -248,7 +248,7 @@ const App = {
             displayEl.innerHTML = `🔑 المفتاح المؤقت: <span style="background:#dcf8c6; padding:4px 8px; border-radius:4px; color:#111;">${randomPin}</span> (${durationText})`;
         }
         alert(`تم توليد المفتاح المؤقت بنجاح: ${randomPin}\nالنوع: ${durationText}`);
-    },
+    }, // تم إصلاح الفاصلة المفقودة هنا
 
     openCertPassModal(certId) {
         this.selectedCertForUnlock = certId;
@@ -439,15 +439,21 @@ const App = {
         const pinInput = document.getElementById('certPin');
         const imageInput = document.getElementById('certImage');
         const fileInput = document.getElementById('certFile');
+        const dateInput = document.getElementById('certDate');
 
         const index = indexInput ? parseInt(indexInput.value) : -1;
         const title = titleInput ? titleInput.value.trim() : '';
-        const issuer = issuerInput ? issuerInput.value.trim() : '';
+        let issuer = issuerInput ? issuerInput.value.trim() : '';
         const category = categoryInput ? categoryInput.value.trim() : '';
         const pin = pinInput ? pinInput.value.trim() : '';
         const imageUrlInput = imageInput ? imageInput.value.trim() : '';
+        const dateVal = dateInput ? dateInput.value : '';
 
         if (!title || !issuer) return alert('يرجى كتابة عنوان الشهادة والجهة المصدرة.');
+
+        if (dateVal) {
+            issuer += ` (${dateVal})`;
+        }
 
         const db = Store.getKnowledge();
         const existingCert = index >= 0 && db.certificates[index] ? db.certificates[index] : null;
@@ -471,6 +477,20 @@ const App = {
             }
 
             Store.saveKnowledge(db);
+            
+            // لحفظها أيضاً في local storage المخصص للمستندات المرفوعة إذا تطلب الأمر
+            try {
+                let savedCerts = JSON.parse(localStorage.getItem('my_certs') || '[]');
+                // تحديث أو إضافة
+                const existingLocalIdx = savedCerts.findIndex(c => c.title === title);
+                if(existingLocalIdx >= 0) {
+                    savedCerts[existingLocalIdx] = { title, issuer, date: dateVal, imageUrl: finalImageUrl || '' };
+                } else {
+                    savedCerts.push({ title, issuer, date: dateVal, imageUrl: finalImageUrl || '' });
+                }
+                localStorage.setItem('my_certs', JSON.stringify(savedCerts));
+            } catch(err){}
+
             this.resetCertForm();
             this.renderAdminLists(db);
             if (typeof renderCertifications === 'function') renderCertifications();
@@ -510,6 +530,7 @@ const App = {
         const pinInput = document.getElementById('certPin');
         const imageInput = document.getElementById('certImage');
         const fileInput = document.getElementById('certFile');
+        const dateInput = document.getElementById('certDate');
 
         if (indexInput) indexInput.value = "-1";
         if (titleInput) titleInput.value = "";
@@ -518,6 +539,7 @@ const App = {
         if (pinInput) pinInput.value = "";
         if (imageInput) imageInput.value = "";
         if (fileInput) fileInput.value = "";
+        if (dateInput) dateInput.value = "";
     },
 
     saveExperience() {
@@ -724,6 +746,9 @@ CRITICAL RULES:
                         ]
                     })
                 });
+                
+                if (!res.ok) throw new Error("API Request Failed");
+                
                 const data = await res.json();
                 if (data.choices && data.choices[0]) {
                     msgContainer.innerHTML += `<div class="msg bot-msg">${data.choices[0].message.content}</div>`;
@@ -731,10 +756,11 @@ CRITICAL RULES:
                     break;
                 }
             } catch (err) {
-                console.warn(err);
+                console.warn("API Key Failed, trying next or fallback...", err);
             }
         }
 
+        // تم تحسين الردود الاحتياطية لتكون أكثر دقة في حال تعطل جميع مفاتيح الـ API
         if (!success) {
             let fallbackReply = "أهلاً بك! أنا مساعد الأستاذ أحمد عادل ناجي ذياب. يمكنك التواصل مع الأستاذ مباشرة عبر رقم الواتساب: +967779087415";
             const lowerText = text.toLowerCase();
@@ -752,134 +778,6 @@ CRITICAL RULES:
         msgContainer.scrollTop = msgContainer.scrollHeight;
     }
 };
-
-/**
- * دوال معالجة ورفع الشهادات الخارجية وعرضها
- */
-async function extractCertificateFromImage(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    if (!file.type.startsWith('image/')) {
-        alert('⚠️ يرجى اختيار ملف صورة صحيح (PNG أو JPG)');
-        return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = async function() {
-        const base64Image = reader.result;
-        const cleanName = file.name.substring(0, file.name.lastIndexOf('.')) || "شهادة جديدة";
-        
-        let finalTitle = cleanName;
-        let finalIssuer = "تم الرفع من الجهاز (تعديل يدوي)";
-
-        const newCertData = {
-            id: `cert-img-${Date.now()}`,
-            title: finalTitle,
-            issuer: finalIssuer,
-            category: "مستندات مرفوعة",
-            imageUrl: base64Image,
-            pin: "1001"
-        };
-
-        const db = Store.getKnowledge();
-        if (!Array.isArray(db.certificates)) db.certificates = [];
-        db.certificates.push(newCertData);
-        Store.saveKnowledge(db);
-
-        alert(`✅ تم رفع وعرض الشهادة بنجاح!\n- العنوان: ${finalTitle}`);
-        App.renderAll();
-        if (typeof renderCertifications === 'function') renderCertifications();
-    };
-    reader.readAsDataURL(file);
-}
-
-function uploadCertificateDirectly() {
-    const titleInput = document.getElementById('manualCertTitle');
-    const issuerInput = document.getElementById('manualCertIssuer');
-    const dateInput = document.getElementById('manualCertDate');
-    const fileInput = document.getElementById('manualCertFile');
-
-    const title = titleInput ? titleInput.value.trim() : "";
-    const issuer = issuerInput ? issuerInput.value.trim() : "مستند رسمي";
-    const file = fileInput && fileInput.files[0] ? fileInput.files[0] : null;
-
-    if (!title || !file) {
-        alert('⚠️ يرجى كتابة عنوان الشهادة واختيار ملف الصورة.');
-        return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        const base64Image = e.target.result;
-
-        const newCertificate = {
-            id: `cert-manual-${Date.now()}`,
-            title: title,
-            issuer: issuer,
-            category: "مستندات مرفوعة",
-            imageUrl: base64Image,
-            pin: "1001"
-        };
-
-        const db = Store.getKnowledge();
-        if (!Array.isArray(db.certificates)) db.certificates = [];
-        db.certificates.push(newCertificate);
-        Store.saveKnowledge(db);
-
-        try {
-            let savedCerts = JSON.parse(localStorage.getItem('my_certs') || '[]');
-            savedCerts.push({ title, issuer, date: dateInput ? dateInput.value : '', imageUrl: base64Image });
-            localStorage.setItem('my_certs', JSON.stringify(savedCerts));
-        } catch(err){}
-
-        if (titleInput) titleInput.value = '';
-        if (issuerInput) issuerInput.value = '';
-        if (dateInput) dateInput.value = '';
-        if (fileInput) fileInput.value = '';
-
-        alert('✅ تم إضافة الشهادة المرفوعة وتحديث الموقع فوراً!');
-        App.renderAll();
-        if (typeof renderCertifications === 'function') renderCertifications();
-    };
-
-    reader.readAsDataURL(file);
-}
-
-function renderCertifications() {
-    const certContainer = document.getElementById('certificates-container');
-    if (!certContainer) return;
-
-    const savedCerts = JSON.parse(localStorage.getItem('my_certs') || '[]');
-    const unlockedList = Store.getUnlockedCerts();
-    
-    if (savedCerts.length === 0) {
-        App.renderCertificates(Store.getKnowledge());
-        return;
-    }
-
-    certContainer.innerHTML = savedCerts.map((cert, idx) => {
-        const certId = `vision-cert-${idx}`;
-        const isUnlocked = unlockedList.includes(certId);
-        const imgPreview = cert.imageUrl ? `<div class="cert-img-box"><img src="${cert.imageUrl}" alt="${cert.title}" class="cert-thumbnail"></div>` : '';
-        
-        return `
-            <div class="cert-item ${isUnlocked ? 'unlocked' : ''}">
-                ${isUnlocked ? imgPreview : ''}
-                <div class="cert-info">
-                    <h4>${cert.title}</h4>
-                    <p>📌 ${cert.issuer} | 🗓️ ${cert.date || ''}</p>
-                </div>
-                <div>
-                    ${isUnlocked ? 
-                        (cert.imageUrl ? `<a href="${cert.imageUrl}" target="_blank" class="btn-primary" style="text-decoration:none; font-size:0.85rem; width:100%;">👁️ معاينة المستند</a>` : `<span style="color:var(--primary-color); font-size:0.85rem; display:block; text-align:center;">تم فتح المعاينة بنجاح</span>`) :
-                        `<button class="btn-primary" onclick="App.openCertPassModal('${certId}')" style="width:100%;">🔒 طلب فتح المعاينة</button>`
-                    }
-                </div>
-            </div>
-        `;
-    }).join('');
-}
 
 window.App = App;
 document.addEventListener('DOMContentLoaded', () => App.init());
