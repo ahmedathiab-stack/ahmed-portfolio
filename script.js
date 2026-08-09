@@ -771,3 +771,46 @@ toggleAdminAuth() {
             alert('كلمة المرور غير صحيحة!');
         }
     },
+saveCertificate() {
+        const index = parseInt(document.getElementById('certEditIndex').value);
+        const title = document.getElementById('certTitle').value.trim();
+        const issuer = document.getElementById('certIssuer').value.trim();
+        const category = document.getElementById('certCategory').value.trim();
+        const pin = document.getElementById('certPin').value.trim();
+        const imageUrl = document.getElementById('certImage').value.trim();
+
+        if (!title || !issuer) return alert('يرجى كتابة العنوان والجهة المصدرة.');
+
+        const db = Store.getKnowledge();
+        const certObj = { 
+            id: index >= 0 && db.certificates[index] ? db.certificates[index].id : `cert-${Date.now()}`, 
+            title, 
+            issuer, 
+            category: category || 'عام', 
+            pin: pin || '1001', 
+            imageUrl 
+        };
+
+        if (!Array.isArray(db.certificates)) db.certificates = [];
+
+        if (index >= 0 && index < db.certificates.length) {
+            db.certificates[index] = certObj; // تحديث العنصر الموجود بدلاً من التكرار
+        } else {
+            db.certificates.push(certObj); // إضافة عنصر جديد
+        }
+
+        Store.saveKnowledge(db);
+        this.resetCertForm();
+        alert('✅ تم حفظ وتحديث الشهادة بنجاح دون أي تكرار!');
+    },
+
+    deleteItem(key, index) {
+        if (!confirm('هل أنت متأكد من الحذف؟ سيتم إزالة العنصر نهائياً من الموقع.')) return;
+        const db = Store.getKnowledge();
+        if (db[key] && Array.isArray(db[key])) {
+            db[key].splice(index, 1);
+            Store.saveKnowledge(db);
+            this.renderAdminLists(db);
+            alert('🗑️ تم الحذف بنجاح.');
+        }
+    },
