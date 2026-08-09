@@ -43,3 +43,78 @@ const DEFAULT_KNOWLEDGE_BASE = {
         { role: "ميسر وأخصائي تدريب مجتمعي", org: "مبادرات محلية - أبين", period: "2022 - 2024" }
     ]
 };
+
+/**
+ * إدارة التخزين وقاعدة المعرفة محلياً - الإصدار المصحح
+ */
+class Store {
+    static getKnowledge() {
+        try {
+            const raw = localStorage.getItem(CONFIG.STORAGE_KEYS.KNOWLEDGE);
+            const savedCerts = JSON.parse(localStorage.getItem('my_certs') || '[]');
+            const visionCerts = savedCerts.map((c, idx) => ({
+                id: `vision-cert-${idx}`,
+                title: c.title,
+                category: "مستندات مرفوعة",
+                issuer: c.issuer + (c.date ? ` (${c.date})` : ''),
+                imageUrl: c.imageUrl || '',
+                pin: "1001"
+            }));
+
+            if (!raw) {
+                return {
+                    ...DEFAULT_KNOWLEDGE_BASE,
+                    certificates: [...DEFAULT_KNOWLEDGE_BASE.certificates, ...visionCerts],
+                    ...(window.CERTIFICATIONS ? { certificates: [...DEFAULT_KNOWLEDGE_BASE.certificates, ...(window.CERTIFICATIONS || []), ...visionCerts] } : {})
+                };
+            }
+
+            const parsed = JSON.parse(raw);
+            const baseCerts = Array.isArray(parsed.certificates) ? parsed.certificates : DEFAULT_KNOWLEDGE_BASE.certificates;
+            const fileCerts = window.CERTIFICATIONS || [];
+
+            // دمج دقيق بدون تكرار للشهادات
+            const uniqueCertsMap = new Map();
+            [...baseCerts, ...fileCerts, ...visionCerts].forEach(c => uniqueCertsMap.set(c.id || c.title, c));
+
+            return {
+                personalInfo: { ...DEFAULT_KNOWLEDGE_BASE.personalInfo, ...(parsed.personalInfo || {}) },
+                certificates: Array.from(uniqueCertsMap.values()),
+                experiences: Array.isArray(parsed.experiences) ? parsed.experiences : DEFAULT_KNOWLEDGE_BASE.experiences,
+                skills: Array.isArray(parsed.skills) ? parsed.skills : DEFAULT_KNOWLEDGE_BASE.skills,
+                volunteer: Array.isArray(parsed.volunteer) ? parsed.volunteer : DEFAULT_KNOWLEDGE_BASE.volunteer
+            };
+        } catch (e) {
+            return DEFAULT_KNOWLEDGE_BASE;
+        }
+    }
+
+    static saveKnowledge(data) {
+        localStorage.setItem(CONFIG.STORAGE_KEYS.KNOWLEDGE, JSON.stringify(data));
+        App.renderAll();
+    }
+
+    static getUnlockedCerts() {
+        try {
+            return JSON.parse(sessionStorage.getItem(CONFIG.STORAGE_KEYS.UNLOCKED_CERTS) || '[]');
+        } catch (e) {
+            return [];
+        }
+    }
+
+    static unlockCert(certId) {
+        const unlocked = Store.getUnlockedCerts();
+        if (!unlocked.includes(certId)) {
+            unlocked.push(certId);
+            sessionStorage.setItem(CONFIG.STORAGE_KEYS.UNLOCKED_CERTS, JSON.stringify(unlocked));
+            App.renderAll();
+        }
+    }
+
+    static unlockAllCerts() {
+        const kb = Store.getKnowledge();
+        const allIds = (kb.certificates || []).map(c => c.id);
+        sessionStorage.setItem(CONFIG.STORAGE_KEYS.UNLOCKED_CERTS, JSON.stringify(allIds));
+        App.renderAll();
+    }
+}
