@@ -42,117 +42,7 @@ const DEFAULT_KNOWLEDGE_BASE = {
         { role: "ميسر وأخصائي تدريب مجتمعي", org: "مبادرات محلية - أبين", period: "2022 - 2024" }
     ]
 };
-/**
-validateAccessCode() {
-        const input = (document.getElementById('passcode').value || '').trim();
-        const err = document.getElementById('errorMsg');
-        const db = Store.getKnowledge();
 
-        // 1. التحقق من الكود الشامل
-        if (input === CONFIG.MASTER_RECOVERY_PIN || input === "777777") {
-            Store.unlockAllCerts();
-            this.closeModal('accessModal');
-            alert("تم إدخال المفتاح الشامل واستعراض كافة الوثائق بنجاح!");
-            return;
-        }
-
-        // 2. التحقق من المفتاح المؤقت العشوائي وصلاحية وقته
-        try {
-            const rawTempKey = sessionStorage.getItem('ahmed_temp_access_key');
-            if (rawTempKey) {
-                const tempObj = JSON.parse(rawTempKey);
-                const currentTime = new Date().getTime();
-                
-                if (tempObj.pin === input) {
-                    if (currentTime <= tempObj.expiresAt) {
-                        Store.unlockAllCerts();
-                        this.closeModal('accessModal');
-                        alert("✅ تم التحقق عبر المفتاح المؤقت بنجاح!");
-                        return;
-                    } else {
-                        err.innerText = "⚠️ انتهت صلاحية هذا المفتاح المؤقت!";
-                        return;
-                    }
-                }
-            }
-        } catch (e) {
-            console.error(e);
-        }
-
-        // 3. التحقق من كود الشهادة الفردي
-        if (this.selectedCertForUnlock) {
-            const cert = (db.certificates || []).find(c => c.id === this.selectedCertForUnlock);
-            if (cert && (cert.pin === input || input === "1234")) {
-                Store.unlockCert(cert.id);
-                this.closeModal('accessModal');
-                alert("تم الفتح بنجاح!");
-                return;
-            }
-        }
-
-        err.innerText = "كود التصريح غير صحيح أو منتهي الصلاحية.";
-    },
- * رفع الشهادة والبيانات مباشرة من نموذج الموقع وعرضها فوراً
- */
-function uploadCertificateDirectly() {
-    const titleInput = document.getElementById('manualCertTitle');
-    const issuerInput = document.getElementById('manualCertIssuer');
-    const dateInput = document.getElementById('manualCertDate');
-    const fileInput = document.getElementById('manualCertFile');
-
-    const title = titleInput ? titleInput.value.trim() : "";
-    const issuer = issuerInput ? issuerInput.value.trim() : "مستند رسمي";
-    const certDate = dateInput ? dateInput.value : new Date().toLocaleDateString('ar-YE');
-    const file = fileInput && fileInput.files[0] ? fileInput.files[0] : null;
-
-    if (!title) {
-        alert('⚠️ يرجى كتابة عنوان الشهادة على الأقل.');
-        return;
-    }
-
-    if (!file) {
-        alert('⚠️ يرجى اختيار صورة الشهادة.');
-        return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        const base64Image = e.target.result;
-
-        // تجهيز كائن الشهادة الجديدة
-        const newCertificate = {
-            id: `cert-manual-${Date.now()}`,
-            title: title,
-            issuer: issuer,
-            date: certDate,
-            imageUrl: base64Image,
-            category: "مستندات مرفوعة"
-        };
-
-        // حفظها في التخزين المحلي (LocalStorage) لتبقى ظاهرة دائماً
-        let savedCerts = JSON.parse(localStorage.getItem('my_certs') || '[]');
-        savedCerts.push(newCertificate);
-        localStorage.setItem('my_certs', JSON.stringify(savedCerts));
-
-        // تفريغ الحقول بعد الحفظ
-        titleInput.value = '';
-        issuerInput.value = '';
-        if(dateInput) dateInput.value = '';
-        fileInput.value = '';
-
-        alert('✅ تم إضافة الشهادة بنجاح وتحديث الموقع فوراً!');
-
-        // تحديث العرض على الموقع
-        if (typeof App !== 'undefined' && App.renderAll) {
-            App.renderAll();
-        }
-        if (typeof renderCertifications === 'function') {
-            renderCertifications();
-        }
-    };
-
-    reader.readAsDataURL(file);
-}
 /**
  * إدارة التخزين وقاعدة المعرفة محلياً
  */
@@ -301,25 +191,7 @@ const App = {
             </div>
         `;
     },
-// توليد مفتاح مؤقت وعشوائي صالح لمدة محددة (مثلاً 10 دقائق)
-    generateTempKey() {
-        const randomPin = Math.floor(1000 + Math.random() * 9000).toString(); // رقم عشوائي من 4 أرقام
-        const expiryTime = new Date().getTime() + (10 * 60 * 1000); // صالح لمدة 10 دقائق من الآن
 
-        const tempKeyData = {
-            pin: randomPin,
-            expiresAt: expiryTime
-        };
-
-        // تخزين المفتاح المؤقت في sessionStorage
-        sessionStorage.setItem('ahmed_temp_access_key', JSON.stringify(tempKeyData));
-
-        const displayEl = document.getElementById('tempKeyDisplay');
-        if (displayEl) {
-            displayEl.innerHTML = `🔑 المفتاح المؤقت: <span style="background:#dcf8c6; padding:4px 8px; border-radius:4px; color:#111;">${randomPin}</span> (صالح لمدة 10 دقائق)`;
-        }
-        alert(`تم توليد المفتاح المؤقت بنجاح: ${randomPin}\nهذا المفتاح صالح لمدة 10 دقائق فقط.`);
-    },
     renderVolunteer(db) {
         const container = document.getElementById('volunteer-container');
         if (!container) return;
@@ -330,6 +202,24 @@ const App = {
                 <div style="font-size:0.85rem; color:var(--text-muted)">${v.org} (${v.period})</div>
             </div>
         `).join('');
+    },
+
+    generateTempKey() {
+        const randomPin = Math.floor(1000 + Math.random() * 9000).toString();
+        const expiryTime = new Date().getTime() + (10 * 60 * 1000);
+
+        const tempKeyData = {
+            pin: randomPin,
+            expiresAt: expiryTime
+        };
+
+        sessionStorage.setItem('ahmed_temp_access_key', JSON.stringify(tempKeyData));
+
+        const displayEl = document.getElementById('tempKeyDisplay');
+        if (displayEl) {
+            displayEl.innerHTML = `🔑 المفتاح المؤقت: <span style="background:#dcf8c6; padding:4px 8px; border-radius:4px; color:#111;">${randomPin}</span> (صالح لمدة 10 دقائق)`;
+        }
+        alert(`تم توليد المفتاح المؤقت بنجاح: ${randomPin}\nهذا المفتاح صالح لمدة 10 دقائق فقط.`);
     },
 
     openCertPassModal(certId) {
@@ -349,6 +239,28 @@ const App = {
             return;
         }
 
+        try {
+            const rawTempKey = sessionStorage.getItem('ahmed_temp_access_key');
+            if (rawTempKey) {
+                const tempObj = JSON.parse(rawTempKey);
+                const currentTime = new Date().getTime();
+                
+                if (tempObj.pin === input) {
+                    if (currentTime <= tempObj.expiresAt) {
+                        Store.unlockAllCerts();
+                        this.closeModal('accessModal');
+                        alert("✅ تم التحقق عبر المفتاح المؤقت بنجاح!");
+                        return;
+                    } else {
+                        err.innerText = "⚠️ انتهت صلاحية هذا المفتاح المؤقت!";
+                        return;
+                    }
+                }
+            }
+        } catch (e) {
+            console.error(e);
+        }
+
         if (this.selectedCertForUnlock) {
             const cert = (db.certificates || []).find(c => c.id === this.selectedCertForUnlock);
             if (cert && (cert.pin === input || input === "1234")) {
@@ -359,7 +271,7 @@ const App = {
             }
         }
 
-        err.innerText = "كود التصريح غير صحيح. (جرب 7777 للفتح الشامل)";
+        err.innerText = "كود التصريح غير صحيح أو منتهي الصلاحية.";
     },
 
     populateWaSelect() {
@@ -399,12 +311,25 @@ const App = {
     },
 
     toggleAdminAuth() {
+        if (this.isAdminLoggedIn) {
+            if (confirm('هل تريد تسجيل الخروج من لوحة الإدارة؟')) {
+                this.isAdminLoggedIn = false;
+                document.getElementById('admin-content-body').style.display = 'none';
+                const authBtn = document.getElementById('auth-btn');
+                authBtn.innerText = '🔒 تسجيل الدخول';
+                authBtn.style.background = 'var(--primary-color)';
+                alert('تم إقفال لوحة الإدارة بنجاح.');
+            }
+            return;
+        }
+
         const pass = prompt('أدخل كلمة مرور لوحة التحكم (الافتراضية: 1234):');
         if (pass === CONFIG.DEFAULT_ADMIN_PASS || pass === CONFIG.MASTER_RECOVERY_PIN) {
             this.isAdminLoggedIn = true;
             document.getElementById('admin-content-body').style.display = 'block';
-            document.getElementById('auth-btn').innerText = '🔓 تم تسجيل الدخول';
-            document.getElementById('auth-btn').style.background = '#10b981';
+            const authBtn = document.getElementById('auth-btn');
+            authBtn.innerText = '🔓 تسجيل الخروج (مفعل)';
+            authBtn.style.background = '#dc2626';
             this.renderAdminLists(Store.getKnowledge());
         } else if (pass !== null) {
             alert('كلمة المرور غير صحيحة!');
@@ -485,7 +410,9 @@ const App = {
             imageUrl 
         };
 
-        if (index >= 0 && db.certificates[index]) {
+        if (!Array.isArray(db.certificates)) db.certificates = [];
+
+        if (index >= 0 && index < db.certificates.length) {
             db.certificates[index] = certObj;
         } else {
             db.certificates.push(certObj);
@@ -493,7 +420,7 @@ const App = {
 
         Store.saveKnowledge(db);
         this.resetCertForm();
-        alert('تم حفظ الشهادة وإضافتها للمعرض فوراً وبدون تعقيد!');
+        alert('✅ تم حفظ وتحديث الشهادة بنجاح دون أي تكرار!');
     },
 
     editCertificate(index) {
@@ -611,10 +538,14 @@ const App = {
     },
 
     deleteItem(key, index) {
-        if (!confirm('هل أنت متأكد من الحذف؟ ستحذف المعلومة تلقائياً من الموقع.')) return;
+        if (!confirm('هل أنت متأكد من الحذف؟ سيتم إزالة العنصر نهائياً من الموقع.')) return;
         const db = Store.getKnowledge();
-        db[key].splice(index, 1);
-        Store.saveKnowledge(db);
+        if (db[key] && Array.isArray(db[key])) {
+            db[key].splice(index, 1);
+            Store.saveKnowledge(db);
+            this.renderAdminLists(db);
+            alert('🗑️ تم الحذف بنجاح.');
+        }
     },
 
     openModal(id) {
@@ -656,11 +587,11 @@ const App = {
         const strictSystemPrompt = `You are the personal assistant of Trainer Ahmed Adel Naji Thiab.
 CRITICAL RULES:
 1. STRICT LANGUAGE MATCHING: You MUST reply in the EXACT SAME language as the user's prompt. 
-   - If the user asks in English (e.g., "who is Ahmed"), you MUST translate the provided Arabic data and answer 100% in English.
+   - If the user asks in English, you MUST translate the provided Arabic data and answer 100% in English.
    - If the user asks in Arabic, answer in Arabic.
    - NEVER mix languages in your response.
 2. STYLE: Keep responses natural, conversational, concise, and friendly like a WhatsApp message.
-3. KNOWLEDGE BASE (Translate this data to the user's language if necessary): ${JSON.stringify(kb)}`;
+3. KNOWLEDGE BASE: ${JSON.stringify(kb)}`;
 
         let success = false;
         for (let apiKey of CONFIG.AI_API_KEYS) {
@@ -697,14 +628,8 @@ CRITICAL RULES:
     }
 };
 
-window.App = App;
-document.addEventListener('DOMContentLoaded', () => App.init());
-
 /**
- * ميزات استخراج الشهادات بالذكاء البصري (Vision) مع دعم التعبئة اليدوية والافتراضية دون حظر رفع الصور
- */
-a/**
- * رفع صورة الشهادة وعرضها فوراً وبدون أي قيود أو رسائل خطأ (مع محاولة الاستخراج الذكي في الخلفية)
+ * دالة رفع صورة الشهادة وعرضها بالذكاء الاصطناعي
  */
 async function extractCertificateFromImage(event) {
     const file = event.target.files[0];
@@ -721,15 +646,12 @@ async function extractCertificateFromImage(event) {
     const reader = new FileReader();
     reader.onload = async function() {
         const base64Image = reader.result;
-        
-        // 1. استخراج اسم الملف الأساسي كعنوان افتراضي مضمون
         const cleanName = file.name.substring(0, file.name.lastIndexOf('.')) || "شهادة جديدة";
         
         let finalTitle = cleanName;
         let finalIssuer = "تم الرفع من الجهاز (تعديل يدوي)";
         let finalDate = new Date().toLocaleDateString('ar-YE');
 
-        // 2. محاولة قراءة البيانات بالذكاء الاصطناعي في الخلفية (اختيارية)
         const prompt = "استخرج من صورة هذه الشهادة البيانات التالية بدقة وأعطني إياها حصراً على شكل كود JSON بهذا الشكل فقط دون أي نص إضافي: {\"title\": \"عنوان الشهادة\", \"issuer\": \"جهة الإصدار\", \"date\": \"التاريخ\"}";
 
         for (let apiKey of CONFIG.AI_API_KEYS) {
@@ -763,33 +685,32 @@ async function extractCertificateFromImage(event) {
                         finalTitle = parsed.title;
                         if (parsed.issuer) finalIssuer = parsed.issuer;
                         if (parsed.date) finalDate = parsed.date;
-                        break; // تم الاستخراج بنجاح
+                        break;
                     }
                 }
             } catch (err) {
-                // تجاهل خطأ الذكاء الاصطناعي تماماً والاستمرار بالقيم الافتراضية المضمنة
                 console.warn("الاستخراج التلقائي متوقف مؤقتاً، سيتم الاعتماد على رفع الصورة مباشرة.");
             }
         }
 
         if (statusEl) statusEl.style.display = 'none';
 
-        // 3. حفظ الصورة والبيانات في التخزين المحلي في جميع الأحوال (بدون أي شروط تمنع الرفع)
         const newCertData = {
             id: `cert-img-${Date.now()}`,
             title: finalTitle,
             issuer: finalIssuer,
-            date: finalDate,
-            imageUrl: base64Image
+            category: "مستندات مرفوعة",
+            imageUrl: base64Image,
+            pin: "1001"
         };
 
-        let savedCerts = JSON.parse(localStorage.getItem('my_certs') || '[]');
-        savedCerts.push(newCertData);
-        localStorage.setItem('my_certs', JSON.stringify(savedCerts));
+        const db = Store.getKnowledge();
+        if (!Array.isArray(db.certificates)) db.certificates = [];
+        db.certificates.push(newCertData);
+        Store.saveKnowledge(db);
 
-        alert(`✅ تم رفع وعرض الشهادة بنجاح!\n- العنوان: ${finalTitle}\n(يمكنك تعديل تفاصيلها في أي وقت من لوحة التحكم).`);
+        alert(`✅ تم رفع وعرض الشهادة بنجاح!\n- العنوان: ${finalTitle}`);
         
-        // تحديث الواجهة فوراً
         if (typeof App !== 'undefined' && App.renderAll) {
             App.renderAll();
         }
@@ -799,88 +720,10 @@ async function extractCertificateFromImage(event) {
     };
     reader.readAsDataURL(file);
 }
-function renderCertifications() {
-    const certContainer = document.getElementById('certifications-container');
-    if (!certContainer) return;
 
-    const savedCerts = JSON.parse(localStorage.getItem('my_certs') || '[]');
-    
-    certContainer.innerHTML = savedCerts.map(cert => `
-        <div class="cert-card">
-            <h3>${cert.title}</h3>
-            <p><strong>الجهة:</strong> ${cert.issuer}</p>
-            <p><strong>التاريخ:</strong> ${cert.date}</p>
-        </div>
-    `).join('');
-}
-toggleAdminAuth() {
-        if (this.isAdminLoggedIn) {
-            if (confirm('هل تريد تسجيل الخروج من لوحة الإدارة؟')) {
-                this.isAdminLoggedIn = false;
-                document.getElementById('admin-content-body').style.display = 'none';
-                const authBtn = document.getElementById('auth-btn');
-                authBtn.innerText = '🔒 تسجيل الدخول';
-                authBtn.style.background = 'var(--primary-color)';
-                alert('تم إقفال لوحة الإدارة بنجاح. سيتطلب إدخال كلمة المرور عند الدخول مجدداً.');
-            }
-            return;
-        }
-
-        const pass = prompt('أدخل كلمة مرور لوحة التحكم (الافتراضية: 1234):');
-        if (pass === CONFIG.DEFAULT_ADMIN_PASS || pass === CONFIG.MASTER_RECOVERY_PIN) {
-            this.isAdminLoggedIn = true;
-            document.getElementById('admin-content-body').style.display = 'block';
-            const authBtn = document.getElementById('auth-btn');
-            authBtn.innerText = '🔓 تسجيل الخروج (مفعل)';
-            authBtn.style.background = '#dc2626';
-            this.renderAdminLists(Store.getKnowledge());
-        } else if (pass !== null) {
-            alert('كلمة المرور غير صحيحة!');
-        }
-    },
-saveCertificate() {
-        const index = parseInt(document.getElementById('certEditIndex').value);
-        const title = document.getElementById('certTitle').value.trim();
-        const issuer = document.getElementById('certIssuer').value.trim();
-        const category = document.getElementById('certCategory').value.trim();
-        const pin = document.getElementById('certPin').value.trim();
-        const imageUrl = document.getElementById('certImage').value.trim();
-
-        if (!title || !issuer) return alert('يرجى كتابة العنوان والجهة المصدرة.');
-
-        const db = Store.getKnowledge();
-        const certObj = { 
-            id: index >= 0 && db.certificates[index] ? db.certificates[index].id : `cert-${Date.now()}`, 
-            title, 
-            issuer, 
-            category: category || 'عام', 
-            pin: pin || '1001', 
-            imageUrl 
-        };
-
-        if (!Array.isArray(db.certificates)) db.certificates = [];
-
-        if (index >= 0 && index < db.certificates.length) {
-            db.certificates[index] = certObj; // تحديث العنصر الموجود بدلاً من التكرار
-        } else {
-            db.certificates.push(certObj); // إضافة عنصر جديد
-        }
-
-        Store.saveKnowledge(db);
-        this.resetCertForm();
-        alert('✅ تم حفظ وتحديث الشهادة بنجاح دون أي تكرار!');
-    },
-
-    deleteItem(key, index) {
-        if (!confirm('هل أنت متأكد من الحذف؟ سيتم إزالة العنصر نهائياً من الموقع.')) return;
-        const db = Store.getKnowledge();
-        if (db[key] && Array.isArray(db[key])) {
-            db[key].splice(index, 1);
-            Store.saveKnowledge(db);
-            this.renderAdminLists(db);
-            alert('🗑️ تم الحذف بنجاح.');
-        }
-    },
+/**
+ * رفع الشهادة مباشرة من نموذج الموقع
+ */
 function uploadCertificateDirectly() {
     const titleInput = document.getElementById('manualCertTitle');
     const issuerInput = document.getElementById('manualCertIssuer');
@@ -929,3 +772,21 @@ function uploadCertificateDirectly() {
 
     reader.readAsDataURL(file);
 }
+
+function renderCertifications() {
+    const certContainer = document.getElementById('certifications-container');
+    if (!certContainer) return;
+
+    const savedCerts = JSON.parse(localStorage.getItem('my_certs') || '[]');
+    
+    certContainer.innerHTML = savedCerts.map(cert => `
+        <div class="cert-card">
+            <h3>${cert.title}</h3>
+            <p><strong>الجهة:</strong> ${cert.issuer}</p>
+            <p><strong>التاريخ:</strong> ${cert.date || ''}</p>
+        </div>
+    `).join('');
+}
+
+window.App = App;
+document.addEventListener('DOMContentLoaded', () => App.init());
