@@ -515,11 +515,11 @@ const App = {
 
         const kb = Store.getKnowledge();
         
-        const strictSystemPrompt = `You are Ahmed Adel Naji Thiab's friendly, human-like personal assistant in his interactive portfolio. 
-CRITICAL BEHAVIOR RULES:
-1. MATCH LANGUAGE EXACTLY: Detect the language of the user's latest input precisely. If the user writes in Arabic, reply ONLY in natural, friendly Arabic. If the user writes in English, reply ONLY in natural, friendly English. Do not mix languages.
-2. HUMAN-LIKE & WAAAY LESS FORMAL: Speak like a real human friend chatting on WhatsApp—warm, friendly, conversational, and direct. Avoid stiff robotic phrases, corporate fluff, or formal academic introductions. 
-3. ACCURATE TRANSLATION & CONTEXT: Translate and interpret queries accurately using the provided portfolio database, keeping answers concise and helpful.
+        const strictSystemPrompt = `You are the friendly human-like personal assistant of Ahmed Adel Naji Thiab. 
+CRITICAL RULES:
+1. STRICTLY match the language of the user's message (If the user asks in Arabic, reply ONLY in natural, fluent Arabic. If the user asks in English, reply ONLY in natural, fluent English). Do not mix languages.
+2. Adopt a natural, warm, conversational human tone like a WhatsApp chat friend (casual, friendly, concise, no robotic stiffness or excessive formal jargon).
+3. Ensure accurate translation/understanding of the context and data provided.
 Available knowledge base data: ${JSON.stringify(kb)}`;
 
         let success = false;
@@ -551,7 +551,7 @@ Available knowledge base data: ${JSON.stringify(kb)}`;
         }
 
         if (!success) {
-            msgContainer.innerHTML += `<div class="msg bot-msg">⚠️ عذراً، واجهت مشكلة في الاتصال. يمكنك مراسلة الأستاذ أحمد مباشرة عبر الواتساب. / Sorry, connection issue. You can contact Ahmed directly via WhatsApp.</div>`;
+            msgContainer.innerHTML += `<div class="msg bot-msg">⚠️ عذراً، واجهت مشكلة في الاتصال. يمكنك مراسلة الأستاذ أحمد مباشرة عبر الواتساب.</div>`;
         }
         msgContainer.scrollTop = msgContainer.scrollHeight;
     }
@@ -603,7 +603,7 @@ async function extractCertificateFromImage(event) {
                     extractedData = JSON.parse(content);
                     break;
                 }
-            } catch/err/ {
+            } catch (err) {
                 console.warn("خطأ في قراءة الصورة:", err);
             }
         }
@@ -629,7 +629,6 @@ function renderCertifications() {
     const certContainer = document.getElementById('certifications-container');
     if (!certContainer) return;
 
-    `eval` // safe placeholder or keep clean
     const savedCerts = JSON.parse(localStorage.getItem('my_certs') || '[]');
     
     certContainer.innerHTML = savedCerts.map(cert => `
