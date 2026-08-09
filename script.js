@@ -1,6 +1,7 @@
 /**
  * ملف النظام والتهيئة الأساسية للموقع - الإصدار الشامل والمصحح
  */
+
 const CONFIG = {
     WHATSAPP_NUMBER: "967779087415",
     DEFAULT_ADMIN_PASS: "1234",
@@ -9,8 +10,12 @@ const CONFIG = {
         KNOWLEDGE: "ahmed_knowledge_base_v7",
         UNLOCKED_CERTS: "ahmed_unlocked_certs_v7"
     },
+    // ضع هنا غداً أكبر قدر من المفاتيح المجانية وسيقوم النظام بالتبديل بينها تلقائياً
     AI_API_KEYS: [
-        "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"
+        "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",
+        "gsk_KEY_NUMBER_2_HERE",
+        "gsk_KEY_NUMBER_3_HERE",
+        // أضف بقية المفاتيح هنا غداً...
     ]
 };
 
