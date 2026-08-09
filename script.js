@@ -44,11 +44,31 @@ class Store {
     static getKnowledge() {
         try {
             const raw = localStorage.getItem(CONFIG.STORAGE_KEYS.KNOWLEDGE);
-            if (!raw) return DEFAULT_KNOWLEDGE_BASE;
+            const savedCerts = JSON.parse(localStorage.getItem('my_certs') || '[]');
+            const visionCerts = savedCerts.map((c, idx) => ({
+                id: `vision-cert-${idx}`,
+                title: c.title,
+                category: "مستندات مرفوعة",
+                issuer: c.issuer + (c.date ? ` (${c.date})` : ''),
+                imageUrl: c.imageUrl || '',
+                pin: "1001"
+            }));
+
+            if (!raw) {
+                return {
+                    ...DEFAULT_KNOWLEDGE_BASE,
+                    certificates: [...DEFAULT_KNOWLEDGE_BASE.certificates, ...visionCerts],
+                    ...(window.CERTIFICATIONS ? { certificates: [...DEFAULT_KNOWLEDGE_BASE.certificates, ...(window.CERTIFICATIONS || []), ...visionCerts] } : {})
+                };
+            }
+
             const parsed = JSON.parse(raw);
+            const baseCerts = Array.isArray(parsed.certificates) ? parsed.certificates : DEFAULT_KNOWLEDGE_BASE.certificates;
+            const fileCerts = window.CERTIFICATIONS || [];
+
             return {
                 personalInfo: { ...DEFAULT_KNOWLEDGE_BASE.personalInfo, ...(parsed.personalInfo || {}) },
-                certificates: Array.isArray(parsed.certificates) ? parsed.certificates : DEFAULT_KNOWLEDGE_BASE.certificates,
+                certificates: [...baseCerts, ...fileCerts, ...visionCerts],
                 experiences: Array.isArray(parsed.experiences) ? parsed.experiences : DEFAULT_KNOWLEDGE_BASE.experiences,
                 skills: Array.isArray(parsed.skills) ? parsed.skills : DEFAULT_KNOWLEDGE_BASE.skills,
                 volunteer: Array.isArray(parsed.volunteer) ? parsed.volunteer : DEFAULT_KNOWLEDGE_BASE.volunteer
@@ -129,7 +149,7 @@ const App = {
                     </div>
                     <div>
                         ${isUnlocked ? 
-                            `<a href="${c.imageUrl || '#'}" target="_blank" class="btn-primary" style="text-decoration:none; font-size:0.85rem; width:100%;">👁️ معاينة المستند</a>` :
+                            (c.imageUrl ? `<a href="${c.imageUrl}" target="_blank" class="btn-primary" style="text-decoration:none; font-size:0.85rem; width:100%;">👁️ معاينة المستند</a>` : `<span style="color:var(--primary-color); font-size:0.85rem; display:block; text-align:center;">تم فتح المعاينة بنجاح</span>`) :
                             `<button class="btn-primary" onclick="App.openCertPassModal('${c.id}')" style="width:100%;">🔒 طلب فتح المعاينة</button>`
                         }
                     </div>
@@ -319,7 +339,7 @@ const App = {
 
         const db = Store.getKnowledge();
         const certObj = { 
-            id: index >= 0 ? db.certificates[index].id : `cert-${Date.now()}`, 
+            id: index >= 0 && db.certificates[index] ? db.certificates[index].id : `cert-${Date.now()}`, 
             title, 
             issuer, 
             category: category || 'عام', 
@@ -327,7 +347,7 @@ const App = {
             imageUrl 
         };
 
-        if (index >= 0) {
+        if (index >= 0 && db.certificates[index]) {
             db.certificates[index] = certObj;
         } else {
             db.certificates.push(certObj);
@@ -379,60 +399,7 @@ const App = {
         document.getElementById('expEditIndex').value = "-1";
         alert('تم الحفظ والتحديث بنجاح!');
     },
-async function sendChatMessage() {
-    const input = document.getElementById('ai-chat-input');
-    if (!input) return;
-    const text = input.value.trim();
-    if (!text) return;
 
-    const msgContainer = document.getElementById('ai-chat-messages');
-    msgContainer.innerHTML += `<div class="msg user-msg">${text}</div>`;
-    input.value = '';
-    msgContainer.scrollTop = msgContainer.scrollHeight;
-
-    // هنا يتم استدعاء البيانات بأمان ودون أخطاء
-    const kb = Store.getKnowledge();
-    
-    const strictSystemPrompt = `أنت المساعد الشخصي للمدرب أحمد عادل ناجي ذياب. 
-قواعد صارمة جداً:
-1. التزم بالرد حصراً ونهائياً **بلغة السائل** التي استخدمها في سؤاله (إذا سأل بالعربية أجب بالعربية وحدها تماماً، وإذا سأل بالإنجليزية أجب بالإنجليزية وحدها).
-2. ممنوع نهائياً خلط اللغات أو إدخال لغات غريبة.
-3. تحدث بطريقة طبيعية ومحاكاة تامة للبشر مثل أسلوب المراسلة عبر تطبيق واتساب (مختصر، ودود، وخالٍ من الحشو والتكرار الممل).
-بيانات الموقع المتوفرة لديك: ${JSON.stringify(kb)}`;
-
-    let success = false;
-    for (let apiKey of CONFIG.AI_API_KEYS) {
-        try {
-            const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${apiKey}`
-                },
-                body: JSON.stringify({
-                    model: "llama-3.3-70b-versatile",
-                    messages: [
-                        { role: "system", content: strictSystemPrompt },
-                        { role: "user", content: text }
-                    ]
-                })
-            });
-            const data = await res.json();
-            if (data.choices && data.choices[0]) {
-                msgContainer.innerHTML += `<div class="msg bot-msg">${data.choices[0].message.content}</div>`;
-                success = true;
-                break;
-            }
-        } catch (err) {
-            console.warn(err);
-        }
-    }
-
-    if (!success) {
-        msgContainer.innerHTML += `<div class="msg bot-msg">⚠️ عذراً، واجهت مشكلة بسيطة في الاتصال. يمكنك مراسلة الأستاذ مباشرة عبر الواتساب.</div>`;
-    }
-    msgContainer.scrollTop = msgContainer.scrollHeight;
-}
     editExperience(index) {
         const db = Store.getKnowledge();
         const e = db.experiences[index];
@@ -506,7 +473,7 @@ async function sendChatMessage() {
     },
 
     deleteItem(key, index) {
-        if (!confirm('هل أنت تأكد من الحذف؟ ستحذف المعلومة تلقائياً من الموقع.')) return;
+        if (!confirm('هل أنت متأكد من الحذف؟ ستحذف المعلومة تلقائياً من الموقع.')) return;
         const db = Store.getKnowledge();
         db[key].splice(index, 1);
         Store.saveKnowledge(db);
@@ -572,60 +539,6 @@ async function sendChatMessage() {
                         ]
                     })
                 });
-                async function sendChatMessage() {
-    const input = document.getElementById('ai-chat-input');
-    if (!input) return;
-    const text = input.value.trim();
-    if (!text) return;
-
-    const msgContainer = document.getElementById('ai-chat-messages');
-    msgContainer.innerHTML += `<div class="msg user-msg">${text}</div>`;
-    input.value = '';
-    msgContainer.scrollTop = msgContainer.scrollHeight;
-
-    // هنا يتم استدعاء البيانات بأمان ودون أخطاء
-    const kb = Store.getKnowledge();
-    
-    const strictSystemPrompt = `أنت المساعد الشخصي للمدرب أحمد عادل ناجي ذياب. 
-قواعد صارمة جداً:
-1. التزم بالرد حصراً ونهائياً **بلغة السائل** التي استخدمها في سؤاله (إذا سأل بالعربية أجب بالعربية وحدها تماماً، وإذا سأل بالإنجليزية أجب بالإنجليزية وحدها).
-2. ممنوع نهائياً خلط اللغات أو إدخال لغات غريبة.
-3. تحدث بطريقة طبيعية ومحاكاة تامة للبشر مثل أسلوب المراسلة عبر تطبيق واتساب (مختصر، ودود، وخالٍ من الحشو والتكرار الممل).
-بيانات الموقع المتوفرة لديك: ${JSON.stringify(kb)}`;
-
-    let success = false;
-    for (let apiKey of CONFIG.AI_API_KEYS) {
-        try {
-            const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${apiKey}`
-                },
-                body: JSON.stringify({
-                    model: "llama-3.3-70b-versatile",
-                    messages: [
-                        { role: "system", content: strictSystemPrompt },
-                        { role: "user", content: text }
-                    ]
-                })
-            });
-            const data = await res.json();
-            if (data.choices && data.choices[0]) {
-                msgContainer.innerHTML += `<div class="msg bot-msg">${data.choices[0].message.content}</div>`;
-                success = true;
-                break;
-            }
-        } catch (err) {
-            console.warn(err);
-        }
-    }
-
-    if (!success) {
-        msgContainer.innerHTML += `<div class="msg bot-msg">⚠️ عذراً، واجهت مشكلة بسيطة في الاتصال. يمكنك مراسلة الأستاذ مباشرة عبر الواتساب.</div>`;
-    }
-    msgContainer.scrollTop = msgContainer.scrollHeight;
-}
                 const data = await res.json();
                 if (data.choices && data.choices[0]) {
                     msgContainer.innerHTML += `<div class="msg bot-msg">${data.choices[0].message.content}</div>`;
@@ -646,7 +559,8 @@ async function sendChatMessage() {
 
 window.App = App;
 document.addEventListener('DOMContentLoaded', () => App.init());
-// دالة الذكاء البصري لقراءة الشهادات تلقائياً وتحفظها
+
+// دالة الذكاء البصري لقراءة الشهادات تلقائياً وحفظها
 async function extractCertificateFromImage(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -699,22 +613,22 @@ async function extractCertificateFromImage(event) {
         if (statusEl) statusEl.style.display = 'none';
 
         if (extractedData) {
-            // حفظ الشهادة تلقائياً في التخزين المحلي
+            extractedData.imageUrl = base64Image;
             let savedCerts = JSON.parse(localStorage.getItem('my_certs') || '[]');
             savedCerts.push(extractedData);
             localStorage.setItem('my_certs', JSON.stringify(savedCerts));
 
             alert(`✅ تمت قراءة الشهادة بنجاح!\n- العنوان: ${extractedData.title}\n- الجهة: ${extractedData.issuer}`);
-            
-            // إذا كانت لديك دالة تحدث عرض الشهادات في الصفحة قم باستدعائها هنا (مثال: loadCertifications();)
+            App.renderAll();
         } else {
             alert("⚠️ عذراً، لم نتمكن من قراءة الشهادة بوضوح. حاول رفع صورة واضحة ومضاءة جيداً.");
         }
     };
     reader.readAsDataURL(file);
 }
+
 function renderCertifications() {
-    const certContainer = document.getElementById('certifications-container'); // تأكد من وجود div بهذا الـ ID في ملف HTML الخاص بك
+    const certContainer = document.getElementById('certifications-container');
     if (!certContainer) return;
 
     const savedCerts = JSON.parse(localStorage.getItem('my_certs') || '[]');
