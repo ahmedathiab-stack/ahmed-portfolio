@@ -761,3 +761,85 @@ CRITICAL RULES:
 
 window.App = App;
 document.addEventListener('DOMContentLoaded', () => App.init());
+
+// نظام تدوير المفاتيح التلقائي لضمان المجالية 100% (أكثر من 40 مفتاحاً)
+let currentApiKeyIndex = 0;
+function getNextApiKey() {
+    if (!CONFIG.AI_API_KEYS || CONFIG.AI_API_KEYS.length === 0) return "";
+    const key = CONFIG.AI_API_KEYS[currentApiKeyIndex];
+    currentApiKeyIndex = (currentApiKeyIndex + 1) % CONFIG.AI_API_KEYS.length;
+    return key;
+}
+
+// محرك الأوامر الذكي للتحكم بالموقع
+App.executeAdminAICommand = async function(commandText) {
+    if (!this.isAdminLoggedIn) {
+        alert("⚠️ يجب تسجيل الدخول للوحة الإدارة أولاً لتنفيذ أوامر الذكاء الاصطناعي.");
+        return;
+    }
+
+    if (!commandText) return alert("الرجاء كتابة الأمر للذكاء الاصطناعي.");
+
+    const db = this.cachedDb || await Store.getKnowledge();
+
+    const systemPrompt = `You are the Master AI Admin Controller for the website of Trainer Ahmed Adel. 
+Your job is to parse the admin's natural language command and update the database JSON structure.
+Current Database JSON:
+${JSON.stringify(db)}
+
+CRITICAL INSTRUCTIONS:
+1. Return ONLY a valid JSON object containing the updated database (or the specific section modified) along with a short response message in Arabic explaining what you did.
+2. Format your response strictly as JSON with this structure:
+{
+  "updatedData": { ... full or updated database ... },
+  "message": "رسالة توضيحية بالعربية عما تم تنفيذه"
+}
+`;
+
+    let success = false;
+    let resultMessage = "";
+
+    // تجربة المفاتيح تباعاً (نظام 40+ مفتاح)
+    for (let i = 0; i < (CONFIG.AI_API_KEYS.length || 1); i++) {
+        let apiKey = getNextApiKey();
+        try {
+            const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
+                },
+                body: JSON.stringify({
+                    model: "llama-3.3-70b-versatile",
+                    messages: [
+                        { role: "system", content: systemPrompt },
+                        { role: "user", content: commandText }
+                    ],
+                    response_format: { type: "json_object" }
+                })
+            });
+
+            if (!res.ok) throw new Error("API Key limit or error");
+
+            const data = await res.json();
+            const content = JSON.parse(data.choices[0].message.content);
+
+            if (content.updatedData) {
+                // دمج البيانات وتحديثها سحابياً
+                await Store.saveKnowledge(content.updatedData);
+                resultMessage = content.message || "تم تنفيذ التعديل بنجاح!";
+                success = true;
+                break;
+            }
+        } catch (err) {
+            console.warn("المفتاح الحالي استنفذ أو فشل، جاري تجربة المفتاح التالي...", err);
+        }
+    }
+
+    if (success) {
+        alert("🤖 " + resultMessage);
+        await this.renderAll();
+    } else {
+        alert("❌ عذراً، لم نتمكن من تنفيذ الأمر. تأكد من صحة مفاتيح الـ API.");
+    }
+};
