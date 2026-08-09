@@ -12,26 +12,26 @@
     <aside id="admin-drawer" class="admin-drawer">
         <div class="admin-drawer-header">
             <h3>إدارة المحتوى الشاملة</h3>
-            <div class="admin-card" style="background: var(--bg-subtle); padding: 15px; border-radius: 8px; margin-top: 15px;">
-    <h4 style="color: var(--primary-color);">⏳ توليد مفتاح مؤقت وعشوائي</h4>
-    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px;">أنشئ كوداً عشوائياً ينتهي خلال دقيقة أو ساعة محددة.</p>
-    <button class="btn-primary" onclick="App.generateTempKey()" style="width: 100%;">⚡ توليد مفتاح مؤقت جديد</button>
-    <div id="tempKeyDisplay" style="margin-top: 10px; font-weight: bold; text-align: center; color: #166534;"></div>
-</div>
-            <div class="admin-card" style="background: var(--bg-card); padding: 20px; border-radius: 12px; margin-bottom: 20px;">
-    <h3>📤 إضافة شهادة جديدة مع صورة من الجهاز</h3>
-    <input type="text" id="manualCertTitle" placeholder="عنوان الشهادة (مثلاً: دورة المحاسبة المتقدمة)" style="width:100%; padding:10px; margin:8px 0; border-radius:8px; border:1px solid #ccc;">
-    <input type="text" id="manualCertIssuer" placeholder="الجهة المصدرة (مثلاً: جامعة أبين)" style="width:100%; padding:10px; margin:8px 0; border-radius:8px; border:1px solid #ccc;">
-    <input type="date" id="manualCertDate" style="width:100%; padding:10px; margin:8px 0; border-radius:8px; border:1px solid #ccc;">
-    
-    <label style="display:block; margin:8px 0; font-weight:bold;">اختر صورة الشهادة:</label>
-    <input type="file" id="manualCertFile" accept="image/*" style="width:100%; margin-bottom:12px;">
-    
-    <button onclick="uploadCertificateDirectly()" class="btn-primary" style="width:100%; padding:12px; background:var(--primary-color); color:#fff; border:none; border-radius:8px; cursor:pointer;">💾 حفظ وعرض الشهادة فوراً</button>
-</div>
             <span class="close-drawer" onclick="App.toggleAdminDrawer()">&times;</span>
         </div>
         <div class="admin-drawer-body">
+            <div class="admin-card" style="background: var(--bg-subtle); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                <h4 style="color: var(--primary-color);">⏳ توليد مفتاح مؤقت وعشوائي</h4>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px;">أنشئ كوداً عشوائياً ينتهي خلال 10 دقائق.</p>
+                <button class="btn-primary" onclick="App.generateTempKey()" style="width: 100%;">⚡ توليد مفتاح مؤقت جديد</button>
+                <div id="tempKeyDisplay" style="margin-top: 10px; font-weight: bold; text-align: center; color: #166534;"></div>
+            </div>
+            
+            <div class="admin-card" style="background: var(--bg-card); padding: 20px; border-radius: 12px; margin-bottom: 20px; border: 1px solid var(--border-color);">
+                <h4 style="color: var(--primary-color); margin-bottom: 10px;">📤 إضافة شهادة جديدة مع صورة من الجهاز</h4>
+                <input type="text" id="manualCertTitle" placeholder="عنوان الشهادة (مثلاً: دورة المحاسبة المتقدمة)">
+                <input type="text" id="manualCertIssuer" placeholder="الجهة المصدرة (مثلاً: جامعة أبين)">
+                <input type="date" id="manualCertDate">
+                <label style="display:block; margin:8px 0; font-weight:bold; font-size:0.9rem;">اختر صورة الشهادة:</label>
+                <input type="file" id="manualCertFile" accept="image/*">
+                <button onclick="uploadCertificateDirectly()" class="btn-primary" style="width:100%; padding:12px; margin-top:8px;">💾 حفظ وعرض الشهادة فوراً</button>
+            </div>
+
             <button id="auth-btn" class="btn-submit" onclick="App.toggleAdminAuth()">🔒 تسجيل الدخول</button>
             
             <div id="admin-content-body" style="display:none; margin-top:15px;">
@@ -44,10 +44,9 @@
                 
                 <!-- تبويب الشهادات -->
                 <div id="tab-certs" class="admin-tab-content active">
-                    <!-- زر رفع الشهادة بالذكاء البصري -->
                     <div class="cert-upload-box" style="margin: 15px 0; padding: 15px; border: 2px dashed #ccc; border-radius: 8px; text-align: center;">
-                        <label for="cert-image-input" style="cursor: pointer; font-weight: bold; color: #075e54;">
-                            📁 اضغط هنا لرفع صورة الشهادة (عربي / إنجليزي)
+                        <label for="cert-image-input" style="cursor: pointer; font-weight: bold; color: #075e54; display:block;">
+                            📁 اضغط هنا لرفع صورة الشهادة بالذكاء الاصطناعي
                         </label>
                         <input type="file" id="cert-image-input" accept="image/*" style="display: none;" onchange="extractCertificateFromImage(event)">
                         <p id="loading-status" style="display:none; color: #075e54; margin-top: 10px;">⏳ جاري قراءة الشهادة واستخراج البيانات بالذكاء الاصطناعي...</p>
@@ -139,6 +138,7 @@
         <section class="card">
             <h2>📜 الشهادات الموثقة</h2>
             <div id="certificates-container" class="cert-grid"></div>
+            <div id="certifications-container" style="margin-top: 20px;"></div>
         </section>
 
         <!-- الخبرات -->
@@ -183,7 +183,7 @@
         </div>
     </div>
 
-    <!-- الشات في وضع ملء الشاشة (مثل واتساب) -->
+    <!-- الشات في وضع ملء الشاشة -->
     <div id="ai-chat-box" class="full-screen-chat">
         <div id="ai-chat-header">
             <div style="display:flex; align-items:center; gap:10px;">
@@ -200,7 +200,6 @@
     </div>
     <button id="ai-chat-btn" onclick="App.toggleChat()">💬 تواصل مع المساعد</button>
 
-    <!-- ملف الشهادات الثابتة أولاً ثم ملف الأكواد والمنطق -->
     <script src="certifications.js"></script>
     <script src="script.js"></script>
 </body>
