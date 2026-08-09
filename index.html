@@ -8,13 +8,15 @@
 </head>
 <body>
     <button id="toggle-drawer-btn" class="admin-fab" onclick="App.toggleAdminDrawer()">⚙️</button>
+    
     <aside id="admin-drawer" class="admin-drawer">
         <div class="admin-drawer-header">
-            <h3>إدارة المحتوى والشاملة</h3>
+            <h3>إدارة المحتوى الشاملة</h3>
             <span class="close-drawer" onclick="App.toggleAdminDrawer()">&times;</span>
         </div>
         <div class="admin-drawer-body">
             <button id="auth-btn" class="btn-submit" onclick="App.toggleAdminAuth()">🔒 تسجيل الدخول</button>
+            
             <div id="admin-content-body" style="display:none; margin-top:15px;">
                 <div class="admin-tabs-nav">
                     <button class="admin-tab active" onclick="App.switchAdminTab('tab-certs', this)">الشهادات</button>
@@ -25,14 +27,15 @@
                 
                 <!-- تبويب الشهادات -->
                 <div id="tab-certs" class="admin-tab-content active">
-                    <!-- ضع هذا الكود في ملف index.html حيث تريد ظهور زر رفع الشهادة -->
-<div class="cert-upload-box" style="margin: 15px 0; padding: 15px; border: 2px dashed #ccc; border-radius: 8px; text-align: center;">
-    <label for="cert-image-input" style="cursor: pointer; font-weight: bold; color: #075e54;">
-        📁 اضغط هنا لرفع صورة الشهادة (عربي / إنجليزي)
-    </label>
-    <input type="file" id="cert-image-input" accept="image/*" style="display: none;" onchange="extractCertificateFromImage(event)">
-    <p id="loading-status" style="display:none; color: #075e54; margin-top: 10px;">⏳ جاري قراءة الشهادة واستخراج البيانات بالذكاء الاصطناعي...</p>
-</div>
+                    <!-- زر رفع الشهادة بالذكاء البصري -->
+                    <div class="cert-upload-box" style="margin: 15px 0; padding: 15px; border: 2px dashed #ccc; border-radius: 8px; text-align: center;">
+                        <label for="cert-image-input" style="cursor: pointer; font-weight: bold; color: #075e54;">
+                            📁 اضغط هنا لرفع صورة الشهادة (عربي / إنجليزي)
+                        </label>
+                        <input type="file" id="cert-image-input" accept="image/*" style="display: none;" onchange="extractCertificateFromImage(event)">
+                        <p id="loading-status" style="display:none; color: #075e54; margin-top: 10px;">⏳ جاري قراءة الشهادة واستخراج البيانات بالذكاء الاصطناعي...</p>
+                    </div>
+
                     <h4>إضافة/تعديل شهادة</h4>
                     <input type="hidden" id="certEditIndex" value="-1">
                     <input type="text" id="certTitle" placeholder="اسم الشهادة">
@@ -180,6 +183,8 @@
     </div>
     <button id="ai-chat-btn" onclick="App.toggleChat()">💬 تواصل مع المساعد</button>
 
+    <!-- ملف الشهادات الثابتة أولاً ثم ملف الأكواد والمنطق -->
+    <script src="certifications.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
