@@ -606,3 +606,17 @@ async function extractCertificateFromImage(event) {
     };
     reader.readAsDataURL(file);
 }
+function renderCertifications() {
+    const certContainer = document.getElementById('certifications-container'); // تأكد من وجود div بهذا الـ ID في ملف HTML الخاص بك
+    if (!certContainer) return;
+
+    const savedCerts = JSON.parse(localStorage.getItem('my_certs') || '[]');
+    
+    certContainer.innerHTML = savedCerts.map(cert => `
+        <div class="cert-card">
+            <h3>${cert.title}</h3>
+            <p><strong>الجهة:</strong> ${cert.issuer}</p>
+            <p><strong>التاريخ:</strong> ${cert.date}</p>
+        </div>
+    `).join('');
+}
