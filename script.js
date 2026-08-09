@@ -1,3 +1,6 @@
+/**
+ * ملف النظام والتهيئة الأساسية للموقع
+ */
 const CONFIG = {
     WHATSAPP_NUMBER: "967779087415",
     DEFAULT_ADMIN_PASS: "1234",
@@ -40,6 +43,9 @@ const DEFAULT_KNOWLEDGE_BASE = {
     ]
 };
 
+/**
+ * إدارة التخزين وقاعدة المعرفة محلياً
+ */
 class Store {
     static getKnowledge() {
         try {
@@ -108,6 +114,9 @@ class Store {
     }
 }
 
+/**
+ * الكائن الرئيسي لتشغيل وعرض محتوى الموقع ووظائفه
+ */
 const App = {
     selectedCertForUnlock: null,
     isAdminLoggedIn: false,
@@ -115,6 +124,7 @@ const App = {
     init() {
         this.renderAll();
         this.populateWaSelect();
+        renderCertifications();
     },
 
     renderAll() {
@@ -515,12 +525,12 @@ const App = {
 
         const kb = Store.getKnowledge();
         
-        const strictSystemPrompt = `You are the friendly human-like personal assistant of Ahmed Adel Naji Thiab. 
-CRITICAL RULES:
-1. STRICTLY match the language of the user's message (If the user asks in Arabic, reply ONLY in natural, fluent Arabic. If the user asks in English, reply ONLY in natural, fluent English). Do not mix languages.
-2. Adopt a natural, warm, conversational human tone like a WhatsApp chat friend (casual, friendly, concise, no robotic stiffness or excessive formal jargon).
-3. Ensure accurate translation/understanding of the context and data provided.
-Available knowledge base data: ${JSON.stringify(kb)}`;
+        const strictSystemPrompt = `أنت المساعد الشخصي للمدرب أحمد عادل ناجي ذياب. 
+قواعد صارمة جداً:
+1. التزم بالرد حصراً ونهائياً **بلغة السائل** التي استخدمها في سؤاله (إذا سأل بالعربية أجب بالعربية وحدها تماماً، وإذا سأل بالإنجليزية أجب بالإنجليزية وحدها).
+2. ممنوع نهائياً خلط اللغات أو إدخال لغات غريبة.
+3. تحدث بطريقة طبيعية ومحاكاة تامة للبشر مثل أسلوب المراسلة عبر تطبيق واتساب (مختصر، ودود، وخالٍ من الحشو والتكرار الممل).
+بيانات الموقع المتوفرة لديك: ${JSON.stringify(kb)}`;
 
         let success = false;
         for (let apiKey of CONFIG.AI_API_KEYS) {
@@ -551,7 +561,7 @@ Available knowledge base data: ${JSON.stringify(kb)}`;
         }
 
         if (!success) {
-            msgContainer.innerHTML += `<div class="msg bot-msg">⚠️ عذراً، واجهت مشكلة في الاتصال. يمكنك مراسلة الأستاذ أحمد مباشرة عبر الواتساب.</div>`;
+            msgContainer.innerHTML += `<div class="msg bot-msg">⚠️ عذراً، واجهت مشكلة بسيطة في الاتصال. يمكنك مراسلة الأستاذ مباشرة عبر الواتساب.</div>`;
         }
         msgContainer.scrollTop = msgContainer.scrollHeight;
     }
@@ -560,6 +570,9 @@ Available knowledge base data: ${JSON.stringify(kb)}`;
 window.App = App;
 document.addEventListener('DOMContentLoaded', () => App.init());
 
+/**
+ * ميزات استخراج الشهادات بالذكاء البصري (Vision)
+ */
 async function extractCertificateFromImage(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -618,6 +631,7 @@ async function extractCertificateFromImage(event) {
 
             alert(`✅ تمت قراءة الشهادة بنجاح!\n- العنوان: ${extractedData.title}\n- الجهة: ${extractedData.issuer}`);
             App.renderAll();
+            renderCertifications();
         } else {
             alert("⚠️ عذراً، لم نتمكن من قراءة الشهادة بوضوح. حاول رفع صورة واضحة ومضاءة جيداً.");
         }
