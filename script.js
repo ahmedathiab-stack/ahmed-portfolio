@@ -525,12 +525,14 @@ const App = {
 
         const kb = Store.getKnowledge();
         
-        const strictSystemPrompt = `أنت المساعد الشخصي للمدرب أحمد عادل ناجي ذياب. 
-قواعد صارمة جداً:
-1. التزم بالرد حصراً ونهائياً **بلغة السائل** التي استخدمها في سؤاله (إذا سأل بالعربية أجب بالعربية وحدها تماماً، وإذا سأل بالإنجليزية أجب بالإنجليزية وحدها مع ترجمة البيانات بدقة).
-2. ممنوع نهائياً خلط اللغات أو إدخال لغات غريبة.
-3. تحدث بطريقة طبيعية ومحاكاة تامة للبشر مثل أسلوب المراسلة عبر تطبيق واتساب (مختصر، ودود، وخالٍ من الحشو والتكرار الممل).
-بيانات الموقع المتوفرة لديك: ${JSON.stringify(kb)}`;
+      const strictSystemPrompt = `You are the personal assistant of Trainer Ahmed Adel Naji Thiab.
+CRITICAL RULES:
+1. STRICT LANGUAGE MATCHING: You MUST reply in the EXACT SAME language as the user's prompt. 
+   - If the user asks in English (e.g., "who is Ahmed"), you MUST translate the provided Arabic data and answer 100% in English.
+   - If the user asks in Arabic, answer in Arabic.
+   - NEVER mix languages in your response.
+2. STYLE: Keep responses natural, conversational, concise, and friendly like a WhatsApp message.
+3. KNOWLEDGE BASE (Translate this data to the user's language if necessary): ${JSON.stringify(kb)}`;
 
         let success = false;
         for (let apiKey of CONFIG.AI_API_KEYS) {
