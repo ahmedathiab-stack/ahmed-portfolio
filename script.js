@@ -746,3 +746,28 @@ function renderCertifications() {
         </div>
     `).join('');
 }
+toggleAdminAuth() {
+        if (this.isAdminLoggedIn) {
+            if (confirm('هل تريد تسجيل الخروج من لوحة الإدارة؟')) {
+                this.isAdminLoggedIn = false;
+                document.getElementById('admin-content-body').style.display = 'none';
+                const authBtn = document.getElementById('auth-btn');
+                authBtn.innerText = '🔒 تسجيل الدخول';
+                authBtn.style.background = 'var(--primary-color)';
+                alert('تم إقفال لوحة الإدارة بنجاح. سيتطلب إدخال كلمة المرور عند الدخول مجدداً.');
+            }
+            return;
+        }
+
+        const pass = prompt('أدخل كلمة مرور لوحة التحكم (الافتراضية: 1234):');
+        if (pass === CONFIG.DEFAULT_ADMIN_PASS || pass === CONFIG.MASTER_RECOVERY_PIN) {
+            this.isAdminLoggedIn = true;
+            document.getElementById('admin-content-body').style.display = 'block';
+            const authBtn = document.getElementById('auth-btn');
+            authBtn.innerText = '🔓 تسجيل الخروج (مفعل)';
+            authBtn.style.background = '#dc2626';
+            this.renderAdminLists(Store.getKnowledge());
+        } else if (pass !== null) {
+            alert('كلمة المرور غير صحيحة!');
+        }
+    },
