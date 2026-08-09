@@ -682,8 +682,7 @@ const App = {
     handleChatKey(e) {
         if (e.key === 'Enter') this.sendChatMessage();
     },
-
-   async sendChatMessage() {
+async sendChatMessage() {
         const input = document.getElementById('ai-chat-input');
         if (!input) return;
         const text = input.value.trim();
@@ -692,6 +691,9 @@ const App = {
         const msgContainer = document.getElementById('ai-chat-messages');
         if (!msgContainer) return;
 
+        // تحديد لغة المستخدم هل هي إنجليزية أم عربية لدعم الرد الاحتياطي الذكي
+        const isEnglish = /^[A-Za-z0-9\s.,?!@#$%^&*()_+-=]+$/.test(text);
+
         // عرض رسالة المستخدم في الشات فوراً
         msgContainer.innerHTML += `<div class="msg user-msg">${text}</div>`;
         input.value = '';
@@ -699,7 +701,6 @@ const App = {
 
         const kb = Store.getKnowledge();
         
-        // برومبت محسن وأكثر ذكاءً وتفاعلية لزيادة التفاعل واحترافية الردود
         const strictSystemPrompt = `You are the highly intelligent, professional, and friendly personal AI assistant of Trainer and Accountant Ahmed Adel Naji Thiab.
 CRITICAL RULES:
 1. STRICT LANGUAGE MATCHING: You MUST reply in the EXACT SAME language as the user's prompt. 
@@ -712,16 +713,23 @@ CRITICAL RULES:
         let success = false;
         let aiResponseText = "";
 
+        // التحقق من وجود مفاتيح صالحة
+        if (!CONFIG.AI_API_KEYS || CONFIG.AI_API_KEYS.length === 0) {
+            console.error("AI_API_KEYS is missing or empty in CONFIG!");
+        }
+
         for (let apiKey of CONFIG.AI_API_KEYS) {
-            // تخطي المفاتيح الوهمية أو غير المكتملة لتسريع الاستجابة وعدم حدوث أخطاء
-            if (!apiKey || apiKey.includes("KEY_NUMBER")) continue;
+            if (!apiKey || apiKey.trim() === "" || apiKey.includes("KEY_NUMBER")) {
+                console.warn("Skipping invalid or placeholder API key.");
+                continue;
+            }
             
             try {
                 const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${apiKey}`
+                        'Authorization': `Bearer ${apiKey.trim()}`
                     },
                     body: JSON.stringify({
                         model: "llama-3.3-70b-versatile",
@@ -736,34 +744,45 @@ CRITICAL RULES:
 
                 const data = await res.json();
                 
-                // التحقق من صحة الاستجابة وحالة السيرفر لمنع الأخطاء الصامتة
                 if (res.ok && data.choices && data.choices[0] && data.choices[0].message) {
                     aiResponseText = data.choices[0].message.content;
                     success = true;
                     break;
-                } else if (data.error) {
-                    console.warn("API Error response:", data.error.message);
+                } else {
+                    console.warn("Groq API Error Details:", data);
                 }
             } catch (err) {
-                console.warn("Fetch connection error:", err);
+                console.warn("Network or Fetch exception:", err);
             }
         }
 
         if (success && aiResponseText) {
             msgContainer.innerHTML += `<div class="msg bot-msg">${aiResponseText}</div>`;
         } else {
-            // نظام الرد الذكي الاحتياطي المحسن لتغطية كافة الاستفسارات بذكاء فوري
-            let fallbackReply = "أهلاً بك! أنا مساعد الأستاذ أحمد عادل ناجي ذياب. يسعدني جداً تواصلك. يمكنك الاستفسار عن الدورات المحاسبية (نظام إكسترا)، أو مراسلة الأستاذ مباشرة عبر الواتساب: +967779087415";
+            // نظام الرد الاحتياطي الذكي (يدعم الإنجليزية والعربية بناءً على لغة المستخدم)
+            let fallbackReply = "";
             const lowerText = text.toLowerCase();
 
-            if (lowerText.includes('رقم') || lowerText.includes('واتس') || lowerText.includes('تواصل') || lowerText.includes('whatsapp') || lowerText.includes('phone') || lowerText.includes('اتصال')) {
-                fallbackReply = `📞 رقم الواتساب الرسمي للتواصل المباشر مع الأستاذ أحمد عادل ناجي ذياب هو: +967 ${CONFIG.WHATSAPP_NUMBER}، وهو متواجد دائماً للرد على الاستفسارات التدريبية والمالية.`;
-            } else if (lowerText.includes('اخبار') || lowerText.includes('آخر') || lowerText.includes('جديد') || lowerText.includes('دورات') || lowerText.includes('دورة')) {
-                fallbackReply = `🚀 يقدم الأستاذ أحمد أحدث الدورات التدريبية المتقدمة في الأنظمة المحاسبية وتطبيق (نظام إكسترا المحاسبي)، بالإضافة لتطوير المهارات المالية والإدارية وبرامج الحاسوب.`;
-            } else if (lowerText.includes('شهادة') || lowerText.includes('بكالوريوس') || lowerText.includes('icdl') || lowerText.includes('تعليم') || lowerText.includes('جامعة')) {
-                fallbackReply = `🎓 المؤهلات والشهادات الموثقة للأستاذ أحمد:\n- بكالوريوس المحاسبة (جامعة أبين)\n- دبلوم قيادة الحاسوب ICDL\n- شهادة اللغة الإنجليزية المستوى B2\n- شهادة معتمدة في نظام إكسترا للمحاسبة والإدارة.`;
-            } else if (lowerText.includes('السعر') || lowerText.includes('تكلفة') || lowerText.includes('حجز') || lowerText.includes('تسجيل')) {
-                fallbackReply = `💡 لحجز الدورات أو الاستفسار عن المواعيد والأسعار، يرجى التنسيق المباشر مع الأستاذ أحمد عبر الواتساب على الرقم: +967 ${CONFIG.WHATSAPP_NUMBER}.`;
+            if (isEnglish) {
+                if (lowerText.includes('who') || lowerText.includes('about')) {
+                    fallbackReply = `Hello! I am the personal assistant of Trainer Ahmed Adel Naji Thiab. You can contact Ahmed directly via WhatsApp: +967 ${CONFIG.WHATSAPP_NUMBER || '779087415'}.`;
+                } else if (lowerText.includes('whatsapp') || lowerText.includes('phone') || lowerText.includes('contact')) {
+                    fallbackReply = `📞 The official WhatsApp number to contact Trainer Ahmed Adel is: +967 ${CONFIG.WHATSAPP_NUMBER || '779087415'}.`;
+                } else {
+                    fallbackReply = `Hello! I'm Ahmed Adel's assistant. For direct courses, accounting systems (Extra System) inquiries, or booking, reach out via WhatsApp: +967 ${CONFIG.WHATSAPP_NUMBER || '779087415'}.`;
+                }
+            } else {
+                fallbackReply = "أهلاً بك! أنا مساعد الأستاذ أحمد عادل ناجي ذياب. يسعدني جداً تواصلك. يمكنك الاستفسار عن الدورات المحاسبية (نظام إكسترا)، أو مراسلة الأستاذ مباشرة عبر الواتساب: +967779087415";
+                
+                if (lowerText.includes('رقم') || lowerText.includes('واتس') || lowerText.includes('تواصل') || lowerText.includes('اتصال')) {
+                    fallbackReply = `📞 رقم الواتساب الرسمي للتواصل المباشر مع الأستاذ أحمد عادل ناجي ذياب هو: +967 ${CONFIG.WHATSAPP_NUMBER || '779087415'}، وهو متواجد دائماً للرد على الاستفسارات.`;
+                } else if (lowerText.includes('اخبار') || lowerText.includes('آخر') || lowerText.includes('جديد') || lowerText.includes('دورات') || lowerText.includes('دورة')) {
+                    fallbackReply = `🚀 يقدم الأستاذ أحمد أحدث الدورات التدريبية المتقدمة في الأنظمة المحاسبية وتطبيق (نظام إكسترا المحاسبي)، بالإضافة لتطوير المهارات المالية والإدارية.`;
+                } else if (lowerText.includes('شهادة') || lowerText.includes('بكالوريوس') || lowerText.includes('icdl') || lowerText.includes('تعليم') || lowerText.includes('جامعة')) {
+                    fallbackReply = `🎓 المؤهلات والشهادات للأستاذ أحمد:\n- بكالوريوس المحاسبة (جامعة أبين)\n- دبلوم قيادة الحاسوب ICDL\n- شهادة اللغة الإنجليزية المستوى B2\n- شهادة معتمدة في نظام إكسترا للمحاسبة.`;
+                } else if (lowerText.includes('السعر') || lowerText.includes('تكلفة') || lowerText.includes('حجز') || lowerText.includes('تسجيل')) {
+                    fallbackReply = `💡 لحجز الدورات أو الاستفسار عن المواعيد والأسعار، يرجى التنسيق المباشر مع الأستاذ أحمد عبر الواتساب على الرقم: +967 ${CONFIG.WHATSAPP_NUMBER || '779087415'}.`;
+                }
             }
 
             msgContainer.innerHTML += `<div class="msg bot-msg">${fallbackReply}</div>`;
