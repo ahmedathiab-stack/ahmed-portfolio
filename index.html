@@ -12,6 +12,12 @@
     <aside id="admin-drawer" class="admin-drawer">
         <div class="admin-drawer-header">
             <h3>إدارة المحتوى الشاملة</h3>
+            <div class="admin-card" style="background: var(--bg-subtle); padding: 15px; border-radius: 8px; margin-top: 15px;">
+    <h4 style="color: var(--primary-color);">⏳ توليد مفتاح مؤقت وعشوائي</h4>
+    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px;">أنشئ كوداً عشوائياً ينتهي خلال دقيقة أو ساعة محددة.</p>
+    <button class="btn-primary" onclick="App.generateTempKey()" style="width: 100%;">⚡ توليد مفتاح مؤقت جديد</button>
+    <div id="tempKeyDisplay" style="margin-top: 10px; font-weight: bold; text-align: center; color: #166534;"></div>
+</div>
             <div class="admin-card" style="background: var(--bg-card); padding: 20px; border-radius: 12px; margin-bottom: 20px;">
     <h3>📤 إضافة شهادة جديدة مع صورة من الجهاز</h3>
     <input type="text" id="manualCertTitle" placeholder="عنوان الشهادة (مثلاً: دورة المحاسبة المتقدمة)" style="width:100%; padding:10px; margin:8px 0; border-radius:8px; border:1px solid #ccc;">
