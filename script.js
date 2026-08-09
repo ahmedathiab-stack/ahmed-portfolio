@@ -683,7 +683,7 @@ const App = {
         if (e.key === 'Enter') this.sendChatMessage();
     },
 
-    async sendChatMessage() {
+   async sendChatMessage() {
         const input = document.getElementById('ai-chat-input');
         if (!input) return;
         const text = input.value.trim();
@@ -692,23 +692,30 @@ const App = {
         const msgContainer = document.getElementById('ai-chat-messages');
         if (!msgContainer) return;
 
+        // عرض رسالة المستخدم في الشات فوراً
         msgContainer.innerHTML += `<div class="msg user-msg">${text}</div>`;
         input.value = '';
         msgContainer.scrollTop = msgContainer.scrollHeight;
 
         const kb = Store.getKnowledge();
         
-        const strictSystemPrompt = `You are the personal assistant of Trainer Ahmed Adel Naji Thiab.
+        // برومبت محسن وأكثر ذكاءً وتفاعلية لزيادة التفاعل واحترافية الردود
+        const strictSystemPrompt = `You are the highly intelligent, professional, and friendly personal AI assistant of Trainer and Accountant Ahmed Adel Naji Thiab.
 CRITICAL RULES:
 1. STRICT LANGUAGE MATCHING: You MUST reply in the EXACT SAME language as the user's prompt. 
-   - If the user asks in English, you MUST translate the provided Arabic data and answer 100% in English.
+   - If the user asks in English, translate data and answer 100% in English.
    - If the user asks in Arabic, answer in Arabic.
-   - NEVER mix languages in your response.
-2. STYLE: Keep responses natural, conversational, concise, and friendly like a WhatsApp message.
+   - NEVER mix languages.
+2. STYLE & INTERACTIVITY: Be extremely helpful, conversational, engaging, and professional like an expert executive assistant. Offer proactive details about Ahmed's accounting systems training (Extra System), ICDL, English B2, and university degree at University of Abyan. Guide clients to contact via WhatsApp (+967779087415) when booking training or requesting consultation.
 3. KNOWLEDGE BASE: ${JSON.stringify(kb)}`;
 
         let success = false;
+        let aiResponseText = "";
+
         for (let apiKey of CONFIG.AI_API_KEYS) {
+            // تخطي المفاتيح الوهمية أو غير المكتملة لتسريع الاستجابة وعدم حدوث أخطاء
+            if (!apiKey || apiKey.includes("KEY_NUMBER")) continue;
+            
             try {
                 const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                     method: 'POST',
@@ -721,39 +728,49 @@ CRITICAL RULES:
                         messages: [
                             { role: "system", content: strictSystemPrompt },
                             { role: "user", content: text }
-                        ]
+                        ],
+                        temperature: 0.7,
+                        max_tokens: 1000
                     })
                 });
+
                 const data = await res.json();
-                if (data.choices && data.choices[0]) {
-                    msgContainer.innerHTML += `<div class="msg bot-msg">${data.choices[0].message.content}</div>`;
+                
+                // التحقق من صحة الاستجابة وحالة السيرفر لمنع الأخطاء الصامتة
+                if (res.ok && data.choices && data.choices[0] && data.choices[0].message) {
+                    aiResponseText = data.choices[0].message.content;
                     success = true;
                     break;
+                } else if (data.error) {
+                    console.warn("API Error response:", data.error.message);
                 }
             } catch (err) {
-                console.warn(err);
+                console.warn("Fetch connection error:", err);
             }
         }
 
-        if (!success) {
-            let fallbackReply = "أهلاً بك! أنا مساعد الأستاذ أحمد عادل ناجي ذياب. يمكنك التواصل مع الأستاذ مباشرة عبر رقم الواتساب: +967779087415";
+        if (success && aiResponseText) {
+            msgContainer.innerHTML += `<div class="msg bot-msg">${aiResponseText}</div>`;
+        } else {
+            // نظام الرد الذكي الاحتياطي المحسن لتغطية كافة الاستفسارات بذكاء فوري
+            let fallbackReply = "أهلاً بك! أنا مساعد الأستاذ أحمد عادل ناجي ذياب. يسعدني جداً تواصلك. يمكنك الاستفسار عن الدورات المحاسبية (نظام إكسترا)، أو مراسلة الأستاذ مباشرة عبر الواتساب: +967779087415";
             const lowerText = text.toLowerCase();
 
-            if (lowerText.includes('رقم') || lowerText.includes('واتس') || lowerText.includes('تواصل') || lowerText.includes('whatsapp') || lowerText.includes('phone')) {
-                fallbackReply = `رقم الواتساب الخاص بالأستاذ أحمد عادل هو: +967 ${CONFIG.WHATSAPP_NUMBER}، ويمكنك مراسلته مباشرة.`;
-            } else if (lowerText.includes('اخبار') || lowerText.includes('آخر') || lowerText.includes('جديد')) {
-                fallbackReply = `آخر نشاطات الأستاذ أحمد تتضمن تقديم دورات تدريبية متقدمة في الأنظمة المحاسبية (نظام إكسترا) والبرمجيات وإدارة الحسابات.`;
-            } else if (lowerText.includes('شهادة') || lowerText.includes('بكالوريوس') || lowerText.includes('icdl')) {
-                fallbackReply = `الأستاذ أحمد حاصل على بكالوريوس المحاسبة من جامعة أبين، ودبلوم ICDL، وشهادة اللغة الإنجليزية (B2)، بالإضافة لشهادات نظام إكسترا المحاسبي.`;
+            if (lowerText.includes('رقم') || lowerText.includes('واتس') || lowerText.includes('تواصل') || lowerText.includes('whatsapp') || lowerText.includes('phone') || lowerText.includes('اتصال')) {
+                fallbackReply = `📞 رقم الواتساب الرسمي للتواصل المباشر مع الأستاذ أحمد عادل ناجي ذياب هو: +967 ${CONFIG.WHATSAPP_NUMBER}، وهو متواجد دائماً للرد على الاستفسارات التدريبية والمالية.`;
+            } else if (lowerText.includes('اخبار') || lowerText.includes('آخر') || lowerText.includes('جديد') || lowerText.includes('دورات') || lowerText.includes('دورة')) {
+                fallbackReply = `🚀 يقدم الأستاذ أحمد أحدث الدورات التدريبية المتقدمة في الأنظمة المحاسبية وتطبيق (نظام إكسترا المحاسبي)، بالإضافة لتطوير المهارات المالية والإدارية وبرامج الحاسوب.`;
+            } else if (lowerText.includes('شهادة') || lowerText.includes('بكالوريوس') || lowerText.includes('icdl') || lowerText.includes('تعليم') || lowerText.includes('جامعة')) {
+                fallbackReply = `🎓 المؤهلات والشهادات الموثقة للأستاذ أحمد:\n- بكالوريوس المحاسبة (جامعة أبين)\n- دبلوم قيادة الحاسوب ICDL\n- شهادة اللغة الإنجليزية المستوى B2\n- شهادة معتمدة في نظام إكسترا للمحاسبة والإدارة.`;
+            } else if (lowerText.includes('السعر') || lowerText.includes('تكلفة') || lowerText.includes('حجز') || lowerText.includes('تسجيل')) {
+                fallbackReply = `💡 لحجز الدورات أو الاستفسار عن المواعيد والأسعار، يرجى التنسيق المباشر مع الأستاذ أحمد عبر الواتساب على الرقم: +967 ${CONFIG.WHATSAPP_NUMBER}.`;
             }
 
             msgContainer.innerHTML += `<div class="msg bot-msg">${fallbackReply}</div>`;
         }
+        
         msgContainer.scrollTop = msgContainer.scrollHeight;
     }
-};
-
-/**
  * دوال معالجة ورفع الشهادات الخارجية وعرضها
  */
 async function extractCertificateFromImage(event) {
