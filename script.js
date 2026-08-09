@@ -814,3 +814,51 @@ saveCertificate() {
             alert('🗑️ تم الحذف بنجاح.');
         }
     },
+function uploadCertificateDirectly() {
+    const titleInput = document.getElementById('manualCertTitle');
+    const issuerInput = document.getElementById('manualCertIssuer');
+    const dateInput = document.getElementById('manualCertDate');
+    const fileInput = document.getElementById('manualCertFile');
+
+    const title = titleInput ? titleInput.value.trim() : "";
+    const issuer = issuerInput ? issuerInput.value.trim() : "مستند رسمي";
+    const file = fileInput && fileInput.files[0] ? fileInput.files[0] : null;
+
+    if (!title) {
+        alert('⚠️ يرجى كتابة عنوان الشهادة على الأقل.');
+        return;
+    }
+
+    if (!file) {
+        alert('⚠️ يرجى اختيار صورة الشهادة.');
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const base64Image = e.target.result;
+
+        const newCertificate = {
+            id: `cert-manual-${Date.now()}`,
+            title: title,
+            issuer: issuer,
+            category: "مستندات مرفوعة",
+            imageUrl: base64Image,
+            pin: "1001"
+        };
+
+        const db = Store.getKnowledge();
+        if (!Array.isArray(db.certificates)) db.certificates = [];
+        db.certificates.push(newCertificate);
+        Store.saveKnowledge(db);
+
+        titleInput.value = '';
+        issuerInput.value = '';
+        if(dateInput) dateInput.value = '';
+        fileInput.value = '';
+
+        alert('✅ تم إضافة الشهادة المرفوعة وتحديث الموقع فوراً!');
+    };
+
+    reader.readAsDataURL(file);
+}
