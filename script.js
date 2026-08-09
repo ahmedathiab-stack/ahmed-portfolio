@@ -16,6 +16,92 @@ const CONFIG = {
 /**
  * رفع وعرض صورة الشهادة مباشرة وبدون تعقيد
  */
+/**
+ * رفع صورة الشهادة وقراءتها بالذكاء الاصطناعي، مع ضمان حفظ الصورة وعرضها يدوياً حتى لو فشل الذكاء الاصطناعي
+ */
+async function extractCertificateFromImage(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+        alert('⚠️ يرجى اختيار ملف صورة صحيح (PNG أو JPG)');
+        return;
+    }
+
+    const statusEl = document.getElementById('loading-status');
+    if (statusEl) statusEl.style.display = 'block';
+
+    const reader = new FileReader();
+    reader.onload = async function() {
+        const base64Image = reader.result;
+        const defaultTitle = file.name.substring(0, file.name.lastIndexOf('.')) || "شهادة جديدة";
+        
+        let extractedData = {
+            title: defaultTitle,
+            issuer: "تم الرفع من الجهاز",
+            date: new Date().toLocaleDateString('ar-YE')
+        };
+
+        const prompt = "استخرج من صورة هذه الشهادة البيانات التالية بدقة وأعطني إياها حصراً على شكل كود JSON بهذا الشكل فقط دون أي كلام إضافي: {\"title\": \"عنوان الشهادة\", \"issuer\": \"جهة الإصدار\", \"date\": \"السنة أو التاريخ\"}";
+
+        for (let apiKey of CONFIG.AI_API_KEYS) {
+            try {
+                const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: "llama-3.2-11b-vision-preview",
+                        messages: [
+                            {
+                                role: "user",
+                                content: [
+                                    { type: "text", text: prompt },
+                                    { type: "image_url", image_url: { url: base64Image } }
+                                ]
+                            }
+                        ]
+                    })
+                });
+
+                const data = await response.json();
+                if (data.choices && data.choices[0]) {
+                    let content = data.choices[0].message.content;
+                    content = content.replace(/```json/g, '').replace(/```/g, '').trim();
+                    const parsed = JSON.parse(content);
+                    if (parsed.title) {
+                        extractedData.title = parsed.title;
+                        if (parsed.issuer) extractedData.issuer = parsed.issuer;
+                        if (parsed.date) extractedData.date = parsed.date;
+                        break;
+                    }
+                }
+            } catch (err) {
+                console.warn("تعذر الاستخراج التلقائي، سيتم اعتماد التعبئة اليدوية/الافتراضية:", err);
+            }
+        }
+
+        if (statusEl) statusEl.style.display = 'none';
+
+        // حفظ الصورة والبيانات في كل الأحوال (سواء نجح الذكاء الاصطناعي أو فشل وتمت التعبئة الافتراضية)
+        extractedData.imageUrl = base64Image;
+        extractedData.id = `cert-img-${Date.now()}`;
+
+        let savedCerts = JSON.parse(localStorage.getItem('my_certs') || '[]');
+        savedCerts.push(extractedData);
+        localStorage.setItem('my_certs', JSON.stringify(savedCerts));
+
+        alert(`✅ تم رفع الشهادة بنجاح!\n- العنوان: ${extractedData.title}\n(يمكنك تعديل البيانات أو العنوان في أي وقت من لوحة التحكم).`);
+        
+        App.renderAll();
+        if (typeof renderCertifications === 'function') {
+            renderCertifications();
+        }
+    };
+    reader.readAsDataURL(file);
+}
 function extractCertificateFromImage(event) {
     const file = event.target.files[0];
     if (!file) return;
