@@ -13,7 +13,51 @@ const CONFIG = {
         "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"
     ]
 };
+/**
+ * رفع وعرض صورة الشهادة مباشرة وبدون تعقيد
+ */
+function extractCertificateFromImage(event) {
+    const file = event.target.files[0];
+    if (!file) return;
 
+    // التحقق من أن الملف صورة
+    if (!file.type.startsWith('image/')) {
+        alert('⚠️ يرجى اختيار ملف صورة صحيح (PNG أو JPG)');
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const base64Image = e.target.result;
+
+        // استخراج اسم الملف الأساسي كعنوان افتراضي للشهادة
+        const fileName = file.name.substring(0, file.name.lastIndexOf('.')) || "شهادة جديدة";
+
+        // تجهيز بيانات الشهادة
+        const newCert = {
+            id: `cert-img-${Date.now()}`,
+            title: fileName,
+            issuer: "تم الرفع من الجهاز",
+            date: new Date().toLocaleDateString('ar-YE'),
+            imageUrl: base64Image
+        };
+
+        // حفظها في التخزين المحلي فوراً
+        let savedCerts = JSON.parse(localStorage.getItem('my_certs') || '[]');
+        savedCerts.push(newCert);
+        localStorage.setItem('my_certs', JSON.stringify(savedCerts));
+
+        // تحديث العرض على الموقع فوراً
+        alert('✅ تم رفع الشهادة وعرضها في الموقع بنجاح!');
+        if (typeof App !== 'undefined' && App.renderAll) {
+            App.renderAll();
+        }
+        renderCertifications();
+    };
+
+    // قراءة الصورة كـ DataURL لتظهر مباشرة
+    reader.readAsDataURL(file);
+}
 const DEFAULT_KNOWLEDGE_BASE = {
     personalInfo: {
         name: "أحمد عادل ناجي ذياب",
