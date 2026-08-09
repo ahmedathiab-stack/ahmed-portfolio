@@ -1,19 +1,18 @@
 /**
- * ملف النظام والتهيئة الأساسية للموقع - الإصدار الشامل والمصحح
+ * ملف النظام والتهيئة الأساسية للموقع - الإصدار السحابي المحدث
  */
 
 const CONFIG = {
     WHATSAPP_NUMBER: "967779087415",
     DEFAULT_ADMIN_PASS: "1234",
     MASTER_RECOVERY_PIN: "7777",
+    ADMIN_PASSWORD: "Ahmed_Secure_2026", // كلمة مرور الحفظ السحابي
+    FIREBASE_URL: "https://ahmed-portfolio-stack-d1fd8-default-rtdb.firebaseio.com/data.json", // رابط السحابة الخاص بك
     STORAGE_KEYS: {
-        KNOWLEDGE: "ahmed_knowledge_base_v7",
         UNLOCKED_CERTS: "ahmed_unlocked_certs_v7"
     },
     AI_API_KEYS: [
-        "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",
-        "gsk_KEY_NUMBER_2_HERE",
-        "gsk_KEY_NUMBER_3_HERE"
+        "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"
     ]
 };
 
@@ -47,38 +46,23 @@ const DEFAULT_KNOWLEDGE_BASE = {
 };
 
 /**
- * إدارة التخزين وقاعدة المعرفة محلياً مع دمج آمن لمنع التكرار
+ * إدارة التخزين السحابي والمحلي
  */
 class Store {
-    static getKnowledge() {
+    static async getKnowledge() {
         try {
-            const raw = localStorage.getItem(CONFIG.STORAGE_KEYS.KNOWLEDGE);
-            const savedCerts = JSON.parse(localStorage.getItem('my_certs') || '[]');
-            const visionCerts = savedCerts.map((c, idx) => ({
-                id: `vision-cert-${idx}`,
-                title: c.title,
-                category: "مستندات مرفوعة",
-                issuer: c.issuer + (c.date ? ` (${c.date})` : ''),
-                imageUrl: c.imageUrl || '',
-                pin: "1001"
-            }));
-
+            const response = await fetch(CONFIG.FIREBASE_URL);
+            const parsed = await response.json();
+            
             const fileCerts = window.CERTIFICATIONS || [];
 
-            if (!raw) {
-                const uniqueMap = new Map();
-                [...DEFAULT_KNOWLEDGE_BASE.certificates, ...fileCerts, ...visionCerts].forEach(c => uniqueMap.set(c.id || c.title, c));
-                return {
-                    ...DEFAULT_KNOWLEDGE_BASE,
-                    certificates: Array.from(uniqueMap.values())
-                };
+            if (!parsed) {
+                return DEFAULT_KNOWLEDGE_BASE;
             }
 
-            const parsed = JSON.parse(raw);
             const baseCerts = Array.isArray(parsed.certificates) ? parsed.certificates : DEFAULT_KNOWLEDGE_BASE.certificates;
-            
             const uniqueCertsMap = new Map();
-            [...baseCerts, ...fileCerts, ...visionCerts].forEach(c => uniqueCertsMap.set(c.id || c.title, c));
+            [...baseCerts, ...fileCerts].forEach(c => uniqueCertsMap.set(c.id || c.title, c));
 
             return {
                 personalInfo: { ...DEFAULT_KNOWLEDGE_BASE.personalInfo, ...(parsed.personalInfo || {}) },
@@ -88,13 +72,40 @@ class Store {
                 volunteer: Array.isArray(parsed.volunteer) ? parsed.volunteer : DEFAULT_KNOWLEDGE_BASE.volunteer
             };
         } catch (e) {
-            return DEFAULT_KNOWLEDGE_BASE;
+            console.error("خطأ في الاتصال بالسحابة، التبديل للذاكرة المحلية:", e);
+            const localFallback = localStorage.getItem('ahmed_knowledge_base_fallback');
+            return localFallback ? JSON.parse(localFallback) : DEFAULT_KNOWLEDGE_BASE;
         }
     }
 
-    static saveKnowledge(data) {
-        localStorage.setItem(CONFIG.STORAGE_KEYS.KNOWLEDGE, JSON.stringify(data));
-        App.renderAll();
+    static async saveKnowledge(data) {
+        let enteredPassword = prompt("الرجاء إدخال كلمة مرور لوحة التحكم لتأكيد الحفظ والتزامن السحابي:");
+        if (enteredPassword !== CONFIG.ADMIN_PASSWORD && enteredPassword !== CONFIG.DEFAULT_ADMIN_PASS) {
+            alert("كلمة المرور غير صحيحة! تم إلغاء التعديل والحفظ.");
+            return false;
+        }
+
+        try {
+            const response = await fetch(CONFIG.FIREBASE_URL, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+                localStorage.setItem('ahmed_knowledge_base_fallback', JSON.stringify(data));
+                alert("✅ تم الحفظ والتزامن السحابي بنجاح على جميع الأجهزة!");
+                await App.renderAll();
+                return true;
+            } else {
+                alert("فشل الحفظ في السحابة.");
+                return false;
+            }
+        } catch (error) {
+            console.error("خطأ أثناء الحفظ السحابي:", error);
+            alert("حدث خطأ في الاتصال بالشبكة.");
+            return false;
+        }
     }
 
     static getUnlockedCerts() {
@@ -114,8 +125,8 @@ class Store {
         }
     }
 
-    static unlockAllCerts() {
-        const kb = Store.getKnowledge();
+    static async unlockAllCerts() {
+        const kb = await Store.getKnowledge();
         const allIds = (kb.certificates || []).map(c => c.id);
         sessionStorage.setItem(CONFIG.STORAGE_KEYS.UNLOCKED_CERTS, JSON.stringify(allIds));
         App.renderAll();
@@ -123,13 +134,15 @@ class Store {
 }
 
 /**
- * الكائن الرئيسي لتشغيل وعرض محتوى الموقع ووظائفه
+ * الكائن الرئيسي لتشغيل وعرض محتوى الموقع
  */
 const App = {
     selectedCertForUnlock: null,
     isAdminLoggedIn: false,
+    cachedDb: null,
 
-    init() {
+    async init() {
+        this.cachedDb = await Store.getKnowledge();
         this.renderAll();
         this.populateWaSelect();
         if (typeof renderCertifications === 'function') {
@@ -137,8 +150,9 @@ const App = {
         }
     },
 
-    renderAll() {
-        const db = Store.getKnowledge();
+    async renderAll() {
+        this.cachedDb = await Store.getKnowledge();
+        const db = this.cachedDb;
         this.renderCertificates(db);
         this.renderExperiences(db);
         this.renderSkills(db);
@@ -228,10 +242,10 @@ const App = {
             expiryTime = new Date().getTime() + (24 * 60 * 60 * 1000);
             durationText = "لفتح لمرة واحدة فقط";
         } else if (typeVal === "24h") {
-            expiryTime = new Date().getTime() + (24 * 60 * 60 * 1000); // 24 ساعة بالمللي ثانية
+            expiryTime = new Date().getTime() + (24 * 60 * 60 * 1000);
             durationText = "صالح لمدة 24 ساعة";
         } else if (typeVal === "72h") {
-            expiryTime = new Date().getTime() + (72 * 60 * 60 * 1000); // 72 ساعة بالمللي ثانية
+            expiryTime = new Date().getTime() + (72 * 60 * 60 * 1000);
             durationText = "صالح لمدة 72 ساعة";
         }
 
@@ -248,18 +262,18 @@ const App = {
             displayEl.innerHTML = `🔑 المفتاح المؤقت: <span style="background:#dcf8c6; padding:4px 8px; border-radius:4px; color:#111;">${randomPin}</span> (${durationText})`;
         }
         alert(`تم توليد المفتاح المؤقت بنجاح: ${randomPin}\nالنوع: ${durationText}`);
-    }, // تم إصلاح الفاصلة المفقودة هنا
+    },
 
     openCertPassModal(certId) {
         this.selectedCertForUnlock = certId;
         this.openModal('accessModal');
     },
 
-    validateAccessCode() {
+    async validateAccessCode() {
         const passcodeEl = document.getElementById('passcode');
         const input = passcodeEl ? passcodeEl.value.trim() : '';
         const err = document.getElementById('errorMsg');
-        const db = Store.getKnowledge();
+        const db = this.cachedDb || await Store.getKnowledge();
 
         if (input === CONFIG.MASTER_RECOVERY_PIN || input === "777777") {
             Store.unlockAllCerts();
@@ -309,10 +323,10 @@ const App = {
         if (err) err.innerText = "كود التصريح غير صحيح أو منتهي الصلاحية.";
     },
 
-    populateWaSelect() {
+    async populateWaSelect() {
         const select = document.getElementById('waCertSelect');
         if (!select) return;
-        const db = Store.getKnowledge();
+        const db = this.cachedDb || await Store.getKnowledge();
         select.innerHTML = (db.certificates || []).map(c => `<option value="${c.title}">${c.title}</option>`).join('');
     },
 
@@ -371,13 +385,14 @@ const App = {
                 authBtn.innerText = '🔓 تسجيل الخروج (مفعل)';
                 authBtn.style.background = '#dc2626';
             }
-            this.renderAdminLists(Store.getKnowledge());
+            this.renderAdminLists(this.cachedDb);
         } else if (pass !== null) {
             alert('كلمة المرور غير صحيحة!');
         }
     },
 
     renderAdminLists(db) {
+        if (!db) return;
         const certList = document.getElementById('admin-certs-list');
         if (certList) {
             certList.innerHTML = (db.certificates || []).map((c, i) => `
@@ -431,7 +446,7 @@ const App = {
         }
     },
 
-    saveCertificate() {
+    async saveCertificate() {
         const indexInput = document.getElementById('certEditIndex');
         const titleInput = document.getElementById('certTitle');
         const issuerInput = document.getElementById('certIssuer');
@@ -455,10 +470,10 @@ const App = {
             issuer += ` (${dateVal})`;
         }
 
-        const db = Store.getKnowledge();
+        const db = this.cachedDb || await Store.getKnowledge();
         const existingCert = index >= 0 && db.certificates[index] ? db.certificates[index] : null;
 
-        const processSave = (finalImageUrl) => {
+        const processSave = async (finalImageUrl) => {
             const certObj = { 
                 id: existingCert ? existingCert.id : `cert-${Date.now()}`, 
                 title, 
@@ -476,42 +491,28 @@ const App = {
                 db.certificates.push(certObj);
             }
 
-            Store.saveKnowledge(db);
-            
-            // لحفظها أيضاً في local storage المخصص للمستندات المرفوعة إذا تطلب الأمر
-            try {
-                let savedCerts = JSON.parse(localStorage.getItem('my_certs') || '[]');
-                // تحديث أو إضافة
-                const existingLocalIdx = savedCerts.findIndex(c => c.title === title);
-                if(existingLocalIdx >= 0) {
-                    savedCerts[existingLocalIdx] = { title, issuer, date: dateVal, imageUrl: finalImageUrl || '' };
-                } else {
-                    savedCerts.push({ title, issuer, date: dateVal, imageUrl: finalImageUrl || '' });
-                }
-                localStorage.setItem('my_certs', JSON.stringify(savedCerts));
-            } catch(err){}
-
-            this.resetCertForm();
-            this.renderAdminLists(db);
-            if (typeof renderCertifications === 'function') renderCertifications();
-            alert('✅ تم حفظ وتحديث الشهادة بنجاح بدون تكرار!');
+            const success = await Store.saveKnowledge(db);
+            if (success) {
+                this.resetCertForm();
+                if (typeof renderCertifications === 'function') renderCertifications();
+            }
         };
 
         if (fileInput && fileInput.files && fileInput.files[0]) {
             const reader = new FileReader();
-            reader.onload = function(e) {
-                processSave(e.target.result);
+            reader.onload = async function(e) {
+                await processSave(e.target.result);
             };
             reader.readAsDataURL(fileInput.files[0]);
         } else {
-            processSave(imageUrlInput);
+            await processSave(imageUrlInput);
         }
     },
 
     editCertificate(index) {
-        const db = Store.getKnowledge();
+        const db = this.cachedDb;
+        if (!db || !db.certificates[index]) return;
         const c = db.certificates[index];
-        if (!c) return;
 
         document.getElementById('certEditIndex').value = index;
         document.getElementById('certTitle').value = c.title || '';
@@ -542,7 +543,7 @@ const App = {
         if (dateInput) dateInput.value = "";
     },
 
-    saveExperience() {
+    async saveExperience() {
         const indexInput = document.getElementById('expEditIndex');
         const roleInput = document.getElementById('expRole');
         const companyInput = document.getElementById('expCompany');
@@ -557,23 +558,21 @@ const App = {
 
         if (!role || !company) return alert('يرجى ملء المسمى والجهة.');
 
-        const db = Store.getKnowledge();
+        const db = this.cachedDb || await Store.getKnowledge();
         const item = { role, company, period, desc };
 
         if (!Array.isArray(db.experiences)) db.experiences = [];
         if (index >= 0) db.experiences[index] = item;
         else db.experiences.push(item);
 
-        Store.saveKnowledge(db);
-        if (indexInput) indexInput.value = "-1";
-        this.renderAdminLists(db);
-        alert('تم الحفظ والتحديث بنجاح!');
+        const success = await Store.saveKnowledge(db);
+        if (success && indexInput) indexInput.value = "-1";
     },
 
     editExperience(index) {
-        const db = Store.getKnowledge();
+        const db = this.cachedDb;
+        if (!db || !db.experiences[index]) return;
         const e = db.experiences[index];
-        if (!e) return;
 
         document.getElementById('expEditIndex').value = index;
         document.getElementById('expRole').value = e.role || '';
@@ -582,7 +581,7 @@ const App = {
         document.getElementById('expDesc').value = e.desc || '';
     },
 
-    saveSkill() {
+    async saveSkill() {
         const indexInput = document.getElementById('skillEditIndex');
         const nameInput = document.getElementById('skillName');
         const categoryInput = document.getElementById('skillCategory');
@@ -595,23 +594,21 @@ const App = {
 
         if (!name) return alert('يرجى إدخال اسم المهارة.');
 
-        const db = Store.getKnowledge();
+        const db = this.cachedDb || await Store.getKnowledge();
         const item = { name, category: category || 'عام', level };
 
         if (!Array.isArray(db.skills)) db.skills = [];
         if (index >= 0) db.skills[index] = item;
         else db.skills.push(item);
 
-        Store.saveKnowledge(db);
-        if (indexInput) indexInput.value = "-1";
-        this.renderAdminLists(db);
-        alert('تم حفظ المهارة وتحديثها!');
+        const success = await Store.saveKnowledge(db);
+        if (success && indexInput) indexInput.value = "-1";
     },
 
     editSkill(index) {
-        const db = Store.getKnowledge();
+        const db = this.cachedDb;
+        if (!db || !db.skills[index]) return;
         const s = db.skills[index];
-        if (!s) return;
 
         document.getElementById('skillEditIndex').value = index;
         document.getElementById('skillName').value = s.name || '';
@@ -619,7 +616,7 @@ const App = {
         document.getElementById('skillLevel').value = s.level || 'متوسط';
     },
 
-    saveVolunteer() {
+    async saveVolunteer() {
         const indexInput = document.getElementById('volEditIndex');
         const roleInput = document.getElementById('volRole');
         const orgInput = document.getElementById('volOrg');
@@ -632,23 +629,21 @@ const App = {
 
         if (!role || !org) return alert('يرجى إدخال المسمى والجهة.');
 
-        const db = Store.getKnowledge();
+        const db = this.cachedDb || await Store.getKnowledge();
         const item = { role, org, period };
 
         if (!Array.isArray(db.volunteer)) db.volunteer = [];
         if (index >= 0) db.volunteer[index] = item;
         else db.volunteer.push(item);
 
-        Store.saveKnowledge(db);
-        if (indexInput) indexInput.value = "-1";
-        this.renderAdminLists(db);
-        alert('تم حفظ العمل التطوعي وتحديثه!');
+        const success = await Store.saveKnowledge(db);
+        if (success && indexInput) indexInput.value = "-1";
     },
 
     editVolunteer(index) {
-        const db = Store.getKnowledge();
+        const db = this.cachedDb;
+        if (!db || !db.volunteer[index]) return;
         const v = db.volunteer[index];
-        if (!v) return;
 
         document.getElementById('volEditIndex').value = index;
         document.getElementById('volRole').value = v.role || '';
@@ -656,29 +651,15 @@ const App = {
         document.getElementById('volPeriod').value = v.period || '';
     },
 
-    deleteItem(key, index) {
-        if (!confirm('⚠️ هل أنت متأكد من الحذف الفعلي؟ سيتم إزالة العنصر وبياناته نهائياً من الموقع وتحديث كافة العروض.')) return;
+    async deleteItem(key, index) {
+        if (!confirm('⚠️ هل أنت متأكد من الحذف الفعلي؟ سيتم إزالة العنصر نهائياً من السحابة وتحديث كافة الأجهزة.')) return;
         
-        const db = Store.getKnowledge();
+        const db = this.cachedDb || await Store.getKnowledge();
         if (db[key] && Array.isArray(db[key])) {
-            const itemToDelete = db[key][index];
-            
             db[key].splice(index, 1);
-            Store.saveKnowledge(db);
-            
-            if (key === 'certificates' && itemToDelete) {
-                try {
-                    let savedCerts = JSON.parse(localStorage.getItem('my_certs') || '[]');
-                    savedCerts = savedCerts.filter(c => c.title !== itemToDelete.title);
-                    localStorage.setItem('my_certs', JSON.stringify(savedCerts));
-                } catch(e) {}
-            }
-
-            this.renderAdminLists(db);
-            this.renderAll();
+            await Store.saveKnowledge(db);
             if (typeof renderCertifications === 'function') renderCertifications();
-            
-            alert('🗑️ تم الحذف الفعلي وإصدار الأمر للموقع بحذف كافة البيانات المتعلقة بهذا العنصر بنجاح.');
+            alert('🗑️ تم الحذف والتزامن السحابي بنجاح.');
         }
     },
 
@@ -718,7 +699,7 @@ const App = {
         input.value = '';
         msgContainer.scrollTop = msgContainer.scrollHeight;
 
-        const kb = Store.getKnowledge();
+        const kb = this.cachedDb || await Store.getKnowledge();
         
         const strictSystemPrompt = `You are the personal assistant of Trainer Ahmed Adel Naji Thiab.
 CRITICAL RULES:
@@ -756,11 +737,10 @@ CRITICAL RULES:
                     break;
                 }
             } catch (err) {
-                console.warn("API Key Failed, trying next or fallback...", err);
+                console.warn("API Key Failed, trying next...", err);
             }
         }
 
-        // تم تحسين الردود الاحتياطية لتكون أكثر دقة في حال تعطل جميع مفاتيح الـ API
         if (!success) {
             let fallbackReply = "أهلاً بك! أنا مساعد الأستاذ أحمد عادل ناجي ذياب. يمكنك التواصل مع الأستاذ مباشرة عبر رقم الواتساب: +967779087415";
             const lowerText = text.toLowerCase();
