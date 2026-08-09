@@ -205,21 +205,34 @@ const App = {
     },
 
     generateTempKey() {
+        const durationSelect = document.getElementById('tempKeyDuration');
+        const typeVal = durationSelect ? durationSelect.value : "10";
         const randomPin = Math.floor(1000 + Math.random() * 9000).toString();
-        const expiryTime = new Date().getTime() + (10 * 60 * 1000);
+        
+        let expiryTime = 0;
+        let isSingleUse = false;
+
+        if (typeVal === "single") {
+            isSingleUse = true;
+            expiryTime = new Date().getTime() + (24 * 60 * 60 * 1000);
+        } else {
+            const mins = parseInt(typeVal) || 10;
+            expiryTime = new Date().getTime() + (mins * 60 * 1000);
+        }
 
         const tempKeyData = {
             pin: randomPin,
-            expiresAt: expiryTime
+            expiresAt: expiryTime,
+            isSingleUse: isSingleUse
         };
 
         sessionStorage.setItem('ahmed_temp_access_key', JSON.stringify(tempKeyData));
 
         const displayEl = document.getElementById('tempKeyDisplay');
         if (displayEl) {
-            displayEl.innerHTML = `🔑 المفتاح المؤقت: <span style="background:#dcf8c6; padding:4px 8px; border-radius:4px; color:#111;">${randomPin}</span> (صالح لمدة 10 دقائق)`;
+            displayEl.innerHTML = `🔑 المفتاح المؤقت: <span style="background:#dcf8c6; padding:4px 8px; border-radius:4px; color:#111;">${randomPin}</span> (${isSingleUse ? 'لفتح لمرة واحدة فقط' : `صالح لمدة ${typeVal} دقائق`})`;
         }
-        alert(`تم توليد المفتاح المؤقت بنجاح: ${randomPin}\nهذا المفتاح صالح لمدة 10 دقائق فقط.`);
+        alert(`تم توليد المفتاح المؤقت بنجاح: ${randomPin}\nالنوع: ${isSingleUse ? 'فتح لمرة واحدة فقط' : `صالح لمدة ${typeVal} دقائق`}`);
     },
 
     openCertPassModal(certId) {
@@ -246,7 +259,13 @@ const App = {
                 const currentTime = new Date().getTime();
                 
                 if (tempObj.pin === input) {
-                    if (currentTime <= tempObj.expiresAt) {
+                    if (tempObj.isSingleUse) {
+                        sessionStorage.removeItem('ahmed_temp_access_key');
+                        Store.unlockAllCerts();
+                        this.closeModal('accessModal');
+                        alert("✅ تم التحقق عبر مفتاح الاستخدام لمرة واحدة بنجاح! تم استهلاك المفتاح.");
+                        return;
+                    } else if (currentTime <= tempObj.expiresAt) {
                         Store.unlockAllCerts();
                         this.closeModal('accessModal');
                         alert("✅ تم التحقق عبر المفتاح المؤقت بنجاح!");
@@ -420,6 +439,7 @@ const App = {
 
         Store.saveKnowledge(db);
         this.resetCertForm();
+        this.renderAdminLists(db);
         alert('✅ تم حفظ وتحديث الشهادة بنجاح دون أي تكرار!');
     },
 
@@ -462,6 +482,7 @@ const App = {
 
         Store.saveKnowledge(db);
         document.getElementById('expEditIndex').value = "-1";
+        this.renderAdminLists(db);
         alert('تم الحفظ والتحديث بنجاح!');
     },
 
@@ -493,6 +514,7 @@ const App = {
 
         Store.saveKnowledge(db);
         document.getElementById('skillEditIndex').value = "-1";
+        this.renderAdminLists(db);
         alert('تم حفظ المهارة وتحديثها!');
     },
 
@@ -523,6 +545,7 @@ const App = {
 
         Store.saveKnowledge(db);
         document.getElementById('volEditIndex').value = "-1";
+        this.renderAdminLists(db);
         alert('تم حفظ العمل التطوعي وتحديثه!');
     },
 
@@ -538,13 +561,25 @@ const App = {
     },
 
     deleteItem(key, index) {
-        if (!confirm('هل أنت متأكد من الحذف؟ سيتم إزالة العنصر نهائياً من الموقع.')) return;
+        if (!confirm('هل أنت متأكد من الحذف الفعلي؟ سيتم إزالة العنصر نهائياً من الموقع.')) return;
         const db = Store.getKnowledge();
         if (db[key] && Array.isArray(db[key])) {
             db[key].splice(index, 1);
             Store.saveKnowledge(db);
+            
+            if (key === 'certificates') {
+                try {
+                    let savedCerts = JSON.parse(localStorage.getItem('my_certs') || '[]');
+                    if (savedCerts.length > 0 && savedCerts[index]) {
+                        savedCerts.splice(index, 1);
+                        localStorage.setItem('my_certs', JSON.stringify(savedCerts));
+                    }
+                } catch(e) {}
+            }
+
             this.renderAdminLists(db);
-            alert('🗑️ تم الحذف بنجاح.');
+            this.renderAll();
+            alert('🗑️ تم الحذف الفعلي وتحديث الموقع بنجاح.');
         }
     },
 
@@ -640,9 +675,6 @@ async function extractCertificateFromImage(event) {
         return;
     }
 
-    const statusEl = document.getElementById('loading-status');
-    if (statusEl) statusEl.style.display = 'block';
-
     const reader = new FileReader();
     reader.onload = async function() {
         const base64Image = reader.result;
@@ -651,49 +683,6 @@ async function extractCertificateFromImage(event) {
         let finalTitle = cleanName;
         let finalIssuer = "تم الرفع من الجهاز (تعديل يدوي)";
         let finalDate = new Date().toLocaleDateString('ar-YE');
-
-        const prompt = "استخرج من صورة هذه الشهادة البيانات التالية بدقة وأعطني إياها حصراً على شكل كود JSON بهذا الشكل فقط دون أي نص إضافي: {\"title\": \"عنوان الشهادة\", \"issuer\": \"جهة الإصدار\", \"date\": \"التاريخ\"}";
-
-        for (let apiKey of CONFIG.AI_API_KEYS) {
-            try {
-                const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${apiKey}`
-                    },
-                    body: JSON.stringify({
-                        model: "llama-3.2-11b-vision-preview",
-                        messages: [
-                            {
-                                role: "user",
-                                content: [
-                                    { type: "text", text: prompt },
-                                    { type: "image_url", image_url: { url: base64Image } }
-                                ]
-                            }
-                        ]
-                    })
-                });
-
-                const data = await response.json();
-                if (data.choices && data.choices[0]) {
-                    let content = data.choices[0].message.content;
-                    content = content.replace(/```json/g, '').replace(/```/g, '').trim();
-                    const parsed = JSON.parse(content);
-                    if (parsed.title) {
-                        finalTitle = parsed.title;
-                        if (parsed.issuer) finalIssuer = parsed.issuer;
-                        if (parsed.date) finalDate = parsed.date;
-                        break;
-                    }
-                }
-            } catch (err) {
-                console.warn("الاستخراج التلقائي متوقف مؤقتاً، سيتم الاعتماد على رفع الصورة مباشرة.");
-            }
-        }
-
-        if (statusEl) statusEl.style.display = 'none';
 
         const newCertData = {
             id: `cert-img-${Date.now()}`,
@@ -710,13 +699,8 @@ async function extractCertificateFromImage(event) {
         Store.saveKnowledge(db);
 
         alert(`✅ تم رفع وعرض الشهادة بنجاح!\n- العنوان: ${finalTitle}`);
-        
-        if (typeof App !== 'undefined' && App.renderAll) {
-            App.renderAll();
-        }
-        if (typeof renderCertifications === 'function') {
-            renderCertifications();
-        }
+        App.renderAll();
+        if (typeof renderCertifications === 'function') renderCertifications();
     };
     reader.readAsDataURL(file);
 }
@@ -762,12 +746,20 @@ function uploadCertificateDirectly() {
         db.certificates.push(newCertificate);
         Store.saveKnowledge(db);
 
+        try {
+            const savedCerts = JSON.parse(localStorage.getItem('my_certs') || '[]');
+            savedCerts.push({ title, issuer, date: dateInput ? dateInput.value : '', imageUrl: base64Image });
+            localStorage.setItem('my_certs', JSON.stringify(savedCerts));
+        } catch(err){}
+
         titleInput.value = '';
         issuerInput.value = '';
         if(dateInput) dateInput.value = '';
         fileInput.value = '';
 
         alert('✅ تم إضافة الشهادة المرفوعة وتحديث الموقع فوراً!');
+        App.renderAll();
+        renderCertifications();
     };
 
     reader.readAsDataURL(file);
@@ -778,14 +770,29 @@ function renderCertifications() {
     if (!certContainer) return;
 
     const savedCerts = JSON.parse(localStorage.getItem('my_certs') || '[]');
+    const unlockedList = Store.getUnlockedCerts();
     
-    certContainer.innerHTML = savedCerts.map(cert => `
-        <div class="cert-card">
-            <h3>${cert.title}</h3>
-            <p><strong>الجهة:</strong> ${cert.issuer}</p>
-            <p><strong>التاريخ:</strong> ${cert.date || ''}</p>
-        </div>
-    `).join('');
+    certContainer.innerHTML = savedCerts.map((cert, idx) => {
+        const certId = `vision-cert-${idx}`;
+        const isUnlocked = unlockedList.includes(certId);
+        const imgPreview = cert.imageUrl ? `<div class="cert-img-box"><img src="${cert.imageUrl}" alt="${cert.title}" class="cert-thumbnail"></div>` : '';
+        
+        return `
+            <div class="cert-item ${isUnlocked ? 'unlocked' : ''}">
+                ${isUnlocked ? imgPreview : ''}
+                <div class="cert-info">
+                    <h4>${cert.title}</h4>
+                    <p>📌 ${cert.issuer} | 🗓️ ${cert.date || ''}</p>
+                </div>
+                <div>
+                    ${isUnlocked ? 
+                        (cert.imageUrl ? `<a href="${cert.imageUrl}" target="_blank" class="btn-primary" style="text-decoration:none; font-size:0.85rem; width:100%;">👁️ معاينة المستند</a>` : `<span style="color:var(--primary-color); font-size:0.85rem; display:block; text-align:center;">تم فتح المعاينة بنجاح</span>`) :
+                        `<button class="btn-primary" onclick="App.openCertPassModal('${certId}')" style="width:100%;">🔒 طلب فتح المعاينة</button>`
+                    }
+                </div>
+            </div>
+        `;
+    }).join('');
 }
 
 window.App = App;
