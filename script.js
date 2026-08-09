@@ -515,12 +515,12 @@ const App = {
 
         const kb = Store.getKnowledge();
         
-        const strictSystemPrompt = `أنت المساعد الشخصي للمدرب أحمد عادل ناجي ذياب. 
-قواعد صارمة جداً:
-1. التزم بالرد حصراً ونهائياً **بلغة السائل** التي استخدمها في سؤاله (إذا سأل بالعربية أجب بالعربية وحدها تماماً، وإذا سأل بالإنجليزية أجب بالإنجليزية وحدها).
-2. ممنوع نهائياً خلط اللغات أو إدخال لغات غريبة (كالصينية أو غيرها).
-3. تحدث بطريقة طبيعية ومحاكاة تامة للبشر مثل أسلوب المراسلة عبر تطبيق واتساب (مختصر، ودود، وخالٍ من الحشو والتكرار الممل).
-بيانات الموقع المتوفرة لديك: ${JSON.stringify(kb)}`;
+        const strictSystemPrompt = `You are Ahmed Adel Naji Thiab's friendly, human-like personal assistant in his interactive portfolio. 
+CRITICAL BEHAVIOR RULES:
+1. MATCH LANGUAGE EXACTLY: Detect the language of the user's latest input precisely. If the user writes in Arabic, reply ONLY in natural, friendly Arabic. If the user writes in English, reply ONLY in natural, friendly English. Do not mix languages.
+2. HUMAN-LIKE & WAAAY LESS FORMAL: Speak like a real human friend chatting on WhatsApp—warm, friendly, conversational, and direct. Avoid stiff robotic phrases, corporate fluff, or formal academic introductions. 
+3. ACCURATE TRANSLATION & CONTEXT: Translate and interpret queries accurately using the provided portfolio database, keeping answers concise and helpful.
+Available knowledge base data: ${JSON.stringify(kb)}`;
 
         let success = false;
         for (let apiKey of CONFIG.AI_API_KEYS) {
@@ -551,7 +551,7 @@ const App = {
         }
 
         if (!success) {
-            msgContainer.innerHTML += `<div class="msg bot-msg">⚠️ عذراً، واجهت مشكلة بسيطة في الاتصال. يمكنك مراسلة الأستاذ مباشرة عبر الواتساب.</div>`;
+            msgContainer.innerHTML += `<div class="msg bot-msg">⚠️ عذراً، واجهت مشكلة في الاتصال. يمكنك مراسلة الأستاذ أحمد مباشرة عبر الواتساب. / Sorry, connection issue. You can contact Ahmed directly via WhatsApp.</div>`;
         }
         msgContainer.scrollTop = msgContainer.scrollHeight;
     }
@@ -560,7 +560,6 @@ const App = {
 window.App = App;
 document.addEventListener('DOMContentLoaded', () => App.init());
 
-// دالة الذكاء البصري لقراءة الشهادات تلقائياً وحفظها
 async function extractCertificateFromImage(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -571,7 +570,6 @@ async function extractCertificateFromImage(event) {
     const reader = new FileReader();
     reader.onload = async function() {
         const base64Image = reader.result;
-
         const prompt = "استخرج من صورة هذه الشهادة (سواء كانت بالعربية أو الإنجليزية) البيانات التالية بدقة تامة وأعطني إياها حصراً على شكل كود JSON بهذا الشكل فقط دون أي كلام إضافي أو شرح: {\"title\": \"عنوان الشهادة أو الدورة\", \"issuer\": \"جهة الإصدار أو الجامعة\", \"date\": \"السنة أو التاريخ\"}";
 
         let extractedData = null;
@@ -605,7 +603,7 @@ async function extractCertificateFromImage(event) {
                     extractedData = JSON.parse(content);
                     break;
                 }
-            } catch (err) {
+            } catch/err/ {
                 console.warn("خطأ في قراءة الصورة:", err);
             }
         }
@@ -631,6 +629,7 @@ function renderCertifications() {
     const certContainer = document.getElementById('certifications-container');
     if (!certContainer) return;
 
+    `eval` // safe placeholder or keep clean
     const savedCerts = JSON.parse(localStorage.getItem('my_certs') || '[]');
     
     certContainer.innerHTML = savedCerts.map(cert => `
