@@ -216,18 +216,23 @@ const App = {
 
     generateTempKey() {
         const durationSelect = document.getElementById('tempKeyDuration');
-        const typeVal = durationSelect ? durationSelect.value : "10";
+        const typeVal = durationSelect ? durationSelect.value : "24h";
         const randomPin = Math.floor(1000 + Math.random() * 9000).toString();
         
         let expiryTime = 0;
         let isSingleUse = false;
+        let durationText = "";
 
         if (typeVal === "single") {
             isSingleUse = true;
             expiryTime = new Date().getTime() + (24 * 60 * 60 * 1000);
-        } else {
-            const mins = parseInt(typeVal) || 10;
-            expiryTime = new Date().getTime() + (mins * 60 * 1000);
+            durationText = "لفتح لمرة واحدة فقط";
+        } else if (typeVal === "24h") {
+            expiryTime = new Date().getTime() + (24 * 60 * 60 * 1000);
+            durationText = "صالح لمدة 24 ساعة";
+        } else if (typeVal === "72h") {
+            expiryTime = new Date().getTime() + (72 * 60 * 60 * 1000);
+            durationText = "صالح لمدة 72 ساعة";
         }
 
         const tempKeyData = {
@@ -240,9 +245,9 @@ const App = {
 
         const displayEl = document.getElementById('tempKeyDisplay');
         if (displayEl) {
-            displayEl.innerHTML = `🔑 المفتاح المؤقت: <span style="background:#dcf8c6; padding:4px 8px; border-radius:4px; color:#111;">${randomPin}</span> (${isSingleUse ? 'لفتح لمرة واحدة فقط' : `صالح لمدة ${typeVal} دقائق`})`;
+            displayEl.innerHTML = `🔑 المفتاح المؤقت: <span style="background:#dcf8c6; padding:4px 8px; border-radius:4px; color:#111;">${randomPin}</span> (${durationText})`;
         }
-        alert(`تم توليد المفتاح المؤقت بنجاح: ${randomPin}\nالنوع: ${isSingleUse ? 'فتح لمرة واحدة فقط' : `صالح لمدة ${typeVal} دقائق`}`);
+        alert(`تم توليد المفتاح المؤقت بنجاح: ${randomPin}\nالنوع: ${durationText}`);
     },
 
     openCertPassModal(certId) {
@@ -679,9 +684,6 @@ const App = {
     },
 
     async sendChatMessage() {
-        // حماية لمنع التداخل في حال الضغط المتكرر أو معالجة طلب حالي
-        if (this.isAIBusy) return;
-        
         const input = document.getElementById('ai-chat-input');
         if (!input) return;
         const text = input.value.trim();
@@ -690,109 +692,67 @@ const App = {
         const msgContainer = document.getElementById('ai-chat-messages');
         if (!msgContainer) return;
 
-        this.isAIBusy = true; // قفل لمنع التداخل
-
-        const isEnglish = /^[A-Za-z0-9\s.,?!@#$%^&*()_+-=]+$/.test(text);
-
-        // عرض رسالة المستخدم في الشات فوراً
         msgContainer.innerHTML += `<div class="msg user-msg">${text}</div>`;
         input.value = '';
         msgContainer.scrollTop = msgContainer.scrollHeight;
 
-        let kb = {};
-        try {
-            kb = (typeof Store !== 'undefined' && Store.getKnowledge) ? Store.getKnowledge() : {};
-        } catch (e) {
-            kb = {};
-        }
+        const kb = Store.getKnowledge();
         
-        const strictSystemPrompt = `You are the highly intelligent, professional, and friendly personal AI assistant of Trainer and Accountant Ahmed Adel Naji Thiab.
+        const strictSystemPrompt = `You are the personal assistant of Trainer Ahmed Adel Naji Thiab.
 CRITICAL RULES:
 1. STRICT LANGUAGE MATCHING: You MUST reply in the EXACT SAME language as the user's prompt. 
-   - If the user asks in English, translate data and answer 100% in English.
+   - If the user asks in English, you MUST translate the provided Arabic data and answer 100% in English.
    - If the user asks in Arabic, answer in Arabic.
-   - NEVER mix languages.
-2. STYLE & INTERACTIVITY: Be extremely helpful, conversational, engaging, and professional like an expert executive assistant. Offer proactive details about Ahmed's accounting systems training (Extra System), ICDL, English B2, and university degree at University of Abyan. Guide clients to contact via WhatsApp (+967779087415) when booking training or requesting consultation.
+   - NEVER mix languages in your response.
+2. STYLE: Keep responses natural, conversational, concise, and friendly like a WhatsApp message.
 3. KNOWLEDGE BASE: ${JSON.stringify(kb)}`;
 
         let success = false;
-        let aiResponseText = "";
-
-        let keys = (typeof CONFIG !== 'undefined' && CONFIG.AI_API_KEYS) ? CONFIG.AI_API_KEYS : [];
-        if (typeof keys === 'string') {
-            keys = [keys];
-        }
-
-        for (let apiKey of keys) {
-            if (!apiKey || typeof apiKey !== 'string' || apiKey.trim() === "" || apiKey.includes("KEY_NUMBER")) {
-                continue;
-            }
-            
+        for (let apiKey of CONFIG.AI_API_KEYS) {
             try {
-                // إضافة تحكم في وقت الانتظار (Timeout) لمنع تعليق النظام إذا فتحت لوحة التحكم بالتزامن
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 12000); // 12 ثانية كحد أقصى للطلب
-
                 const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${apiKey.trim()}`
+                        'Authorization': `Bearer ${apiKey}`
                     },
                     body: JSON.stringify({
                         model: "llama-3.3-70b-versatile",
                         messages: [
                             { role: "system", content: strictSystemPrompt },
                             { role: "user", content: text }
-                        ],
-                        temperature: 0.7,
-                        max_tokens: 1000
-                    }),
-                    signal: controller.signal
+                        ]
+                    })
                 });
-
-                clearTimeout(timeoutId);
                 const data = await res.json();
-                
-                if (res.ok && data.choices && data.choices[0] && data.choices[0].message) {
-                    aiResponseText = data.choices[0].message.content;
+                if (data.choices && data.choices[0]) {
+                    msgContainer.innerHTML += `<div class="msg bot-msg">${data.choices[0].message.content}</div>`;
                     success = true;
                     break;
                 }
             } catch (err) {
-                console.warn("AI Request Handled Exception:", err);
+                console.warn(err);
             }
         }
 
-        if (success && aiResponseText) {
-            msgContainer.innerHTML += `<div class="msg bot-msg">${aiResponseText}</div>`;
-        } else {
-            let fallbackReply = "";
+        if (!success) {
+            let fallbackReply = "أهلاً بك! أنا مساعد الأستاذ أحمد عادل ناجي ذياب. يمكنك التواصل مع الأستاذ مباشرة عبر رقم الواتساب: +967779087415";
             const lowerText = text.toLowerCase();
-            const whatsappNum = (typeof CONFIG !== 'undefined' && CONFIG.WHATSAPP_NUMBER) ? CONFIG.WHATSAPP_NUMBER : '779087415';
 
-            if (isEnglish) {
-                if (lowerText.includes('who') || lowerText.includes('about')) {
-                    fallbackReply = `Hello! I am the personal assistant of Trainer Ahmed Adel Naji Thiab. You can contact Ahmed directly via WhatsApp: +967 ${whatsappNum}.`;
-                } else {
-                    fallbackReply = `Hello! I'm Ahmed Adel's assistant. For direct courses, accounting systems (Extra System) inquiries, or booking, reach out via WhatsApp: +967 ${whatsappNum}.`;
-                }
-            } else {
-                fallbackReply = `أهلاً بك! أنا مساعد الأستاذ أحمد عادل ناجي ذياب. يسعدني جداً تواصلك. يمكنك الاستفسار عن الدورات المحاسبية (نظام إكسترا)، أو مراسلة الأستاذ مباشرة عبر الواتساب: +967 ${whatsappNum}`;
-                
-                if (lowerText.includes('رقم') || lowerText.includes('واتس') || lowerText.includes('تواصل') || lowerText.includes('اتصال')) {
-                    fallbackReply = `📞 رقم الواتساب الرسمي للتواصل المباشر مع الأستاذ أحمد عادل ناجي ذياب هو: +967 ${whatsappNum}، وهو متواجد دائماً للرد على الاستفسارات.`;
-                } else if (lowerText.includes('السعر') || lowerText.includes('تكلفة') || lowerText.includes('حجز') || lowerText.includes('تسجيل')) {
-                    fallbackReply = `💡 لحجز الدورات أو الاستفسار عن المواعيد والأسعار، يرجى التنسيق المباشر مع الأستاذ أحمد عبر الواتساب على الرقم: +967 ${whatsappNum}.`;
-                }
+            if (lowerText.includes('رقم') || lowerText.includes('واتس') || lowerText.includes('تواصل') || lowerText.includes('whatsapp') || lowerText.includes('phone')) {
+                fallbackReply = `رقم الواتساب الخاص بالأستاذ أحمد عادل هو: +967 ${CONFIG.WHATSAPP_NUMBER}، ويمكنك مراسلته مباشرة.`;
+            } else if (lowerText.includes('اخبار') || lowerText.includes('آخر') || lowerText.includes('جديد')) {
+                fallbackReply = `آخر نشاطات الأستاذ أحمد تتضمن تقديم دورات تدريبية متقدمة في الأنظمة المحاسبية (نظام إكسترا) والبرمجيات وإدارة الحسابات.`;
+            } else if (lowerText.includes('شهادة') || lowerText.includes('بكالوريوس') || lowerText.includes('icdl')) {
+                fallbackReply = `الأستاذ أحمد حاصل على بكالوريوس المحاسبة من جامعة أبين، ودبلوم ICDL، وشهادة اللغة الإنجليزية (B2)، بالإضافة لشهادات نظام إكسترا المحاسبي.`;
             }
 
             msgContainer.innerHTML += `<div class="msg bot-msg">${fallbackReply}</div>`;
         }
-        
         msgContainer.scrollTop = msgContainer.scrollHeight;
-        this.isAIBusy = false; // فك القفل للسماح برسائل جديدة
     }
+};
+
 /**
  * دوال معالجة ورفع الشهادات الخارجية وعرضها
  */
