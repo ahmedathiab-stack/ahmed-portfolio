@@ -539,3 +539,70 @@ const App = {
 
 window.App = App;
 document.addEventListener('DOMContentLoaded', () => App.init());
+// دالة الذكاء البصري لقراءة الشهادات تلقائياً وتحفظها
+async function extractCertificateFromImage(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const statusEl = document.getElementById('loading-status');
+    if (statusEl) statusEl.style.display = 'block';
+
+    const reader = new FileReader();
+    reader.onload = async function() {
+        const base64Image = reader.result;
+
+        const prompt = "استخرج من صورة هذه الشهادة (سواء كانت بالعربية أو الإنجليزية) البيانات التالية بدقة تامة وأعطني إياها حصراً على شكل كود JSON بهذا الشكل فقط دون أي كلام إضافي أو شرح: {\"title\": \"عنوان الشهادة أو الدورة\", \"issuer\": \"جهة الإصدار أو الجامعة\", \"date\": \"السنة أو التاريخ\"}";
+
+        let extractedData = null;
+
+        for (let apiKey of CONFIG.AI_API_KEYS) {
+            try {
+                const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: "llama-3.2-11b-vision-preview",
+                        messages: [
+                            {
+                                role: "user",
+                                content: [
+                                    { type: "text", text: prompt },
+                                    { type: "image_url", image_url: { url: base64Image } }
+                                ]
+                            }
+                        ]
+                    })
+                });
+
+                const data = await response.json();
+                if (data.choices && data.choices[0]) {
+                    let content = data.choices[0].message.content;
+                    content = content.replace(/```json/g, '').replace(/```/g, '').trim();
+                    extractedData = JSON.parse(content);
+                    break;
+                }
+            } catch (err) {
+                console.warn("خطأ في قراءة الصورة:", err);
+            }
+        }
+
+        if (statusEl) statusEl.style.display = 'none';
+
+        if (extractedData) {
+            // حفظ الشهادة تلقائياً في التخزين المحلي
+            let savedCerts = JSON.parse(localStorage.getItem('my_certs') || '[]');
+            savedCerts.push(extractedData);
+            localStorage.setItem('my_certs', JSON.stringify(savedCerts));
+
+            alert(`✅ تمت قراءة الشهادة بنجاح!\n- العنوان: ${extractedData.title}\n- الجهة: ${extractedData.issuer}`);
+            
+            // إذا كانت لديك دالة تحدث عرض الشهادات في الصفحة قم باستدعائها هنا (مثال: loadCertifications();)
+        } else {
+            alert("⚠️ عذراً، لم نتمكن من قراءة الشهادة بوضوح. حاول رفع صورة واضحة ومضاءة جيداً.");
+        }
+    };
+    reader.readAsDataURL(file);
+}
