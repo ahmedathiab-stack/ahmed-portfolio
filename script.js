@@ -42,7 +42,68 @@ const DEFAULT_KNOWLEDGE_BASE = {
         { role: "ميسر وأخصائي تدريب مجتمعي", org: "مبادرات محلية - أبين", period: "2022 - 2024" }
     ]
 };
+/**
+ * رفع الشهادة والبيانات مباشرة من نموذج الموقع وعرضها فوراً
+ */
+function uploadCertificateDirectly() {
+    const titleInput = document.getElementById('manualCertTitle');
+    const issuerInput = document.getElementById('manualCertIssuer');
+    const dateInput = document.getElementById('manualCertDate');
+    const fileInput = document.getElementById('manualCertFile');
 
+    const title = titleInput ? titleInput.value.trim() : "";
+    const issuer = issuerInput ? issuerInput.value.trim() : "مستند رسمي";
+    const certDate = dateInput ? dateInput.value : new Date().toLocaleDateString('ar-YE');
+    const file = fileInput && fileInput.files[0] ? fileInput.files[0] : null;
+
+    if (!title) {
+        alert('⚠️ يرجى كتابة عنوان الشهادة على الأقل.');
+        return;
+    }
+
+    if (!file) {
+        alert('⚠️ يرجى اختيار صورة الشهادة.');
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const base64Image = e.target.result;
+
+        // تجهيز كائن الشهادة الجديدة
+        const newCertificate = {
+            id: `cert-manual-${Date.now()}`,
+            title: title,
+            issuer: issuer,
+            date: certDate,
+            imageUrl: base64Image,
+            category: "مستندات مرفوعة"
+        };
+
+        // حفظها في التخزين المحلي (LocalStorage) لتبقى ظاهرة دائماً
+        let savedCerts = JSON.parse(localStorage.getItem('my_certs') || '[]');
+        savedCerts.push(newCertificate);
+        localStorage.setItem('my_certs', JSON.stringify(savedCerts));
+
+        // تفريغ الحقول بعد الحفظ
+        titleInput.value = '';
+        issuerInput.value = '';
+        if(dateInput) dateInput.value = '';
+        fileInput.value = '';
+
+        alert('✅ تم إضافة الشهادة بنجاح وتحديث الموقع فوراً!');
+
+        // تحديث العرض على الموقع
+        if (typeof App !== 'undefined' && App.renderAll) {
+            App.renderAll();
+        }
+        if (typeof renderCertifications === 'function') {
+            renderCertifications();
+        }
+    };
+
+    reader.readAsDataURL(file);
+}
 /**
  * إدارة التخزين وقاعدة المعرفة محلياً
  */
