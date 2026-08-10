@@ -117,25 +117,39 @@
         </section>
     </main>
 
-    <!-- 1️⃣ الذكاء المساعد للزوار (شات الواتساب - معرف منفصل) -->
-    <div id="whatsapp-chat-box">
-        <div id="wa-chat-header">
-            <div style="display:flex; align-items:center; gap:10px;">
-                <div class="wa-avatar">أ</div>
-                <div>
-                    <div style="font-weight:bold;">المساعد الذكي</div>
-                    <small style="font-size:0.75rem; opacity:0.8;">متصل الآن</small>
-                </div>
+    <!-- الحاوية العائمة للزر مع النص التعريفي المتحرك -->
+<div style="position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; align-items: center; gap: 10px;">
+    <span style="background: #ffffff; padding: 8px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.15); color: #075e54; white-space: nowrap;">تواصل مع المساعد 💬</span>
+    <button id="public-chat-btn" onclick="AIEngine.togglePublicChat()" style="position: static; width: 60px; height: 60px; border-radius: 50%; background: #25d366; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 28px; box-shadow: 0 6px 20px rgba(37, 211, 102, 0.4); border: none; cursor: pointer; transition: transform 0.3s;">
+        <i class="fab fa-whatsapp"></i>
+    </button>
+</div>
+
+<!-- صندوق المحادثة المطور والمريح للعين -->
+<div id="whatsapp-chat-box">
+    <div id="wa-chat-header">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <div class="wa-avatar">أ</div>
+            <div>
+                <h5 style="margin:0; font-size: 0.95rem; color:#fff;">سكرتير أحمد عادل</h5>
+                <small style="font-size: 0.75rem; color: #d1d7db;">متصل الآن</small>
             </div>
-            <span style="cursor:pointer;" onclick="AIEngine.togglePublicChat()">✖</span>
         </div>
-        <div id="wa-chat-messages"></div>
-        <div id="wa-chat-input-area">
-            <input type="text" id="wa-chat-input" placeholder="اكتب استفسارك هنا..." onkeypress="if(event.key==='Enter') AIEngine.sendPublicMessage()">
-            <button id="wa-chat-send" onclick="AIEngine.sendPublicMessage()">➤</button>
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <button onclick="toggleChatFullscreen()" style="background: none; border: none; color: #fff; cursor: pointer; font-size: 1.1rem; padding: 4px;" title="تكبير الشات">⛶</button>
+            <button onclick="AIEngine.togglePublicChat()" style="background: none; border: none; color: #fff; cursor: pointer; font-size: 1.2rem; padding: 4px;" title="إغلاق">✕</button>
         </div>
     </div>
-    <button id="public-chat-btn" onclick="AIEngine.togglePublicChat()">💬 تواصل مع المساعد</button>
+    
+    <div id="wa-chat-messages">
+        <div class="msg bot-msg">أهلاً بك! كيف يمكنني مساعدتك اليوم في استفساراتك أو برامجك التدريبية؟</div>
+    </div>
+    
+    <div id="wa-chat-input-area">
+        <input type="text" id="wa-chat-input" placeholder="اكتب رسالتك هنا..." onkeypress="if(event.key === 'Enter') AIEngine.sendPublicMessage()">
+        <button id="wa-chat-send" onclick="AIEngine.sendPublicMessage()">➤</button>
+    </div>
+</div>
 
     <!-- 2️⃣ لوحة الذكاء الإداري (ستايل جمناي الداكن - معرف منفصل) -->
     <div id="gemini-admin-box">
