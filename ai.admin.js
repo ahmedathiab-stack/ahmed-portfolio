@@ -45,4 +45,16 @@ initAIAdmin();
         "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"
     ]
 }
-
+const volList = document.getElementById('admin-vol-list');
+        if (volList) {
+            volList.innerHTML = (db.volunteer || []).map((v, i) => `
+                <div class="admin-row">
+                    <span>${v.role}</span>
+                    <div>
+                        <button class="btn-action-edit" onclick="App.editVolunteer(${i})">✏️</button>
+                        <button class="btn-action-delete" onclick="App.deleteItem('volunteer', ${i})">🗑️</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+    },
