@@ -1,289 +1,162 @@
 // =========================================================
-//  محرك الذكاء الاصطناعي ووحدة الإدارة والمساعد العام (النسخة المدمجة)
+//  محرك الذكاء الاصطناعي المنفصل (AIEngine)
 // =========================================================
 
-// 1. الإعدادات ومفاتيح الـ API
 const AI_CONFIG = {
-    KEYS: [
-        "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"
-    ],
+    KEYS: ["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"],
     MODEL: "llama-3.3-70b-versatile"
 };
 
-let currentApiKeyIndex = 0;
-
-function getNextApiKey() {
-    if (!AI_CONFIG.KEYS || AI_CONFIG.KEYS.length === 0) return "";
-    const key = AI_CONFIG.KEYS[currentApiKeyIndex];
-    currentApiKeyIndex = (currentApiKeyIndex + 1) % AI_CONFIG.KEYS.length;
+let currentKeyIdx = 0;
+function getApiKey() {
+    if (!AI_CONFIG.KEYS.length) return "";
+    const key = AI_CONFIG.KEYS[currentKeyIdx];
+    currentKeyIdx = (currentKeyIdx + 1) % AI_CONFIG.KEYS.length;
     return key;
 }
 
-// 2. وحدة المعالجة والتنظيف العامة
 window.AIEngine = {
-    cleanText: function (text) {
+    // 1. تنظيف النصوص
+    cleanText: function(text) {
         if (!text || typeof text !== 'string') return text || '';
+        return text.replace(/\b(aden|abien)\s+university\b/gi, "Abyan University").replace(/\babien\b/gi, "Abyan");
+    },
 
-        try {
-            return text
-                .replace(/\b(aden|abien)\s+university\b/gi, "Abyan University")
-                .replace(/\babien\b/gi, "Abyan");
-        } catch (error) {
-            console.warn("AI Engine Warning:", error);
-            return text;
-        }
-    }
-};
-
-// 3. دوال الواجهة والتبويبات المساعدة (Global Scope)
-window.switchTab = (id) => {
-    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    
-    const targetTab = document.getElementById(id + '-tab');
-    if (targetTab) targetTab.classList.add('active');
-    
-    if (event && event.target) {
-        event.target.classList.add('active');
-    }
-    
-    if (id === 'memory' && window.App && window.App.cachedDb) {
-        const memoryView = document.getElementById('memory-view');
-        if (memoryView) {
-            memoryView.innerText = JSON.stringify(window.App.cachedDb, null, 2);
-        }
-    }
-};
-
-window.trainAI = async () => {
-    const trainInput = document.getElementById('train-input');
-    if (!trainInput) return;
-    const text = trainInput.value;
-    if (!text || !text.trim()) {
-        alert("الرجاء كتابة المحتوى لتدرّب الذكاء الاصطناعي عليه.");
-        return;
-    }
-    if (window.App && typeof window.App.executeAdminAICommand === 'function') {
-        await window.App.executeAdminAICommand("Learn this new content and add it to your knowledge base: " + text);
-        alert("تم إرسال البيانات للذكاء الاصطناعي بنجاح!");
-        trainInput.value = '';
-    }
-};
-
-// 4. تهيئة وتطعيم كائن App بجميع الميزات
-function initAIAdmin() {
-    if (!window.App) {
-        setTimeout(initAIAdmin, 100);
-        return;
-    }
-
-    // بناء واجهة التبويبات المتقدمة داخل DOM إذا لم تكن موجودة
-    if (!document.getElementById('ai-chat-box')) {
-        const box = document.createElement('div');
-        box.id = 'ai-chat-box';
-        box.innerHTML = `
-            <div class="ai-tabs">
-                <button class="tab-btn active" onclick="switchTab('chat')">الدردشة</button>
-                <button class="tab-btn" onclick="switchTab('train')">التدريب</button>
-                <button class="tab-btn" onclick="switchTab('memory')">الذاكرة</button>
-                <button class="tab-btn" onclick="switchTab('perms')">الصلاحيات</button>
-                <button onclick="App.toggleChat()" style="margin-left:auto; background:#ef4444; color:#fff; border:none; padding:6px 12px; border-radius:6px; cursor:pointer;">إغلاق</button>
-            </div>
-            <div id="chat-tab" class="tab-content active">
-                <div id="ai-chat-messages"></div>
-                <input id="ai-chat-input" placeholder="اكتب أمرك هنا..." onkeydown="App.handleChatKey(event)">
-            </div>
-            <div id="train-tab" class="tab-content">
-                <textarea id="train-input" placeholder="ضع رابط الفيديو أو نص الكتاب أو المحتوى ليتعلمه الذكاء..."></textarea>
-                <button onclick="trainAI()">إرسال للتعلم</button>
-            </div>
-            <div id="memory-tab" class="tab-content">
-                <pre id="memory-view"></pre>
-            </div>
-            <div id="perms-tab" class="tab-content">
-                <label><input type="checkbox" id="perm-edit" checked> السماح بالتعديل على البيانات</label><br>
-                <label><input type="checkbox" id="perm-style"> السماح بتعديل التصميم</label>
-            </div>
-        `;
-        document.body.appendChild(box);
-    }
-
-    // ربط دالة التنظيف
-    window.App.fixText = window.AIEngine.cleanText;
-
-    // التحكم بفتح وإغلاق النافذة
-    window.App.toggleChat = function() {
-        const box = document.getElementById('ai-chat-box');
-        const btn = document.getElementById('ai-chat-btn');
+    // 2. التحكم بشات الواتساب (المساعد العام)
+    togglePublicChat: function() {
+        const box = document.getElementById('whatsapp-chat-box');
+        const btn = document.getElementById('public-chat-btn');
         if (!box) return;
-        
-        const isVisible = box.style.display === 'flex' || getComputedStyle(box).display === 'flex';
-        box.style.display = isVisible ? 'none' : 'flex';
-        if (btn) btn.style.display = isVisible ? 'flex' : 'none';
-    };
+        const isVis = box.style.display === 'flex';
+        box.style.display = isVis ? 'none' : 'flex';
+        if (btn) btn.style.display = isVis ? 'flex' : 'none';
+    },
 
-    window.App.handleChatKey = function(e) {
-        if (e.key === 'Enter') this.sendChatMessage();
-    };
-
-    // دردشة المساعد العام (شات الزوار)
-    window.App.sendChatMessage = async function() {
-        const input = document.getElementById('ai-chat-input');
-        if (!input) return;
+    sendPublicMessage: async function() {
+        const input = document.getElementById('wa-chat-input');
+        const msgBox = document.getElementById('wa-chat-messages');
+        if (!input || !msgBox) return;
         const text = input.value.trim();
         if (!text) return;
 
-        const msgContainer = document.getElementById('ai-chat-messages');
-        if (!msgContainer) return;
-
-        msgContainer.innerHTML += `<div class="msg user-msg">${text}</div>`;
+        msgBox.innerHTML += `<div class="msg user-msg">${text}</div>`;
         input.value = '';
-        msgContainer.scrollTop = msgContainer.scrollHeight;
+        msgBox.scrollTop = msgBox.scrollHeight;
 
-        const kb = this.cachedDb || (typeof Store !== 'undefined' ? await Store.getKnowledge() : {});
-        
-        const strictSystemPrompt = `You are the personal assistant of Trainer Ahmed Adel Naji Thiab.
-CRITICAL RULES:
-1. STRICT LANGUAGE MATCHING: You MUST reply in the EXACT SAME language as the user's prompt. 
-   - If the user asks in English, translate data and answer 100% in English.
-   - If the user asks in Arabic, answer in Arabic.
-2. STYLE: Keep responses natural, conversational, concise, and friendly like a WhatsApp message.
-3. KNOWLEDGE BASE: ${JSON.stringify(kb)}`;
+        const kb = (window.App && window.App.cachedDb) ? window.App.cachedDb : {};
+        const prompt = `You are the WhatsApp AI assistant for Trainer Ahmed Adel Naji Thiab. Reply in exact language of user query (Arabic/English). Be friendly, short, accurate. Knowledge Base: ${JSON.stringify(kb)}`;
 
-        let success = false;
-        for (let i = 0; i < AI_CONFIG.KEYS.length; i++) {
-            let apiKey = getNextApiKey();
-            try {
-                const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${apiKey}`
-                    },
-                    body: JSON.stringify({
-                        model: AI_CONFIG.MODEL,
-                        messages: [
-                            { role: "system", content: strictSystemPrompt },
-                            { role: "user", content: text }
-                        ]
-                    })
-                });
-                
-                if (!res.ok) throw new Error("API Request Failed");
-                
-                const data = await res.json();
-                if (data.choices && data.choices[0]) {
-                    msgContainer.innerHTML += `<div class="msg bot-msg">${data.choices[0].message.content}</div>`;
-                    success = true;
-                    break;
-                }
-            } catch (err) {
-                console.warn("API Key Failed, trying next...", err);
+        try {
+            const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getApiKey()}` },
+                body: JSON.stringify({
+                    model: AI_CONFIG.MODEL,
+                    messages: [{ role: "system", content: prompt }, { role: "user", content: text }]
+                })
+            });
+            const data = await res.json();
+            if (data.choices && data.choices[0]) {
+                msgBox.innerHTML += `<div class="msg bot-msg">${data.choices[0].message.content}</div>`;
             }
+        } catch (e) {
+            msgBox.innerHTML += `<div class="msg bot-msg">أهلاً بك! يمكنك التواصل المباشر مع الأستاذ أحمد عادل عبر الواتساب: +967779087415</div>`;
         }
+        msgBox.scrollTop = msgBox.scrollHeight;
+    },
 
-        if (!success) {
-            let fallbackReply = "أهلاً بك! أنا مساعد الأستاذ أحمد عادل ناجي ذياب. يمكنك التواصل مع الأستاذ مباشرة عبر رقم الواتساب: +967779087415";
-            const lowerText = text.toLowerCase();
+    // 3. التحكم بشاشة جمناي الإدارية
+    toggleGeminiAdmin: function() {
+        const box = document.getElementById('gemini-admin-box');
+        if (!box) return;
+        const isVis = box.style.display === 'flex';
+        box.style.display = isVis ? 'none' : 'flex';
+        if (!isVis) this.loadMemoryView();
+    },
 
-            if (lowerText.includes('رقم') || lowerText.includes('واتس') || lowerText.includes('تواصل') || lowerText.includes('whatsapp') || lowerText.includes('phone')) {
-                fallbackReply = `رقم الواتساب الخاص بالأستاذ أحمد عادل هو: +967 779087415، ويمكنك مراسلته مباشرة.`;
-            } else if (lowerText.includes('شهادة') || lowerText.includes('بكالوريوس') || lowerText.includes('icdl')) {
-                fallbackReply = `الأستاذ أحمد حاصل على بكالوريوس المحاسبة من جامعة أبين، ودبلوم ICDL، وشهادة اللغة الإنجليزية (B2)، بالإضافة لشهادات نظام إكسترا المحاسبي.`;
-            }
+    switchGeminiTab: function(tabId) {
+        document.querySelectorAll('.gemini-tab-content').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.gemini-tab').forEach(b => b.classList.remove('active'));
+        const target = document.getElementById(tabId);
+        if (target) target.classList.add('active');
+        if (event && event.target) event.target.classList.add('active');
+    },
 
-            msgContainer.innerHTML += `<div class="msg bot-msg">${fallbackReply}</div>`;
-        }
-        msgContainer.scrollTop = msgContainer.scrollHeight;
-    };
-
-    // المساعد الإداري لتنفيذ الأوامر مع دمج الصلاحيات الإنجليزية
-    window.App.executeAdminAICommand = async function(commandText) {
-        if (!this.isAdminLoggedIn) {
-            alert("⚠️ يجب تسجيل الدخول للوحة الإدارة أولاً لتنفيذ أوامر الذكاء الاصطناعي.");
+    // 4. تنفيذ أوامر الذكاء الاصطناعي والتحقق من الصلاحيات
+    runGeminiCommand: async function() {
+        if (!window.App || !window.App.isAdminLoggedIn) {
+            alert("⚠️ يرجى تسجيل الدخول للوحة الإدارة أولاً لتنفيذ الأوامر.");
             return;
         }
 
-        if (!commandText || !commandText.trim()) return alert("الرجاء كتابة الأمر للذكاء الاصطناعي.");
+        const cmdInput = document.getElementById('gemini-cmd-input');
+        const command = cmdInput ? cmdInput.value.trim() : '';
+        if (!command) return alert("الرجاء كتابة الأمر المطلوب.");
 
-        const db = this.cachedDb || (typeof Store !== 'undefined' ? await Store.getKnowledge() : {});
-        const permEditEl = document.getElementById('perm-edit');
-        const isEditAllowed = permEditEl ? permEditEl.checked : true;
+        const perms = {
+            data: document.getElementById('perm-data')?.checked ?? true,
+            design: document.getElementById('perm-design')?.checked ?? true,
+            info: document.getElementById('perm-info')?.checked ?? true,
+            keys: document.getElementById('perm-keys')?.checked ?? true
+        };
 
-        const systemPrompt = `You are now the Master Admin of the website.
-Your permissions:
-1. Modify data (update JSON).
-2. Propose design changes.
-3. Manage users.
-4. Learn from any new content provided by the admin.
+        const db = window.App.cachedDb || {};
+        const systemPrompt = `You are Gemini Master Admin AI.
+Permissions Status:
+- Data Modification: ${perms.data}
+- Design Modification: ${perms.design}
+- Personal Info Modification: ${perms.info}
+- Key Management: ${perms.keys}
 
-Rule: Any requested modification must return its result in JSON format as previously explained.
-Current permissions status: ${isEditAllowed ? 'Data modification is enabled' : 'Data modification is disabled'}
-
-Current Database JSON:
-${JSON.stringify(db)}
-
-CRITICAL INSTRUCTIONS:
-1. Return ONLY a valid JSON object containing the updated database along with a short response message in Arabic explaining what you did.
-2. Format your response strictly as JSON with this structure:
+CRITICAL: Return ONLY JSON object:
 {
-  "updatedData": { ... full or updated database ... },
-  "message": "رسالة توضيحية بالعربية عما تم تنفيذه"
-}`;
-
-        let success = false;
-        let resultMessage = "";
-
-        for (let i = 0; i < AI_CONFIG.KEYS.length; i++) {
-            let apiKey = getNextApiKey();
-            try {
-                const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${apiKey}`
-                    },
-                    body: JSON.stringify({
-                        model: AI_CONFIG.MODEL,
-                        messages: [
-                            { role: "system", content: systemPrompt },
-                            { role: "user", content: commandText }
-                        ],
-                        response_format: { type: "json_object" }
-                    })
-                });
-
-                if (!res.ok) throw new Error("API Key limit or error");
-
-                const data = await res.json();
-                const content = JSON.parse(data.choices[0].message.content);
-
-                if (content.updatedData) {
-                    if (typeof Store !== 'undefined' && Store.saveKnowledge) {
-                        await Store.saveKnowledge(content.updatedData);
-                    }
-                    this.cachedDb = content.updatedData;
-                    resultMessage = content.message || "تم تنفيذ التعديل بنجاح!";
-                    success = true;
-                    break;
-                }
-            } catch (err) {
-                console.warn("المفتاح الحالي استنفذ أو فشل، جاري تجربة المفتاح التالي...", err);
-            }
-        }
-
-        if (success) {
-            alert("🤖 " + resultMessage);
-            if (typeof this.renderAll === 'function') {
-                await this.renderAll();
-            }
-        } else {
-            alert("❌ عذراً، لم نتمكن من تنفيذ الأمر. تأكد من صحة مفاتيح الـ API.");
-        }
-    };
-
-    console.log("✅ تم ربط وحدة الذكاء الاصطناعي والإدارة بنجاح مع App.");
+  "updatedData": { ... full database ... },
+  "message": "رسالة التقرير بالتفصيل عما تم تعديله"
 }
+Database: ${JSON.stringify(db)}`;
 
-// بدء التشغيل التلقائي
-initAIAdmin();
+        try {
+            const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getApiKey()}` },
+                body: JSON.stringify({
+                    model: AI_CONFIG.MODEL,
+                    messages: [{ role: "system", content: systemPrompt }, { role: "user", content: command }],
+                    response_format: { type: "json_object" }
+                })
+            });
+            const data = await res.json();
+            const content = JSON.parse(data.choices[0].message.content);
+
+            if (content.updatedData && window.Store) {
+                const saved = await window.Store.saveKnowledge(content.updatedData);
+                if (saved) {
+                    alert("🤖 " + (content.message || "تم تنفيذ التعديل بنجاح!"));
+                    cmdInput.value = '';
+                    this.loadMemoryView();
+                }
+            }
+        } catch (err) {
+            alert("❌ حدث خطأ أثناء تنفيذ الأمر عبر API.");
+        }
+    },
+
+    // 5. تدريب وسائط الذكاء الاصطناعي
+    trainGeminiMedia: async function() {
+        const type = document.getElementById('train-media-type').value;
+        const content = document.getElementById('train-media-content').value;
+        if (!content.trim()) return alert("الرجاء إدخال محتوى أو رابط المادة التدريبية.");
+
+        const formattedCmd = `Learn this content [Type: ${type.toUpperCase()}]: ${content}`;
+        document.getElementById('gemini-cmd-input').value = formattedCmd;
+        this.switchGeminiTab('g-cmd');
+        await this.runGeminiCommand();
+    },
+
+    loadMemoryView: function() {
+        const memView = document.getElementById('gemini-memory-view');
+        if (memView && window.App) {
+            memView.innerText = JSON.stringify(window.App.cachedDb || {}, null, 2);
+        }
+    }
+};
