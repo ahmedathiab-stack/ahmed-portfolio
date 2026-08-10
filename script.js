@@ -395,7 +395,6 @@ App.renderAdminLists = function(db) {
     renderSection('admin-skills-list', 'skills', 'name', 'editSkill');
     renderSection('admin-vol-list', 'volunteer', 'role', 'editVolunteer');
 };
-};
 
 window.App = App;
 window.Store = Store;
