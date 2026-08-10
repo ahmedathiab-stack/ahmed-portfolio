@@ -230,6 +230,171 @@ const App = {
             this.closeModal('accessModal');
         }
     }
+    // =========================================================
+//  دوال الإضافة والتعديل اليدوي الآمنة (script.js)
+// =========================================================
+
+// 1️⃣ تفريغ الحقول بأمان
+App.resetForm = function(type) {
+    const fields = {
+        cert: ['certEditIndex', 'certTitle', 'certIssuer', 'certDate', 'certCategory', 'certPin', 'certImage'],
+        exp: ['expEditIndex', 'expRole', 'expCompany', 'expPeriod', 'expDesc'],
+        skill: ['skillEditIndex', 'skillName', 'skillCategory'],
+        vol: ['volEditIndex', 'volRole', 'volOrg', 'volPeriod']
+    };
+    (fields[type] || []).forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = (id.includes('EditIndex') ? "-1" : "");
+    });
+};
+
+// 2️⃣ إدارة الشهادات (حفظ وتعديل)
+App.saveCertificate = async function() {
+    const editIdx = parseInt(document.getElementById('certEditIndex')?.value || "-1");
+    const title = document.getElementById('certTitle')?.value?.trim();
+    const issuer = document.getElementById('certIssuer')?.value?.trim();
+    if (!title || !issuer) return alert("يرجى كتابة اسم الشهادة والجهة المصدرة.");
+
+    const item = {
+        id: editIdx >= 0 ? (this.cachedDb.certificates[editIdx]?.id || 'cert-' + Date.now()) : 'cert-' + Date.now(),
+        title, issuer,
+        date: document.getElementById('certDate')?.value || '',
+        category: document.getElementById('certCategory')?.value?.trim() || 'عام',
+        pin: document.getElementById('certPin')?.value?.trim() || '1234',
+        imageUrl: document.getElementById('certImage')?.value?.trim() || ''
+    };
+
+    if (!this.cachedDb.certificates) this.cachedDb.certificates = [];
+    if (editIdx >= 0) this.cachedDb.certificates[editIdx] = item;
+    else this.cachedDb.certificates.push(item);
+
+    if (await Store.saveKnowledge(this.cachedDb)) this.resetForm('cert');
+};
+
+App.editCertificate = function(index) {
+    const item = this.cachedDb?.certificates?.[index];
+    if (!item) return;
+    if (document.getElementById('certEditIndex')) document.getElementById('certEditIndex').value = index;
+    if (document.getElementById('certTitle')) document.getElementById('certTitle').value = item.title || '';
+    if (document.getElementById('certIssuer')) document.getElementById('certIssuer').value = item.issuer || '';
+    if (document.getElementById('certDate')) document.getElementById('certDate').value = item.date || '';
+    if (document.getElementById('certCategory')) document.getElementById('certCategory').value = item.category || '';
+    if (document.getElementById('certPin')) document.getElementById('certPin').value = item.pin || '';
+    if (document.getElementById('certImage')) document.getElementById('certImage').value = item.imageUrl || '';
+    this.switchAdminTab('tab-certs');
+};
+
+// 3️⃣ إدارة الخبرات (حفظ وتعديل)
+App.saveExperience = async function() {
+    const editIdx = parseInt(document.getElementById('expEditIndex')?.value || "-1");
+    const role = document.getElementById('expRole')?.value?.trim();
+    const company = document.getElementById('expCompany')?.value?.trim();
+    if (!role || !company) return alert("أدخل المسمى الوظيفي والجهة.");
+
+    const item = {
+        role, company,
+        period: document.getElementById('expPeriod')?.value?.trim() || '',
+        desc: document.getElementById('expDesc')?.value?.trim() || ''
+    };
+
+    if (!this.cachedDb.experiences) this.cachedDb.experiences = [];
+    if (editIdx >= 0) this.cachedDb.experiences[editIdx] = item;
+    else this.cachedDb.experiences.push(item);
+
+    if (await Store.saveKnowledge(this.cachedDb)) this.resetForm('exp');
+};
+
+App.editExperience = function(index) {
+    const item = this.cachedDb?.experiences?.[index];
+    if (!item) return;
+    if (document.getElementById('expEditIndex')) document.getElementById('expEditIndex').value = index;
+    if (document.getElementById('expRole')) document.getElementById('expRole').value = item.role || '';
+    if (document.getElementById('expCompany')) document.getElementById('expCompany').value = item.company || '';
+    if (document.getElementById('expPeriod')) document.getElementById('expPeriod').value = item.period || '';
+    if (document.getElementById('expDesc')) document.getElementById('expDesc').value = item.desc || '';
+    this.switchAdminTab('tab-exp');
+};
+
+// 4️⃣ إدارة المهارات (حفظ وتعديل)
+App.saveSkill = async function() {
+    const editIdx = parseInt(document.getElementById('skillEditIndex')?.value || "-1");
+    const name = document.getElementById('skillName')?.value?.trim();
+    if (!name) return alert("أدخل اسم المهارة.");
+
+    const item = {
+        name,
+        category: document.getElementById('skillCategory')?.value?.trim() || 'عام',
+        level: document.getElementById('skillLevel')?.value || 'متوسط'
+    };
+
+    if (!this.cachedDb.skills) this.cachedDb.skills = [];
+    if (editIdx >= 0) this.cachedDb.skills[editIdx] = item;
+    else this.cachedDb.skills.push(item);
+
+    if (await Store.saveKnowledge(this.cachedDb)) this.resetForm('skill');
+};
+
+App.editSkill = function(index) {
+    const item = this.cachedDb?.skills?.[index];
+    if (!item) return;
+    if (document.getElementById('skillEditIndex')) document.getElementById('skillEditIndex').value = index;
+    if (document.getElementById('skillName')) document.getElementById('skillName').value = item.name || '';
+    if (document.getElementById('skillCategory')) document.getElementById('skillCategory').value = item.category || '';
+    if (document.getElementById('skillLevel')) document.getElementById('skillLevel').value = item.level || 'متوسط';
+    this.switchAdminTab('tab-skills');
+};
+
+// 5️⃣ إدارة التطوع (حفظ وتعديل)
+App.saveVolunteer = async function() {
+    const editIdx = parseInt(document.getElementById('volEditIndex')?.value || "-1");
+    const role = document.getElementById('volRole')?.value?.trim();
+    if (!role) return alert("أدخل الدور التطوعي.");
+
+    const item = {
+        role,
+        org: document.getElementById('volOrg')?.value?.trim() || '',
+        period: document.getElementById('volPeriod')?.value?.trim() || ''
+    };
+
+    if (!this.cachedDb.volunteer) this.cachedDb.volunteer = [];
+    if (editIdx >= 0) this.cachedDb.volunteer[editIdx] = item;
+    else this.cachedDb.volunteer.push(item);
+
+    if (await Store.saveKnowledge(this.cachedDb)) this.resetForm('vol');
+};
+
+App.editVolunteer = function(index) {
+    const item = this.cachedDb?.volunteer?.[index];
+    if (!item) return;
+    if (document.getElementById('volEditIndex')) document.getElementById('volEditIndex').value = index;
+    if (document.getElementById('volRole')) document.getElementById('volRole').value = item.role || '';
+    if (document.getElementById('volOrg')) document.getElementById('volOrg').value = item.org || '';
+    if (document.getElementById('volPeriod')) document.getElementById('volPeriod').value = item.period || '';
+    this.switchAdminTab('tab-vol');
+};
+
+// 6️⃣ تحديث عرض القوائم مع أزرار التعديل ✏️ والحذف 🗑️ لكل الأقسام
+App.renderAdminLists = function(db) {
+    const renderSection = (containerId, key, titleField, editFn) => {
+        const el = document.getElementById(containerId);
+        if (!el) return;
+        const list = db[key] || [];
+        el.innerHTML = list.map((item, i) => `
+            <div style="display:flex; justify-content:space-between; align-items:center; background:#f1f5f9; padding:6px 10px; margin-top:6px; border-radius:6px; font-size:0.85rem;">
+                <span>${item[titleField] || item.name || item.role}</span>
+                <div style="display:flex; gap:4px;">
+                    <button onclick="App.${editFn}(${i})" style="background:#eab308; color:#fff; padding:2px 6px; font-size:0.75rem;">✏️</button>
+                    <button onclick="App.deleteItem('${key}', ${i})" style="background:#ef4444; color:#fff; padding:2px 6px; font-size:0.75rem;">🗑️</button>
+                </div>
+            </div>
+        `).join('');
+    };
+
+    renderSection('admin-certs-list', 'certificates', 'title', 'editCertificate');
+    renderSection('admin-exp-list', 'experiences', 'role', 'editExperience');
+    renderSection('admin-skills-list', 'skills', 'name', 'editSkill');
+    renderSection('admin-vol-list', 'volunteer', 'role', 'editVolunteer');
+};
 };
 
 window.App = App;
