@@ -76,6 +76,38 @@ window.submitAITraining = () => {
         window.App.executeAdminAICommand(trainingCommand);
     }
 };
+// داخل كائن App في ملف script.js
+    toggleWaChat() {
+        const box = document.getElementById('wa-chat-widget');
+        const isVisible = box.style.display === 'flex';
+        box.style.display = isVisible ? 'none' : 'flex';
+    },
+
+    handleWaChatKey(e) {
+        if (e.key === 'Enter') this.sendWaChatMessage();
+    },
+
+    async sendWaChatMessage() {
+        const input = document.getElementById('wa-chat-input');
+        const text = input.value.trim();
+        if (!text) return;
+
+        const msgContainer = document.getElementById('wa-chat-messages');
+        msgContainer.innerHTML += `<div class="msg user-msg">${text}</div>`;
+        input.value = '';
+        msgContainer.scrollTop = msgContainer.scrollHeight;
+
+        // استخدم نفس كود الاتصال بـ API الخاص بك من الكود القديم هنا
+        // مع تغيير API Key إلى المتغير الخاص بك
+        try {
+            // محاكاة أو طلب API فعلي
+             const reply = "مرحباً! أنا المساعد الخاص عبر واتساب. أستطيع إفادتك من قاعدة بيانات الموقع.";
+             msgContainer.innerHTML += `<div class="msg bot-msg">${reply}</div>`;
+             msgContainer.scrollTop = msgContainer.scrollHeight;
+        } catch (err) {
+            console.error(err);
+        }
+    }
 
 // تهيئة الإدارة
 initGeminiAdmin();
