@@ -58,3 +58,16 @@ const volList = document.getElementById('admin-vol-list');
             `).join('');
         }
     },
+    editCertificate(index) {
+        const db = this.cachedDb;
+        if (!db || !db.certificates[index]) return;
+        const c = db.certificates[index];
+
+        document.getElementById('certEditIndex').value = index;
+        document.getElementById('certTitle').value = c.title || '';
+        document.getElementById('certIssuer').value = c.issuer || '';
+        document.getElementById('certCategory').value = c.category || '';
+        document.getElementById('certPin').value = c.pin || '';
+        document.getElementById('certImage').value = c.imageUrl && !c.imageUrl.startsWith('data:') ? c.imageUrl : '';
+        if (document.getElementById('certFile')) document.getElementById('certFile').value = '';
+    },
