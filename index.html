@@ -177,21 +177,26 @@
     </div>
 
     <!-- الشات في وضع ملء الشاشة -->
-    <div id="ai-chat-box" class="full-screen-chat">
-        <div id="ai-chat-header">
-            <div style="display:flex; align-items:center; gap:10px;">
-                <div class="chat-avatar">أ</div>
-                <span>مساعد أحمد الذكي</span>
+    <<!-- مساعد الزوار (ستايل واتساب) -->
+<div id="wa-chat-widget" class="wa-chat-window">
+    <div id="wa-chat-header">
+        <div style="display:flex; align-items:center; gap:10px;">
+            <div class="wa-avatar">أ</div>
+            <div>
+                <strong style="display:block; font-size:1rem;">مساعد أحمد الذكي</strong>
+                <span style="font-size:0.75rem; color:#dcf8c6;">متصل الآن</span>
             </div>
-            <span style="cursor:pointer; font-weight:bold; font-size:1.2rem;" onclick="App.toggleChat()">✖ إغلاق</span>
         </div>
-        <div id="ai-chat-messages"></div>
-        <div id="ai-chat-input-area">
-            <input type="text" id="ai-chat-input" placeholder="اكتب رسالتك هنا..." onkeypress="App.handleChatKey(event)">
-            <button id="ai-chat-send" onclick="App.sendChatMessage()">➤</button>
-        </div>
+        <span style="cursor:pointer; font-weight:bold; font-size:1.2rem;" onclick="App.toggleWaChat()">✖</span>
     </div>
-    <button id="ai-chat-btn" onclick="App.toggleChat()">💬 تواصل مع المساعد</button>
+    <div id="wa-chat-messages"></div>
+    <div id="wa-chat-input-area">
+        <input type="text" id="wa-chat-input" placeholder="اكتب رسالتك هنا..." onkeypress="App.handleWaChatKey(event)">
+        <button id="wa-chat-send" onclick="App.sendWaChatMessage()">➤</button>
+    </div>
+</div>
+<!-- زر فتح المساعد -->
+<button id="wa-chat-btn" onclick="App.toggleWaChat()">💬 تواصل مع المساعد</button>
 
     <script src="ai.admin.js"></script>
     <script src="script.js"></script>
