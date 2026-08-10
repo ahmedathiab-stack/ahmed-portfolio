@@ -40,3 +40,9 @@ function initAIAdmin() {
 
 // تشغيل عملية التثبيت فوراً
 initAIAdmin();
+ },
+    AI_API_KEYS: [
+        "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"
+    ]
+}
+
