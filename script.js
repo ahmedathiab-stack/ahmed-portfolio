@@ -229,48 +229,53 @@ const App = {
         `).join('');
     },
 
-    async generateTempKey() {
-        const durationSelect = document.getElementById('tempKeyDuration');
-        const typeVal = durationSelect ? durationSelect.value : "24h";
-        const randomPin = Math.floor(100000 + Math.random() * 900000).toString();
-        
-        let durationMs = 24 * 60 * 60 * 1000;
-        let isSingleUse = false;
-        let durationText = "";
+    aasync function generateTempKey() {
+    const durationSelect = document.getElementById('tempKeyDuration');
+    const typeVal = durationSelect ? durationSelect.value : "24h";
+    const randomPin = Math.floor(100000 + Math.random() * 900000).toString();
+    
+    let durationMs = 24 * 60 * 60 * 1000;
+    let isSingleUse = false;
+    let durationText = "";
 
-        if (typeVal === "single") {
-            isSingleUse = true;
-            durationText = "لفتح لمرة واحدة فقط";
-        } else if (typeVal === "24h") {
-            durationText = "صالح لمدة 24 ساعة";
-        } else if (typeVal === "72h") {
-            durationMs = 72 * 60 * 60 * 1000;
-            durationText = "صالح لمدة 72 ساعة";
+    if (typeVal === "single") {
+        isSingleUse = true;
+        durationText = "لفتح لمرة واحدة فقط";
+    } else if (typeVal === "24h") {
+        durationText = "صالح لمدة 24 ساعة";
+    } else if (typeVal === "72h") {
+        durationMs = 72 * 60 * 60 * 1000;
+        durationText = "صالح لمدة 72 ساعة";
+    }
+
+    const tempKeyData = {
+        pin: randomPin,
+        expiresAt: Date.now() + durationMs,
+        isSingleUse: isSingleUse
+    };
+
+    try {
+        const response = await fetch(`https://ahmed-portfolio-stack-d1fd8-default-rtdb.firebaseio.com/temp_keys/${randomPin}.json`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(tempKeyData)
+        });
+
+        // التحقق الفعلي من قبول Firebase للطلب
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        const tempKeyData = {
-            pin: randomPin,
-            expiresAt: Date.now() + durationMs,
-            isSingleUse: isSingleUse
-        };
-
-        try {
-            await fetch(`https://ahmed-portfolio-stack-d1fd8-default-rtdb.firebaseio.com/temp_keys/${randomPin}.json`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(tempKeyData)
-            });
-
-            const displayEl = document.getElementById('tempKeyDisplay');
-            if (displayEl) {
-                displayEl.innerHTML = `🔑 المفتاح المؤقت: <span style="background:#dcf8c6; padding:4px 8px; border-radius:4px; color:#111;">${randomPin}</span> (${durationText})`;
-            }
-            alert(`تم توليد المفتاح السحابي بنجاح: ${randomPin}\nالنوع: ${durationText}`);
-        } catch (e) {
-            console.error(e);
-            alert("فشل في حفظ المفتاح المؤقت بالسحابة.");
+        const displayEl = document.getElementById('tempKeyDisplay');
+        if (displayEl) {
+            displayEl.innerHTML = `🔑 المفتاح المؤقت: <span style="background:#dcf8c6; padding:4px 8px; border-radius:4px; color:#111;">${randomPin}</span> (${durationText})`;
         }
-    },
+        alert(`تم توليد المفتاح السحابي بنجاح: ${randomPin}\nالنوع: ${durationText}`);
+    } catch (e) {
+        console.error("Firebase Error: ", e);
+        alert("فشل في حفظ المفتاح المؤقت بالسحابة. تأكد من صلاحيات قاعدة البيانات.");
+    }
+}
 
         sessionStorage.setItem('ahmed_temp_access_key', JSON.stringify(tempKeyData));
 
