@@ -1,3 +1,27 @@
+// 1. قاموس التصحيح الإجباري (يُجبر النظام على هذه الترجمات مهما حدث)
+const strictTranslations = {
+    "جامعة ابين": "Abyan University",
+    "جامعة أبين": "Abyan University",
+    "ابين": "Abyan",
+    "أبين": "Abyan",
+    // يمكنك إضافة أي أسماء أخرى هنا مستقبلاً (مثل اسم قريتك، أو اسم شركة محلية)
+    "aden university": "Abyan University" // كخط دفاع أخير إذا تم حفظها بالخطأ
+};
+
+// 2. دالة صغيرة لتنظيف وتصحيح النصوص في الموقع
+App.fixText = function(text) {
+    if (!text) return text;
+    let newText = text;
+    
+    // المرور على القاموس واستبدال أي خطأ بالكلمة الصحيحة
+    for (const [wrong, correct] of Object.entries(strictTranslations)) {
+        // نستخدم RegExp للبحث وتجاهل حالة الأحرف (كبيرة/صغيرة)
+        const regex = new RegExp(wrong, "gi");
+        newText = newText.replace(regex, correct);
+    }
+    
+    return newText;
+};
 /**
  * ملف النظام والتهيئة الأساسية للموقع - الإصدار السحابي المحدث
  */
