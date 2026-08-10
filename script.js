@@ -1,4 +1,3 @@
-
 /**
  * ملف النظام والتهيئة الأساسية للموقع - الإصدار السحابي المحدث
  */
@@ -11,10 +10,7 @@ const CONFIG = {
     FIREBASE_URL: "https://ahmed-portfolio-stack-d1fd8-default-rtdb.firebaseio.com/data.json", // رابط السحابة الخاص بك
     STORAGE_KEYS: {
         UNLOCKED_CERTS: "ahmed_unlocked_certs_v7"
-    },
-    AI_API_KEYS: [
-        "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"
-    ]
+    }
 };
 
 const DEFAULT_KNOWLEDGE_BASE = {
@@ -174,13 +170,15 @@ const App = {
 
         container.innerHTML = certs.map(c => {
             const isUnlocked = unlockedList.includes(c.id);
-            const imgPreview = c.imageUrl ? `<div class="cert-img-box"><img src="${c.imageUrl}" alt="${c.title}" class="cert-thumbnail"></div>` : '';
+            const title = typeof App.fixText === 'function' ? App.fixText(c.title) : c.title;
+            const issuer = typeof App.fixText === 'function' ? App.fixText(c.issuer) : c.issuer;
+            const imgPreview = c.imageUrl ? `<div class="cert-img-box"><img src="${c.imageUrl}" alt="${title}" class="cert-thumbnail"></div>` : '';
             return `
                 <div class="cert-item ${isUnlocked ? 'unlocked' : ''}">
                     ${isUnlocked ? imgPreview : ''}
                     <div class="cert-info">
-                        <h4>${c.title}</h4>
-                        <p>📌 ${c.issuer} | <span style="color:var(--primary-color)">${c.category || 'عام'}</span></p>
+                        <h4>${title}</h4>
+                        <p>📌 ${issuer} | <span style="color:var(--primary-color)">${c.category || 'عام'}</span></p>
                     </div>
                     <div>
                         ${isUnlocked ? 
@@ -197,13 +195,15 @@ const App = {
         const container = document.getElementById('experiences-container');
         if (!container) return;
         const exps = db.experiences || [];
-        container.innerHTML = exps.map(e => `
+        container.innerHTML = exps.map(e => {
+            const company = typeof App.fixText === 'function' ? App.fixText(e.company) : e.company;
+            return `
             <div class="exp-card">
                 <h4 style="color:var(--primary-color)">${e.role}</h4>
-                <div style="font-size:0.88rem; color:var(--text-muted); margin-bottom:4px;">🏢 ${e.company} | 🗓️ ${e.period}</div>
+                <div style="font-size:0.88rem; color:var(--text-muted); margin-bottom:4px;">🏢 ${company} | 🗓️ ${e.period}</div>
                 <p style="font-size:0.92rem; color:var(--text-main)">${e.desc || ''}</p>
             </div>
-        `).join('');
+        `;}).join('');
     },
 
     renderSkills(db) {
@@ -672,175 +672,8 @@ const App = {
     closeModal(id) {
         const modal = document.getElementById(id);
         if (modal) modal.style.display = 'none';
-    },
-
-    toggleChat() {
-        const box = document.getElementById('ai-chat-box');
-        const btn = document.getElementById('ai-chat-btn');
-        if (!box || !btn) return;
-        const isVisible = box.style.display === 'flex';
-        box.style.display = isVisible ? 'none' : 'flex';
-        btn.style.display = isVisible ? 'flex' : 'none';
-    },
-
-    handleChatKey(e) {
-        if (e.key === 'Enter') this.sendChatMessage();
-    },
-
-    async sendChatMessage() {
-        const input = document.getElementById('ai-chat-input');
-        if (!input) return;
-        const text = input.value.trim();
-        if (!text) return;
-
-        const msgContainer = document.getElementById('ai-chat-messages');
-        if (!msgContainer) return;
-
-        msgContainer.innerHTML += `<div class="msg user-msg">${text}</div>`;
-        input.value = '';
-        msgContainer.scrollTop = msgContainer.scrollHeight;
-
-        const kb = this.cachedDb || await Store.getKnowledge();
-        
-        const strictSystemPrompt = `You are the personal assistant of Trainer Ahmed Adel Naji Thiab.
-CRITICAL RULES:
-1. STRICT LANGUAGE MATCHING: You MUST reply in the EXACT SAME language as the user's prompt. 
-   - If the user asks in English, you MUST translate the provided Arabic data and answer 100% in English.
-   - If the user asks in Arabic, answer in Arabic.
-   - NEVER mix languages in your response.
-2. STYLE: Keep responses natural, conversational, concise, and friendly like a WhatsApp message.
-3. KNOWLEDGE BASE: ${JSON.stringify(kb)}`;
-
-        let success = false;
-        for (let apiKey of CONFIG.AI_API_KEYS) {
-            try {
-                const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${apiKey}`
-                    },
-                    body: JSON.stringify({
-                        model: "llama-3.3-70b-versatile",
-                        messages: [
-                            { role: "system", content: strictSystemPrompt },
-                            { role: "user", content: text }
-                        ]
-                    })
-                });
-                
-                if (!res.ok) throw new Error("API Request Failed");
-                
-                const data = await res.json();
-                if (data.choices && data.choices[0]) {
-                    msgContainer.innerHTML += `<div class="msg bot-msg">${data.choices[0].message.content}</div>`;
-                    success = true;
-                    break;
-                }
-            } catch (err) {
-                console.warn("API Key Failed, trying next...", err);
-            }
-        }
-
-        if (!success) {
-            let fallbackReply = "أهلاً بك! أنا مساعد الأستاذ أحمد عادل ناجي ذياب. يمكنك التواصل مع الأستاذ مباشرة عبر رقم الواتساب: +967779087415";
-            const lowerText = text.toLowerCase();
-
-            if (lowerText.includes('رقم') || lowerText.includes('واتس') || lowerText.includes('تواصل') || lowerText.includes('whatsapp') || lowerText.includes('phone')) {
-                fallbackReply = `رقم الواتساب الخاص بالأستاذ أحمد عادل هو: +967 ${CONFIG.WHATSAPP_NUMBER}، ويمكنك مراسلته مباشرة.`;
-            } else if (lowerText.includes('اخبار') || lowerText.includes('آخر') || lowerText.includes('جديد')) {
-                fallbackReply = `آخر نشاطات الأستاذ أحمد تتضمن تقديم دورات تدريبية متقدمة في الأنظمة المحاسبية (نظام إكسترا) والبرمجيات وإدارة الحسابات.`;
-            } else if (lowerText.includes('شهادة') || lowerText.includes('بكالوريوس') || lowerText.includes('icdl')) {
-                fallbackReply = `الأستاذ أحمد حاصل على بكالوريوس المحاسبة من جامعة أبين، ودبلوم ICDL، وشهادة اللغة الإنجليزية (B2)، بالإضافة لشهادات نظام إكسترا المحاسبي.`;
-            }
-
-            msgContainer.innerHTML += `<div class="msg bot-msg">${fallbackReply}</div>`;
-        }
-        msgContainer.scrollTop = msgContainer.scrollHeight;
     }
 };
 
 window.App = App;
 document.addEventListener('DOMContentLoaded', () => App.init());
-
-// نظام تدوير المفاتيح التلقائي لضمان المجالية 100% (أكثر من 40 مفتاحاً)
-let currentApiKeyIndex = 0;
-function getNextApiKey() {
-    if (!CONFIG.AI_API_KEYS || CONFIG.AI_API_KEYS.length === 0) return "";
-    const key = CONFIG.AI_API_KEYS[currentApiKeyIndex];
-    currentApiKeyIndex = (currentApiKeyIndex + 1) % CONFIG.AI_API_KEYS.length;
-    return key;
-}
-
-// محرك الأوامر الذكي للتحكم بالموقع
-App.executeAdminAICommand = async function(commandText) {
-    if (!this.isAdminLoggedIn) {
-        alert("⚠️ يجب تسجيل الدخول للوحة الإدارة أولاً لتنفيذ أوامر الذكاء الاصطناعي.");
-        return;
-    }
-
-    if (!commandText) return alert("الرجاء كتابة الأمر للذكاء الاصطناعي.");
-
-    const db = this.cachedDb || await Store.getKnowledge();
-
-    const systemPrompt = `You are the Master AI Admin Controller for the website of Trainer Ahmed Adel. 
-Your job is to parse the admin's natural language command and update the database JSON structure.
-Current Database JSON:
-${JSON.stringify(db)}
-
-CRITICAL INSTRUCTIONS:
-1. Return ONLY a valid JSON object containing the updated database (or the specific section modified) along with a short response message in Arabic explaining what you did.
-2. Format your response strictly as JSON with this structure:
-{
-  "updatedData": { ... full or updated database ... },
-  "message": "رسالة توضيحية بالعربية عما تم تنفيذه"
-}
-`;
-
-    let success = false;
-    let resultMessage = "";
-
-    // تجربة المفاتيح تباعاً (نظام 40+ مفتاح)
-    for (let i = 0; i < (CONFIG.AI_API_KEYS.length || 1); i++) {
-        let apiKey = getNextApiKey();
-        try {
-            const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${apiKey}`
-                },
-                body: JSON.stringify({
-                    model: "llama-3.3-70b-versatile",
-                    messages: [
-                        { role: "system", content: systemPrompt },
-                        { role: "user", content: commandText }
-                    ],
-                    response_format: { type: "json_object" }
-                })
-            });
-
-            if (!res.ok) throw new Error("API Key limit or error");
-
-            const data = await res.json();
-            const content = JSON.parse(data.choices[0].message.content);
-
-            if (content.updatedData) {
-                // دمج البيانات وتحديثها سحابياً
-                await Store.saveKnowledge(content.updatedData);
-                resultMessage = content.message || "تم تنفيذ التعديل بنجاح!";
-                success = true;
-                break;
-            }
-        } catch (err) {
-            console.warn("المفتاح الحالي استنفذ أو فشل، جاري تجربة المفتاح التالي...", err);
-        }
-    }
-
-    if (success) {
-        alert("🤖 " + resultMessage);
-        await this.renderAll();
-    } else {
-        alert("❌ عذراً، لم نتمكن من تنفيذ الأمر. تأكد من صحة مفاتيح الـ API.");
-    }
-};
