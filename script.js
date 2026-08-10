@@ -1,29 +1,4 @@
-// 1. قاموس التصحيح الإجباري (الشبكة التي تصطاد أخطاء المترجم)
-const strictTranslations = {
-    // اصطياد أخطاء الترجمة الإنجليزية وتوحيدها
-    "aden university": "Abyan University",
-    "abien university": "Abyan University",
-    "abien": "Abyan",
-    
-    // توحيد النصوص العربية لتترجم دائماً بشكل صحيح
-    "جامعة ابين": "Abyan University",
-    "جامعة أبين": "Abyan University"
-};
 
-// 2. دالة تنظيف وتصحيح النصوص
-App.fixText = function(text) {
-    if (!text || typeof text !== 'string') return text;
-    let newText = text;
-    
-    // المرور على القاموس واستبدال أي خطأ بالكلمة الصحيحة
-    for (const [wrong, correct] of Object.entries(strictTranslations)) {
-        // نستخدم gi لكي يتجاهل حالة الأحرف (سواء كانت Abien أو abien أو ABIEN سيصطادها)
-        const regex = new RegExp(wrong, "gi");
-        newText = newText.replace(regex, correct);
-    }
-    
-    return newText;
-};
 /**
  * ملف النظام والتهيئة الأساسية للموقع - الإصدار السحابي المحدث
  */
