@@ -201,6 +201,130 @@ const App = {
         db[key].splice(index, 1);
         await Store.saveKnowledge(db);
     },
+    // =========================================================
+//  إدارة البيانات اليدوية (إضافة وتعديل وحذف) - script.js
+// =========================================================
+
+// 1️⃣ حفظ أو تعديل شهادة يدوياً
+App.saveCertificate = async function() {
+    const editIdx = parseInt(document.getElementById('certEditIndex').value);
+    const title = document.getElementById('certTitle').value.trim();
+    const issuer = document.getElementById('certIssuer').value.trim();
+    const date = document.getElementById('certDate').value;
+    const category = document.getElementById('certCategory').value.trim();
+    const pin = document.getElementById('certPin').value.trim();
+    const image = document.getElementById('certImage').value.trim();
+
+    if (!title || !issuer) return alert("يرجى إدخال اسم الشهادة والجهة المصدرة على الأقل.");
+
+    const certData = {
+        id: editIdx >= 0 ? this.cachedDb.certificates[editIdx].id : 'cert-' + Date.now(),
+        title, issuer, date, category: category || 'عام', pin: pin || '1234', imageUrl: image
+    };
+
+    if (editIdx >= 0) {
+        this.cachedDb.certificates[editIdx] = certData;
+    } else {
+        if (!this.cachedDb.certificates) this.cachedDb.certificates = [];
+        this.cachedDb.certificates.push(certData);
+    }
+
+    const saved = await Store.saveKnowledge(this.cachedDb);
+    if (saved) {
+        alert(editIdx >= 0 ? "تم تعديل الشهادة بنجاح! ✅" : "تمت إضافة الشهادة بنجاح! ✅");
+        this.resetForm('cert');
+    }
+};
+
+// 2️⃣ تعبئة حقول التعديل للشهادة
+App.editCertificate = function(index) {
+    const cert = this.cachedDb.certificates[index];
+    if (!cert) return;
+    document.getElementById('certEditIndex').value = index;
+    document.getElementById('certTitle').value = cert.title || '';
+    document.getElementById('certIssuer').value = cert.issuer || '';
+    document.getElementById('certDate').value = cert.date || '';
+    document.getElementById('certCategory').value = cert.category || '';
+    document.getElementById('certPin').value = cert.pin || '';
+    document.getElementById('certImage').value = cert.imageUrl || '';
+    
+    // التبديل لتبويب الشهادات
+    this.switchAdminTab('tab-certs');
+};
+
+// 3️⃣ حفظ وتعديل الخبرات والمهارات والتطوع
+App.saveExperience = async function() {
+    const idx = parseInt(document.getElementById('expEditIndex').value);
+    const role = document.getElementById('expRole').value.trim();
+    const company = document.getElementById('expCompany').value.trim();
+    const period = document.getElementById('expPeriod').value.trim();
+    const desc = document.getElementById('expDesc').value.trim();
+
+    if (!role || !company) return alert("أدخل المسمى الوظيفي والشركة.");
+    const expItem = { role, company, period, desc };
+
+    if (idx >= 0) this.cachedDb.experiences[idx] = expItem;
+    else {
+        if (!this.cachedDb.experiences) this.cachedDb.experiences = [];
+        this.cachedDb.experiences.push(expItem);
+    }
+
+    if (await Store.saveKnowledge(this.cachedDb)) this.resetForm('exp');
+};
+
+App.editExperience = function(index) {
+    const exp = this.cachedDb.experiences[index];
+    document.getElementById('expEditIndex').value = index;
+    document.getElementById('expRole').value = exp.role || '';
+    document.getElementById('expCompany').value = exp.company || '';
+    document.getElementById('expPeriod').value = exp.period || '';
+    document.getElementById('expDesc').value = exp.desc || '';
+    this.switchAdminTab('tab-exp');
+};
+
+// 4️⃣ تفريغ النماذج بعد الحفظ
+App.resetForm = function(type) {
+    if (type === 'cert') {
+        document.getElementById('certEditIndex').value = "-1";
+        ['certTitle', 'certIssuer', 'certDate', 'certCategory', 'certPin', 'certImage'].forEach(id => {
+            const el = document.getElementById(id); if (el) el.value = '';
+        });
+    } else if (type === 'exp') {
+        document.getElementById('expEditIndex').value = "-1";
+        ['expRole', 'expCompany', 'expPeriod', 'expDesc'].forEach(id => {
+            const el = document.getElementById(id); if (el) el.value = '';
+        });
+    }
+};
+
+// 5️⃣ تحديث عرض قوائم التحكم الإدارية لتشمل زر التعديل ✏️
+App.renderAdminLists = function(db) {
+    const certList = document.getElementById('admin-certs-list');
+    if (certList) {
+        certList.innerHTML = (db.certificates || []).map((c, i) => `
+            <div style="display:flex; justify-content:space-between; align-items:center; background:#fff; padding:8px 12px; margin-top:8px; border-radius:6px; border:1px solid #cbd5e1;">
+                <div><strong>${c.title}</strong> <small style="color:#64748b">(${c.issuer})</small></div>
+                <div style="display:flex; gap:6px;">
+                    <button onclick="App.editCertificate(${i})" style="background:#eab308; color:#fff; padding:4px 8px; font-size:0.8rem;">✏️ تعديل</button>
+                    <button onclick="App.deleteItem('certificates', ${i})" style="background:#ef4444; color:#fff; padding:4px 8px; font-size:0.8rem;">🗑️ حذف</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    const expList = document.getElementById('admin-exp-list');
+    if (expList) {
+        expList.innerHTML = (db.experiences || []).map((e, i) => `
+            <div style="display:flex; justify-content:space-between; align-items:center; background:#fff; padding:8px 12px; margin-top:8px; border-radius:6px; border:1px solid #cbd5e1;">
+                <div><strong>${e.role}</strong> <small>(${e.company})</small></div>
+                <div style="display:flex; gap:6px;">
+                    <button onclick="App.editExperience(${i})" style="background:#eab308; color:#fff; padding:4px 8px; font-size:0.8rem;">✏️ تعديل</button>
+                    <button onclick="App.deleteItem('experiences', ${i})" style="background:#ef4444; color:#fff; padding:4px 8px; font-size:0.8rem;">🗑️ حذف</button>
+                </div>
+            </div>
+        `).join('');
+    }
+};
 
     openModal(id) { document.getElementById(id).style.display = 'flex'; },
     closeModal(id) { document.getElementById(id).style.display = 'none'; },
