@@ -16,7 +16,16 @@
             <button id="auth-btn" class="btn-submit" onclick="App.toggleAdminAuth()">🔒 تسجيل الدخول</button>
             <div id="admin-content-body" style="display:none; margin-top:15px;">
                 <button onclick="AIEngine.toggleGeminiAdmin()" class="btn-primary" style="width:100%; margin-bottom:15px; background:#4285f4;">🚀 فتح لوحة جمناي الذكية</button>
-                
+                <!-- تبويب التقارير والذاكرة داخل #gemini-admin-box -->
+<div id="g-reports" class="gemini-tab-content">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+        <h4 style="color:#8ab4f8; margin:0;">تقرير الذاكرة والتعلم الحالي:</h4>
+        <button class="gemini-btn" onclick="AIEngine.analyzeAndTrainVisitorQueries()" style="background:#10b981;">
+            🔍 تحليل أسئلة الزوار وتدريب المساعد تلقائياً
+        </button>
+    </div>
+    <pre id="gemini-memory-view">جاري تحميل تقرير الذكاء...</pre>
+</div>
                 <div class="admin-tabs-nav">
                     <button class="admin-tab active" onclick="App.switchAdminTab('tab-certs', this)">الشهادات</button>
                     <button class="admin-tab" onclick="App.switchAdminTab('tab-exp', this)">الخبرات</button>
