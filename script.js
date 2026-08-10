@@ -77,10 +77,12 @@ window.submitAITraining = () => {
     }
 };
 // داخل كائن App في ملف script.js
-    toggleWaChat() {
+  toggleWaChat() {
         const box = document.getElementById('wa-chat-widget');
-        const isVisible = box.style.display === 'flex';
-        box.style.display = isVisible ? 'none' : 'flex';
+        if (box) {
+            const isHidden = getComputedStyle(box).display === 'none';
+            box.style.display = isHidden ? 'flex' : 'none';
+        }
     },
 
     handleWaChatKey(e) {
@@ -89,21 +91,30 @@ window.submitAITraining = () => {
 
     async sendWaChatMessage() {
         const input = document.getElementById('wa-chat-input');
-        if(!input) return;
+        if (!input) return;
         const text = input.value.trim();
         if (!text) return;
 
         const msgContainer = document.getElementById('wa-chat-messages');
-        msgContainer.innerHTML += `<div class="msg user-msg">${text}</div>`;
+        msgContainer.innerHTML += `<div class="msg user-msg" style="align-self:flex-end; background:#dcf8c6; color:#000; padding:8px 12px; border-radius:10px; max-width:80%; margin-bottom:8px;">${text}</div>`;
         input.value = '';
         msgContainer.scrollTop = msgContainer.scrollHeight;
 
-        // استدعاء الذكاء للرد بدلاً من النص الثابت
-        const reply = typeof App.callAIForVisitor === 'function' 
-            ? await App.callAIForVisitor(text)
-            : "أهلاً بك! أنا مساعد الأستاذ أحمد عادل.";
+        // عنصر انتظار المؤشر
+        const loadingDiv = document.createElement('div');
+        loadingDiv.style.cssText = 'align-self:flex-start; background:#fff; color:#555; padding:8px 12px; border-radius:10px; max-width:80%; margin-bottom:8px; font-style:italic;';
+        loadingDiv.innerText = 'جاري التفكير...';
+        msgContainer.appendChild(loadingDiv);
+        msgContainer.scrollTop = msgContainer.scrollHeight;
 
-        msgContainer.innerHTML += `<div class="msg bot-msg">${reply}</div>`;
+        // استدعاء محرك الذكاء العام
+        const reply = (typeof window.callAIForVisitor === 'function')
+            ? await window.callAIForVisitor(text)
+            : "أهلاً بك! يمكن التواصل مع الأستاذ أحمد مباشرة عبر الواتساب: +967779087415";
+
+        loadingDiv.style.fontStyle = 'normal';
+        loadingDiv.style.color = '#000';
+        loadingDiv.innerText = reply;
         msgContainer.scrollTop = msgContainer.scrollHeight;
     }
 // تهيئة الإدارة
