@@ -89,6 +89,7 @@ window.submitAITraining = () => {
 
     async sendWaChatMessage() {
         const input = document.getElementById('wa-chat-input');
+        if(!input) return;
         const text = input.value.trim();
         if (!text) return;
 
@@ -97,17 +98,13 @@ window.submitAITraining = () => {
         input.value = '';
         msgContainer.scrollTop = msgContainer.scrollHeight;
 
-        // استخدم نفس كود الاتصال بـ API الخاص بك من الكود القديم هنا
-        // مع تغيير API Key إلى المتغير الخاص بك
-        try {
-            // محاكاة أو طلب API فعلي
-             const reply = "مرحباً! أنا المساعد الخاص عبر واتساب. أستطيع إفادتك من قاعدة بيانات الموقع.";
-             msgContainer.innerHTML += `<div class="msg bot-msg">${reply}</div>`;
-             msgContainer.scrollTop = msgContainer.scrollHeight;
-        } catch (err) {
-            console.error(err);
-        }
-    }
+        // استدعاء الذكاء للرد بدلاً من النص الثابت
+        const reply = typeof App.callAIForVisitor === 'function' 
+            ? await App.callAIForVisitor(text)
+            : "أهلاً بك! أنا مساعد الأستاذ أحمد عادل.";
 
+        msgContainer.innerHTML += `<div class="msg bot-msg">${reply}</div>`;
+        msgContainer.scrollTop = msgContainer.scrollHeight;
+    }
 // تهيئة الإدارة
 initGeminiAdmin();
