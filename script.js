@@ -229,53 +229,32 @@ const App = {
         `).join('');
     },
 
-    aasync function generateTempKey() {
-    const durationSelect = document.getElementById('tempKeyDuration');
-    const typeVal = durationSelect ? durationSelect.value : "24h";
-    const randomPin = Math.floor(100000 + Math.random() * 900000).toString();
-    
-    let durationMs = 24 * 60 * 60 * 1000;
-    let isSingleUse = false;
-    let durationText = "";
+    generateTempKey() {
+        const durationSelect = document.getElementById('tempKeyDuration');
+        const typeVal = durationSelect ? durationSelect.value : "24h";
+        const randomPin = Math.floor(1000 + Math.random() * 9000).toString();
+        
+        let expiryTime = 0;
+        let isSingleUse = false;
+        let durationText = "";
 
-    if (typeVal === "single") {
-        isSingleUse = true;
-        durationText = "لفتح لمرة واحدة فقط";
-    } else if (typeVal === "24h") {
-        durationText = "صالح لمدة 24 ساعة";
-    } else if (typeVal === "72h") {
-        durationMs = 72 * 60 * 60 * 1000;
-        durationText = "صالح لمدة 72 ساعة";
-    }
-
-    const tempKeyData = {
-        pin: randomPin,
-        expiresAt: Date.now() + durationMs,
-        isSingleUse: isSingleUse
-    };
-
-    try {
-        const response = await fetch(`https://ahmed-portfolio-stack-d1fd8-default-rtdb.firebaseio.com/temp_keys/${randomPin}.json`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(tempKeyData)
-        });
-
-        // التحقق الفعلي من قبول Firebase للطلب
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+        if (typeVal === "single") {
+            isSingleUse = true;
+            expiryTime = new Date().getTime() + (24 * 60 * 60 * 1000);
+            durationText = "لفتح لمرة واحدة فقط";
+        } else if (typeVal === "24h") {
+            expiryTime = new Date().getTime() + (24 * 60 * 60 * 1000);
+            durationText = "صالح لمدة 24 ساعة";
+        } else if (typeVal === "72h") {
+            expiryTime = new Date().getTime() + (72 * 60 * 60 * 1000);
+            durationText = "صالح لمدة 72 ساعة";
         }
 
-        const displayEl = document.getElementById('tempKeyDisplay');
-        if (displayEl) {
-            displayEl.innerHTML = `🔑 المفتاح المؤقت: <span style="background:#dcf8c6; padding:4px 8px; border-radius:4px; color:#111;">${randomPin}</span> (${durationText})`;
-        }
-        alert(`تم توليد المفتاح السحابي بنجاح: ${randomPin}\nالنوع: ${durationText}`);
-    } catch (e) {
-        console.error("Firebase Error: ", e);
-        alert("فشل في حفظ المفتاح المؤقت بالسحابة. تأكد من صلاحيات قاعدة البيانات.");
-    }
-}
+        const tempKeyData = {
+            pin: randomPin,
+            expiresAt: expiryTime,
+            isSingleUse: isSingleUse
+        };
 
         sessionStorage.setItem('ahmed_temp_access_key', JSON.stringify(tempKeyData));
 
@@ -695,14 +674,6 @@ const App = {
         if (modal) modal.style.display = 'none';
     }
 };
-App.escapeHTML = function(str) {
-    if (!str) return '';
-    return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
-};
+
 window.App = App;
 document.addEventListener('DOMContentLoaded', () => App.init());
