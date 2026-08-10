@@ -1,30 +1,98 @@
-/* تصميم لوحة الإدارة (ستايل Gemini) */
 #gemini-admin-ui {
     position: fixed !important;
     top: 0 !important;
     left: 0 !important;
     width: 100vw !important;
     height: 100vh !important;
-    z-index: 100000 !important;
-    background: #131314 !important; /* لون داكن جمناي */
+    z-index: 999999 !important;
+    background: #131314 !important;
     display: none;
     flex-direction: column;
     color: #e3e2e6;
-    font-family: 'Tajawal', sans-serif;
+    font-family: system-ui, -apple-system, sans-serif;
+    direction: rtl;
 }
 
 .gemini-header {
-    padding: 15px 25px; background: #1e1e20; display: flex; justify-content: space-between; align-items: center;
-    border-bottom: 1px solid #444;
+    padding: 15px 25px;
+    background: #1e1e20;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #333;
 }
 
-.ai-tabs { display: flex; background: #1e1e20; padding: 10px 25px; gap: 10px; }
-.tab-btn { background: transparent; border: 1px solid #444; color: #e3e2e6; padding: 8px 16px; cursor: pointer; border-radius: 20px; transition: 0.3s; }
-.tab-btn.active { background: #c2e7ff; color: #004a77; border-color: #c2e7ff; }
+.ai-tabs {
+    display: flex;
+    background: #1e1e20;
+    padding: 10px 25px;
+    gap: 10px;
+    border-bottom: 1px solid #333;
+}
 
-.tab-content { flex: 1; padding: 30px; overflow-y: auto; display: none; }
-.tab-content.active { display: block; }
+.tab-btn {
+    background: transparent;
+    border: 1px solid #444;
+    color: #e3e2e6;
+    padding: 8px 16px;
+    cursor: pointer;
+    border-radius: 20px;
+    transition: 0.3s;
+}
 
-.train-source-select { width: 100%; padding: 12px; background: #282a2c; color: #fff; border: 1px solid #444; border-radius: 8px; margin-bottom: 15px; }
-.train-textarea { width: 100%; height: 200px; background: #282a2c; color: #fff; border: 1px solid #444; border-radius: 8px; padding: 15px; resize: vertical; }
-.btn-gemini { background: #c2e7ff; color: #004a77; padding: 10px 20px; border-radius: 20px; border: none; font-weight: bold; cursor: pointer; margin-top: 15px; }
+.tab-btn.active {
+    background: #c2e7ff;
+    color: #004a77;
+    border-color: #c2e7ff;
+    font-weight: bold;
+}
+
+.tab-content {
+    flex: 1;
+    padding: 25px;
+    overflow-y: auto;
+    display: none;
+}
+
+.tab-content.active {
+    display: flex;
+    flex-direction: column;
+}
+
+.train-source-select {
+    width: 100%;
+    padding: 12px;
+    background: #282a2c;
+    color: #fff;
+    border: 1px solid #444;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
+.train-textarea {
+    width: 100%;
+    height: 180px;
+    background: #282a2c;
+    color: #fff;
+    border: 1px solid #444;
+    border-radius: 8px;
+    padding: 15px;
+    resize: vertical;
+    font-family: inherit;
+}
+
+.btn-gemini {
+    background: #c2e7ff;
+    color: #004a77;
+    padding: 12px 24px;
+    border-radius: 20px;
+    border: none;
+    font-weight: bold;
+    cursor: pointer;
+    align-self: flex-start;
+    margin-top: 10px;
+}
+
+.btn-gemini:hover {
+    background: #a8c7fa;
+}
