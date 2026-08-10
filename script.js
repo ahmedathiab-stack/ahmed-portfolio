@@ -229,10 +229,10 @@ const App = {
         `).join('');
     },
 
-    generateTempKey() {async generateTempKey() {
+    async generateTempKey() {
         const durationSelect = document.getElementById('tempKeyDuration');
         const typeVal = durationSelect ? durationSelect.value : "24h";
-        const randomPin = Math.floor(100000 + Math.random() * 900000).toString(); // تم التحديث لـ 6 أرقام لأمان أعلى
+        const randomPin = Math.floor(100000 + Math.random() * 900000).toString();
         
         let durationMs = 24 * 60 * 60 * 1000;
         let isSingleUse = false;
@@ -255,14 +255,12 @@ const App = {
         };
 
         try {
-            // الحفظ في السحابة
             await fetch(`https://ahmed-portfolio-stack-d1fd8-default-rtdb.firebaseio.com/temp_keys/${randomPin}.json`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(tempKeyData)
             });
 
-            // تحديث الواجهة والتنبيه
             const displayEl = document.getElementById('tempKeyDisplay');
             if (displayEl) {
                 displayEl.innerHTML = `🔑 المفتاح المؤقت: <span style="background:#dcf8c6; padding:4px 8px; border-radius:4px; color:#111;">${randomPin}</span> (${durationText})`;
@@ -273,12 +271,6 @@ const App = {
             alert("فشل في حفظ المفتاح المؤقت بالسحابة.");
         }
     },
-
-        const tempKeyData = {
-            pin: randomPin,
-            expiresAt: expiryTime,
-            isSingleUse: isSingleUse
-        };
 
         sessionStorage.setItem('ahmed_temp_access_key', JSON.stringify(tempKeyData));
 
