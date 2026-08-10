@@ -59,74 +59,64 @@ function initAIAdmin() {
         if (e.key === 'Enter') this.sendChatMessage();
     };
 
- window.App.sendChatMessage = async function() {
-    const input = document.getElementById('ai-chat-input');
-    if (!input) return;
-    const text = input.value.trim();
-    if (!text) return;
+    window.App.sendChatMessage = async function() {
+        const input = document.getElementById('ai-chat-input');
+        if (!input) return;
+        const text = input.value.trim();
+        if (!text) return;
 
-    const msgContainer = document.getElementById('ai-chat-messages');
-    if (!msgContainer) return;
+        const msgContainer = document.getElementById('ai-chat-messages');
+        if (!msgContainer) return;
 
-    // تعقيم النص للوقاية من XSS[cite: 2]
-    const safeText = App.escapeHTML(text);
-    msgContainer.innerHTML += `<div class="msg user-msg">${safeText}</div>`;
-    input.value = '';
-    msgContainer.scrollTop = msgContainer.scrollHeight;
+        msgContainer.innerHTML += `<div class="msg user-msg">${text}</div>`;
+        input.value = '';
+        msgContainer.scrollTop = msgContainer.scrollHeight;
 
-    const kb = this.cachedDb || (typeof Store !== 'undefined' ? await Store.getKnowledge() : {});
-    
-    const strictSystemPrompt = `You are the personal assistant of Trainer Ahmed Adel Naji Thiab.
+        const kb = this.cachedDb || (typeof Store !== 'undefined' ? await Store.getKnowledge() : {});
+        
+        const strictSystemPrompt = `You are the personal assistant of Trainer Ahmed Adel Naji Thiab.
 CRITICAL RULES:
-1. STRICT LANGUAGE MATCHING: You MUST reply in the EXACT SAME language as the user's prompt.
-2. STYLE: Keep responses natural, conversational, concise, and friendly.
+1. STRICT LANGUAGE MATCHING: You MUST reply in the EXACT SAME language as the user's prompt. 
+   - If the user asks in English, translate data and answer 100% in English.
+   - If the user asks in Arabic, answer in Arabic.
+2. STYLE: Keep responses natural, conversational, concise, and friendly like a WhatsApp message.
 3. KNOWLEDGE BASE: ${JSON.stringify(kb)}`;
 
-    let responseContent = null;
-    
-    // تجربة المفاتيح دون تكرار فاشل
-    const testedKeys = new Set();
-    while (testedKeys.size < AI_CONFIG.KEYS.length) {
-        let apiKey = getNextApiKey();
-        if (testedKeys.has(apiKey)) break;
-        testedKeys.add(apiKey);
-
-        try {
-            const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${apiKey}`
-                },
-                body: JSON.stringify({
-                    model: AI_CONFIG.MODEL,
-                    messages: [
-                        { role: "system", content: strictSystemPrompt },
-                        { role: "user", content: text }
-                    ]
-                })
-            });
-            
-            if (res.ok) {
+        let success = false;
+        for (let i = 0; i < AI_CONFIG.KEYS.length; i++) {
+            let apiKey = getNextApiKey();
+            try {
+                const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: AI_CONFIG.MODEL,
+                        messages: [
+                            { role: "system", content: strictSystemPrompt },
+                            { role: "user", content: text }
+                        ]
+                    })
+                });
+                
+                if (!res.ok) throw new Error("API Request Failed");
+                
                 const data = await res.json();
                 if (data.choices && data.choices[0]) {
-                    responseContent = data.choices[0].message.content;
+                    msgContainer.innerHTML += `<div class="msg bot-msg">${data.choices[0].message.content}</div>`;
+                    success = true;
                     break;
                 }
+            } catch (err) {
+                console.warn("API Key Failed, trying next...", err);
             }
-        } catch (err) {
-            console.warn("API Key Error, switching to next key...", err);
         }
-    }
 
-    if (responseContent) {
-        msgContainer.innerHTML += `<div class="msg bot-msg">${App.escapeHTML(responseContent)}</div>`;
-    } else {
-        let fallbackReply = "أهلاً بك! أنا مساعد الأستاذ أحمد عادل. يمكنك التواصل معه مباشرة عبر الواتساب: +967779087415";
-        msgContainer.innerHTML += `<div class="msg bot-msg">${fallbackReply}</div>`;
-    }
-    msgContainer.scrollTop = msgContainer.scrollHeight;
-};
+        if (!success) {
+            let fallbackReply = "أهلاً بك! أنا مساعد الأستاذ أحمد عادل ناجي ذياب. يمكنك التواصل مع الأستاذ مباشرة عبر رقم الواتساب: +967779087415";
+            const lowerText = text.toLowerCase();
 
             if (lowerText.includes('رقم') || lowerText.includes('واتس') || lowerText.includes('تواصل') || lowerText.includes('whatsapp') || lowerText.includes('phone')) {
                 fallbackReply = `رقم الواتساب الخاص بالأستاذ أحمد عادل هو: +967 779087415، ويمكنك مراسلته مباشرة.`;
