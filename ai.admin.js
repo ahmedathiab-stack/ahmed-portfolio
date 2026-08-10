@@ -1,5 +1,5 @@
 // ==========================================
-//  محرك الذكاء الاصطناعي ووحدة الإدارة الذكية
+//  محرك الذكاء الاصطناعي ووحدة الإدارة الذكية (النسخة الآمنة)
 // ==========================================
 
 window.AIEngine = {
@@ -18,15 +18,25 @@ window.AIEngine = {
     }
 };
 
-// ربط المحرك بكائن التطبيق الرئيسي App
-if (window.App) {
-    window.App.fixText = window.AIEngine.cleanText;
+// دالة لضمان ربط الدوال بكائن App حتى لو تأخر تحميله
+function initAIAdmin() {
+    if (window.App) {
+        window.App.fixText = window.AIEngine.cleanText;
 
-    window.App.executeAdminAICommand = async function (commandText) {
-        if (!commandText || !commandText.trim()) {
-            alert("يرجى كتابة الأمر أولاً!");
-            return;
-        }
-        console.log("جاري معالجة الأمر الذكي:", commandText);
-    };
+        window.App.executeAdminAICommand = async function (commandText) {
+            if (!commandText || !commandText.trim()) {
+                alert("يرجى كتابة الأمر أولاً!");
+                return;
+            }
+            console.log("جاري معالجة الأمر الذكي:", commandText);
+            // سيتم إضافة منطق معالجة الأوامر هنا مستقبلاً
+        };
+        console.log("تم تفعيل وتثبيت مساعد الذكاء الاصطناعي بنجاح في App.");
+    } else {
+        // محاولة إعادة الربط بعد أجزاء من الثانية إذا كان ملف script.js يحمل ببطء
+        setTimeout(initAIAdmin, 100);
+    }
 }
+
+// تشغيل عملية التثبيت فوراً
+initAIAdmin();
