@@ -19,12 +19,11 @@
         <!-- حاوية محتوى الإدارة (تظهر فقط بعد تسجيل الدخول) -->
         <div id="admin-content-body" style="display:none; margin-top:15px;">
             
-            <!-- 1. قسم الأدوات الذكية -->
+            <!-- 1. قسم الأدوات الذكية المحدث لفتح شاشة Gemini -->
             <div class="admin-card" style="background: var(--bg-card); padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px dashed var(--primary-color);">
                 <h4 style="margin-bottom: 8px; color: var(--primary-color);">🤖 مساعد الإدارة الذكي</h4>
-                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px;">أضف أو عدل بيانات موقعك بأوامر نصية:</p>
-                <textarea id="aiAdminCommandInput" placeholder="مثال: أضف مهارة جديدة..." style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-main); color: var(--text-main); margin-bottom: 10px; resize: vertical;" rows="3"></textarea>
-                <button onclick="App.executeAdminAICommand(document.getElementById('aiAdminCommandInput').value)" class="btn-primary" style="width: 100%;">تنفيذ الأمر بالذكاء الاصطناعي 🚀</button>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px;">انقر للتحكم في قاعدة البيانات والتصميم وتلقين المعلومات:</p>
+                <button onclick="toggleGeminiAdmin()" class="btn-primary" style="width: 100%; background: #4285f4; font-weight: bold;">✨ فتح شاشة الذكاء Gemini (ملء الشاشة)</button>
             </div>
 
             <!-- 2. قسم الأدوات المساعدة -->
