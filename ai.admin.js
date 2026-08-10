@@ -15,106 +15,57 @@ function getApiKey() {
     return key;
 }
 
-// =========================================================
-//  حلقة التعلم والربط التفاعلي بين المساعد وجمناي الإداري
-// =========================================================
+window.AIEngine = {
+    // 1. تنظيف النصوص
+    cleanText: function(text) {
+        if (!text || typeof text !== 'string') return text || '';
+        return text.replace(/\b(aden|abien)\s+university\b/gi, "Abyan University").replace(/\babien\b/gi, "Abyan");
+    },
 
-window.AIEngine.sendPublicMessage = async function() {
-    const input = document.getElementById('wa-chat-input');
-    const msgBox = document.getElementById('wa-chat-messages');
-    if (!input || !msgBox) return;
-    const text = input.value.trim();
-    if (!text) return;
+    // 2. التحكم بشات الواتساب (المساعد العام)
+    togglePublicChat: function() {
+        const box = document.getElementById('whatsapp-chat-box');
+        const btn = document.getElementById('public-chat-btn');
+        if (!box) return;
+        const isVis = box.style.display === 'flex';
+        box.style.display = isVis ? 'none' : 'flex';
+        if (btn) btn.style.display = isVis ? 'flex' : 'none';
+    },
 
-    msgBox.innerHTML += `<div class="msg user-msg">${text}</div>`;
-    input.value = '';
-    msgBox.scrollTop = msgBox.scrollHeight;
+    sendPublicMessage: async function() {
+        const input = document.getElementById('wa-chat-input');
+        const msgBox = document.getElementById('wa-chat-messages');
+        if (!input || !msgBox) return;
+        const text = input.value.trim();
+        if (!text) return;
 
-    // 1️⃣ حفظ السؤال في سجل استفسارات الزوار المعلقة للتحليل
-    if (window.App && window.App.cachedDb) {
-        if (!window.App.cachedDb.visitor_queries) window.App.cachedDb.visitor_queries = [];
-        window.App.cachedDb.visitor_queries.push({
-            question: text,
-            date: new Date().toISOString(),
-            status: "pending"
-        });
-    }
+        msgBox.innerHTML += `<div class="msg user-msg">${text}</div>`;
+        input.value = '';
+        msgBox.scrollTop = msgBox.scrollHeight;
 
-    const kb = (window.App && window.App.cachedDb) ? window.App.cachedDb : {};
-    const prompt = `You are the WhatsApp AI assistant for Trainer Ahmed Adel Naji Thiab. Reply in exact language of user query (Arabic/English). Be friendly, short, accurate. Knowledge Base: ${JSON.stringify(kb)}`;
+        const kb = (window.App && window.App.cachedDb) ? window.App.cachedDb : {};
+        const prompt = `You are the WhatsApp AI assistant for Trainer Ahmed Adel Naji Thiab. Reply in exact language of user query (Arabic/English). Be friendly, short, accurate. Knowledge Base: ${JSON.stringify(kb)}`;
 
-    try {
-        const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getApiKey()}` },
-            body: JSON.stringify({
-                model: AI_CONFIG.MODEL,
-                messages: [{ role: "system", content: prompt }, { role: "user", content: text }]
-            })
-        });
-        const data = await res.json();
-        if (data.choices && data.choices[0]) {
-            msgBox.innerHTML += `<div class="msg bot-msg">${data.choices[0].message.content}</div>`;
-        }
-    } catch (e) {
-        msgBox.innerHTML += `<div class="msg bot-msg">أهلاً بك! يمكنك التواصل المباشر مع الأستاذ أحمد عادل عبر الواتساب: +967779087415</div>`;
-    }
-    msgBox.scrollTop = msgBox.scrollHeight;
-};
-
-// 2️⃣ تحليل أسئلة الزوار وتلقين المساعد الإجابات النموذجية مستقبلاً
-window.AIEngine.analyzeAndTrainVisitorQueries = async function() {
-    if (!window.App || !window.App.isAdminLoggedIn) return alert("⚠️ يرجى تسجيل الدخول للوحة الإدارة أولاً.");
-    
-    const db = window.App.cachedDb || {};
-    const queries = db.visitor_queries || [];
-    const pendingQueries = queries.filter(q => q.status === "pending");
-
-    if (pendingQueries.length === 0) {
-        return alert("ℹ️ لا توجد أسئلة جديدة غير محللة من الزوار في الوقت الحالي.");
-    }
-
-    const systemPrompt = `You are the Gemini Admin Learning Engine. 
-Analyze these user questions asked to the WhatsApp Bot: ${JSON.stringify(pendingQueries)}.
-Generate comprehensive Q&A/Knowledge updates for trainer Ahmed Adel Naji Thiab to train the public bot.
-
-Return ONLY JSON:
-{
-  "faq_updates": [
-    {"question": "سؤال الزائر", "learned_answer": "الإجابة النموذجية المعتمدة"}
-  ],
-  "updatedData": { ... full database incorporating new learned FAQs into 'faq' array ... },
-  "report": "ملخص بالأسئلة التي تم تحليلها وتدريب المساعد عليها"
-}`;
-
-    try {
-        const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getApiKey()}` },
-            body: JSON.stringify({
-                model: AI_CONFIG.MODEL,
-                messages: [{ role: "system", content: systemPrompt }, { role: "user", content: "حلل الأسئلة ودرّب المساعد" }],
-                response_format: { type: "json_object" }
-            })
-        });
-
-        const data = await res.json();
-        const content = JSON.parse(data.choices[0].message.content);
-
-        if (content.updatedData) {
-            // تحديث حالة الأسئلة إلى "منفذة ومحللة"
-            content.updatedData.visitor_queries = queries.map(q => ({ ...q, status: "analyzed" }));
-            
-            const saved = await window.Store.saveKnowledge(content.updatedData);
-            if (saved) {
-                alert("🧠 " + (content.report || "تمت تحليل الأسئلة وتلقين المساعد بنجاح!"));
-                this.loadMemoryView();
+        try {
+            const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getApiKey()}` },
+                body: JSON.stringify({
+                    model: AI_CONFIG.MODEL,
+                    messages: [{ role: "system", content: prompt }, { role: "user", content: text }]
+                })
+            });
+            const data = await res.json();
+            if (data.choices && data.choices[0]) {
+                msgBox.innerHTML += `<div class="msg bot-msg">${data.choices[0].message.content}</div>`;
             }
+        } catch (e) {
+            msgBox.innerHTML += `<div class="msg bot-msg">أهلاً بك! يمكنك التواصل المباشر مع الأستاذ أحمد عادل عبر الواتساب: +967779087415</div>`;
         }
-    } catch (e) {
-        alert("❌ حدث خطأ أثناء تحليل بيانات الشات.");
-    }
-};    // 3. التحكم بشاشة جمناي الإدارية
+        msgBox.scrollTop = msgBox.scrollHeight;
+    },
+
+    // 3. التحكم بشاشة جمناي الإدارية
     toggleGeminiAdmin: function() {
         const box = document.getElementById('gemini-admin-box');
         if (!box) return;
