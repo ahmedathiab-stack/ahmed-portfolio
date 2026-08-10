@@ -1,17 +1,17 @@
 /* =========================================================
-   Gemini-Style AI Admin CSS
+   Gemini-Style AI Admin CSS (Fixed Selectors)
    ========================================================= */
 
-.ai-chat-container {
+#ai-chat-box {
     background-color: #131314 !important;
     color: #e3e2e6 !important;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
     display: flex !important;
     flex-direction: column !important;
-    height: 100% !important;
-    max-width: 900px !important;
-    margin: 0 auto !important;
-    position: relative !important;
+    border-radius: 16px !important;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5) !important;
+    border: 1px solid #282a2c !important;
+    overflow: hidden !important;
 }
 
 .ai-chat-header {
@@ -42,6 +42,7 @@
     flex-direction: column !important;
     gap: 20px !important;
     scroll-behavior: smooth !important;
+    background-color: #131314 !important;
 }
 
 .msg {
@@ -66,7 +67,6 @@
     color: #e3e2e6 !important;
     border: 1px solid #282a2c !important;
     border-bottom-right-radius: 4px !important;
-    position: relative !important;
 }
 
 .gemini-welcome {
@@ -89,54 +89,16 @@
     font-size: 1rem !important;
 }
 
-.ai-input-wrapper {
-    padding: 16px 24px 24px 24px !important;
-    background: #131314 !important;
-}
-
-.ai-input-box {
-    display: flex !important;
-    align-items: center !important;
-    background-color: #1e1e20 !important;
-    border: 1px solid #333537 !important;
-    border-radius: 28px !important;
-    padding: 8px 16px 8px 24px !important;
-    transition: border-color 0.2s ease !important;
-}
-
-.ai-input-box:focus-within {
-    border-color: #a855f7 !important;
-}
-
-.ai-input-box input {
-    flex: 1 !important;
+#ai-chat-input {
     background: transparent !important;
     border: none !important;
     outline: none !important;
     color: #e3e2e6 !important;
     font-size: 1rem !important;
-    padding: 8px 0 !important;
+    width: 100% !important;
+    padding: 8px !important;
 }
 
-.ai-input-box input::placeholder {
+#ai-chat-input::placeholder {
     color: #8e9196 !important;
-}
-
-.ai-send-btn {
-    background: linear-gradient(135deg, #4285f4, #a855f7) !important;
-    border: none !important;
-    width: 40px !important;
-    height: 40px !important;
-    border-radius: 50% !important;
-    color: #fff !important;
-    cursor: pointer !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    transition: transform 0.2s ease !important;
-    margin-right: 8px !important;
-}
-
-.ai-send-btn:hover {
-    transform: scale(1.05) !important;
 }
