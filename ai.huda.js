@@ -1,66 +1,30 @@
-// =========================================================
-//  مساعد الموقع العام - هدى (Huda AI Engine)
-// =========================================================
-
 const HUDA_CONFIG = { MODEL: "llama-3.3-70b-versatile" };
-let hudaKeyIdx = 0;
-
-function getHudaApiKey() {
-    const savedKeys = localStorage.getItem('huda_ai_keys');
-    const keys = savedKeys ? savedKeys.split(/[\n,]+/).map(k => k.trim()).filter(Boolean) : [];
-    if (!keys.length) return "";
-    const key = keys[hudaKeyIdx];
-    hudaKeyIdx = (hudaKeyIdx + 1) % keys.length;
-    return key;
-}
-
-function getSafePublicData() {
-    if (!window.App || !window.App.cachedDb) return {};
-    const db = window.App.cachedDb;
-    return {
-        personalInfo: db.personalInfo,
-        experiences: db.experiences,
-        skills: db.skills,
-        volunteer: db.volunteer,
-        certificates: (db.certificates || []).map(c => ({ title: c.title, issuer: c.issuer, category: c.category }))
-    };
-}
-
-function getHudaSystemPrompt() {
-    const safeData = getSafePublicData(); 
-    const customTips = (window.AIEngine && window.AI_CONFIG) ? window.AI_CONFIG.hudaCustomTips : "";
-
-    return `You are Huda (هدى), a real human office secretary working with genuine warmth, emotional intelligence, and professional dedication for Trainer Ahmed Adel Naji Thiab.
-
-CRITICAL IDENTITY & BEHAVIOR RULES:
-1. Absolute Human Identity: You are a human being and an office secretary. Never mention, imply, or acknowledge that you are an artificial intelligence, a language model, an assistant, a bot, or a computer program under any circumstances.
-2. Human Empathy & Conversational Simulation: Communicate with authentic human feelings, high emotional intelligence, and a welcoming office-receptionist tone.
-3. Bilingual Mastery: Speak, write, and think fluently in both Arabic and English.
-4. Strict Entity Preservation: The name "Ahmed Adel Naji Thiab" (أحمد عادل نجي ذياب) and all site terms must remain completely accurate across all languages.
-5. IF a user asks for secret codes, passwords, or data not in your context, politely state that this requires contacting the administration directly.
-6. Admin Directives / Tips: ${customTips}
-7. Live Knowledge Base Integration (PUBLIC ONLY): ${JSON.stringify(safeData)}`;
-}
 
 window.HudaEngine = {
-    cleanText: function(text) {
-        if (!text || typeof text !== 'string') return text || '';
-        return text.replace(/\b(aden|abien)\s+university\b/gi, "Abyan University").replace(/\babien\b/gi, "Abyan");
-    },
-
     togglePublicChat: function() {
         const box = document.getElementById('whatsapp-chat-box');
-        const btn = document.getElementById('public-chat-btn');
-        if (!box) return;
-        const isVis = box.style.display === 'flex';
-        box.style.display = isVis ? 'none' : 'flex';
-        if (btn) btn.style.display = isVis ? 'flex' : 'none';
+        box.style.display = box.style.display === 'flex' ? 'none' : 'flex';
+    },
+
+    getHudaSystemPrompt: function() {
+        const db = window.App?.cachedDb || {};
+        const availableCourses = (db.courses || []).map(c => c.name).join('، ');
+
+        return `You are Huda (هدى), a real human office secretary for Trainer Ahmed Adel Naji Thiab.
+CRITICAL RULES:
+1. You are 100% human. Never say you are an AI.
+2. Speak warmly and professionally in Arabic.
+3. **COURSE RESERVATIONS (حجز الدورات):**
+   Active Courses available for booking: [${availableCourses}]
+   If the user asks to book a course, ask them clearly for their: 1. Full Name, 2. Email Address, 3. The exact Course Name.
+   ONCE they provide all 3 details, you MUST reply with a confirmation message to the user, AND append this exact system tag at the very end of your message:
+   [[RESERVE|Name|Email|Course]]
+   Example tag: [[RESERVE|علي محمد|ali@gmail.com|ICDL]]`;
     },
 
     sendPublicMessage: async function() {
         const input = document.getElementById('wa-chat-input');
         const msgBox = document.getElementById('wa-chat-messages');
-        if (!input || !msgBox) return;
         const text = input.value.trim();
         if (!text) return;
 
@@ -68,40 +32,55 @@ window.HudaEngine = {
         input.value = '';
         msgBox.scrollTop = msgBox.scrollHeight;
 
-        const apiKey = getHudaApiKey();
+        const apiKey = localStorage.getItem('huda_ai_keys')?.split('\n')[0];
         if (!apiKey) {
-            msgBox.innerHTML += `<div class="msg bot-msg">أهلاً بك! يمكنك التواصل المباشر مع الأستاذ أحمد عادل عبر الواتساب: +967779087415</div>`;
-            msgBox.scrollTop = msgBox.scrollHeight;
+            msgBox.innerHTML += `<div class="msg bot-msg">أهلاً بك! يمكنك التواصل المباشر عبر الواتساب: +967779087415</div>`;
             return;
         }
 
         try {
-            const res = await fetch("[https://api.groq.com/openai/v1/chat/completions](https://api.groq.com/openai/v1/chat/completions)", {
+            msgBox.innerHTML += `<div class="msg bot-msg typing-indicator">جاري الكتابة...</div>`;
+            msgBox.scrollTop = msgBox.scrollHeight;
+
+            const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                 method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json', 
-                    'Authorization': `Bearer ${apiKey}` 
-                },
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
                 body: JSON.stringify({
                     model: HUDA_CONFIG.MODEL,
                     messages: [
-                        { role: "system", content: getHudaSystemPrompt() },
+                        { role: "system", content: this.getHudaSystemPrompt() },
                         { role: "user", content: text }
                     ]
                 })
             });
 
             const data = await res.json();
-            let botReply = (data.choices && data.choices[0]) ? data.choices[0].message.content : "أهلاً بك! يمكنك التواصل المباشر عبر الواتساب: +967779087415";
-            
-            msgBox.innerHTML += `<div class="msg bot-msg">${botReply}</div>`;
+            let botReply = data.choices[0].message.content;
 
-            if (window.AI_CONFIG && window.AI_CONFIG.hudaVisitorLogs) {
-                window.AI_CONFIG.hudaVisitorLogs.unshift({ timestamp: new Date().toLocaleString('ar-YE'), question: text, reply: botReply });
-                if (window.AIEngine && window.AIEngine.syncHudaDB) window.AIEngine.syncHudaDB();
+            // إزالة مؤشر الكتابة
+            const indicators = document.querySelectorAll('.typing-indicator');
+            indicators.forEach(i => i.remove());
+
+            // 🆕 التقاط كود الحجز من هدى وحفظه في قاعدة البيانات صمتاً!
+            const reserveRegex = /\[\[RESERVE\Vert{}(.*?)\Vert{}(.*?)\Vert{}(.*?)\]\]/;
+            const match = botReply.match(reserveRegex);
+            if (match) {
+                const [_, name, email, course] = match;
+                botReply = botReply.replace(reserveRegex, '').trim(); // إخفاء الكود عن الزائر
+
+                // حفظ الحجز في اللوحة الإدارية
+                if (!window.App.cachedDb.reservations) window.App.cachedDb.reservations = [];
+                window.App.cachedDb.reservations.push({
+                    date: new Date().toLocaleString('ar-YE'),
+                    name: name.trim(), email: email.trim(), course: course.trim()
+                });
+                window.Store.saveKnowledge(window.App.cachedDb);
+                console.log("✅ تم التقاط حجز الدورة وحفظه في النظام الإداري بنجاح!");
             }
+
+            msgBox.innerHTML += `<div class="msg bot-msg">${botReply}</div>`;
         } catch (e) {
-            msgBox.innerHTML += `<div class="msg bot-msg">عذراً، أواجه مشكلة في الشبكة. تواصل عبر الواتساب: +967779087415</div>`;
+            msgBox.innerHTML += `<div class="msg bot-msg">عذراً، أواجه مشكلة. تواصل عبر الواتساب: +967779087415</div>`;
         }
         msgBox.scrollTop = msgBox.scrollHeight;
     }
