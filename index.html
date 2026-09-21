@@ -1,75 +1,214 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>أحمد عادل ناجي ذياب</title>
+    <title>أحمد عادل ناجي ذياب - الموقع الشخصي</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="ai.admin.css">
 </head>
+
 <body>
-    <button id="toggle-drawer-btn" class="admin-fab" onclick="App.toggleAdminDrawer()">⚙️</button>
+    <!-- زر فتح لوحة التحكم -->
+    <button id="toggle-drawer-btn" class="admin-fab" onclick="App.toggleAdminDrawer()" title="لوحة التحكم">⚙️</button>
 
     <!-- لوحة التحكم الجانبية -->
     <aside id="admin-drawer" class="admin-drawer">
         <div class="admin-drawer-body">
-            <button id="auth-btn" class="btn-submit" onclick="App.toggleAdminAuth()">🔒 تسجيل الدخول</button>
-            <div id="admin-content-body" style="display:none; margin-top:15px;">
-                <button onclick="AIEngine.toggleGeminiAdmin()" class="btn-primary" style="width:100%; margin-bottom:15px; background:#4285f4;">🚀 فتح لوحة جمناي الذكية</button>
-                
+            <div class="admin-header-box">
+                <h3 style="margin:0; color:var(--primary-color); font-size: 1.3rem;">⚙️ لوحة الإدارة والتحكم</h3>
+                <button id="auth-btn" class="btn-auth" onclick="App.toggleAdminAuth()">🔒 تسجيل الدخول</button>
+            </div>
+
+            <!-- محتوى لوحة التحكم -->
+            <div id="admin-content-body" style="display:none; margin-top:20px;">
+                <button onclick="AIEngine.toggleGeminiAdmin()" class="btn-gemini-launch"
+                    style="width:100%; margin-bottom:20px; background:linear-gradient(135deg, #4285f4, #1a73e8); color:#fff; font-weight:bold; padding:14px; border-radius:12px; border:none; cursor:pointer; box-shadow:0 6px 16px rgba(66,133,244,0.25); transition: transform 0.2s;">🚀
+                    فتح لوحة جمناي الذكية</button>
+
                 <div class="admin-tabs-nav">
-                    <button class="admin-tab active" onclick="App.switchAdminTab('tab-certs', this)">الشهادات</button>
-                    <button class="admin-tab" onclick="App.switchAdminTab('tab-exp', this)">الخبرات</button>
-                    <button class="admin-tab" onclick="App.switchAdminTab('tab-skills', this)">المهارات</button>
-                    <button class="admin-tab" onclick="App.switchAdminTab('tab-vol', this)">التطوع</button>
+                    <button class="admin-tab active" onclick="App.switchAdminTab('tab-certs', this)">🎓
+                        الشهادات</button>
+                    <button class="admin-tab" onclick="App.switchAdminTab('tab-exp', this)">💼 الخبرات</button>
+                    <button class="admin-tab" onclick="App.switchAdminTab('tab-skills', this)">⚡ المهارات</button>
+                    <button class="admin-tab" onclick="App.switchAdminTab('tab-vol', this)">🤝 التطوع</button>
+                    <button class="admin-tab" onclick="App.switchAdminTab('tab-keys', this)">🔑 المفاتيح</button>
+                    <button class="admin-tab" onclick="App.switchAdminTab('tab-db', this)">🗄️ القواعد</button>
+                    <button class="admin-tab" onclick="App.switchAdminTab('tab-pass', this)">🔐 الأمان</button>
+                    <button class="admin-tab" onclick="App.switchAdminTab('tab-tokens', this)">⏳ التصاريح</button>
                 </div>
-                
+
+                <!-- 1️⃣ قسم الشهادات -->
                 <div id="tab-certs" class="admin-tab-content active">
-                    <input type="hidden" id="certEditIndex" value="-1">
-                    <input type="text" id="certTitle" placeholder="اسم الشهادة">
-                    <input type="text" id="certIssuer" placeholder="الجهة المصدرة">
-                    <input type="date" id="certDate" style="margin-bottom: 12px; width: 100%; padding: 10px;">
-                    <input type="text" id="certCategory" placeholder="التصنيف">
-                    <input type="text" id="certPin" placeholder="رقم سري للفتح">
-                    <input type="text" id="certImage" placeholder="رابط الصورة">
-                    <input type="file" id="certFile" accept="image/*">
-                    <button class="btn-submit" onclick="App.saveCertificate()">✅ حفظ وتحديث</button>
-                    <div id="admin-certs-list" class="admin-list"></div>
+                    <div class="admin-card-section">
+                        <input type="hidden" id="certEditIndex" value="-1">
+                        <div class="form-grid">
+                            <input type="text" id="certTitle" placeholder="اسم الشهادة">
+                            <input type="text" id="certIssuer" placeholder="الجهة المصدرة">
+                        </div>
+                        <div class="form-grid">
+                            <input type="date" id="certDate" style="padding: 10px;">
+                            <input type="text" id="certCategory" placeholder="التصنيف">
+                        </div>
+                        <input type="text" id="certImage" placeholder="رابط الصورة">
+                        <button class="btn-submit w-100" onclick="App.saveCertificate()">✅ حفظ وتحديث الشهادة</button>
+                    </div>
+                    <div id="admin-certs-list" class="admin-list mt-3"></div>
                 </div>
+
+                <!-- 2️⃣ قسم الخبرات -->
                 <div id="tab-exp" class="admin-tab-content">
-                    <input type="hidden" id="expEditIndex" value="-1">
-                    <input type="text" id="expRole" placeholder="المسمى الوظيفي">
-                    <input type="text" id="expCompany" placeholder="الشركة">
-                    <input type="text" id="expPeriod" placeholder="الفترة">
-                    <textarea id="expDesc" placeholder="الوصف"></textarea>
-                    <button class="btn-submit" onclick="App.saveExperience()">✅ حفظ الخبرة</button>
-                    <div id="admin-exp-list" class="admin-list"></div>
+                    <div class="admin-card-section">
+                        <input type="hidden" id="expEditIndex" value="-1">
+                        <div class="form-grid">
+                            <input type="text" id="expRole" placeholder="المسمى الوظيفي">
+                            <input type="text" id="expCompany" placeholder="الشركة / الجهة">
+                        </div>
+                        <input type="text" id="expPeriod" placeholder="الفترة (مثال: 2023 - 2024)">
+                        <textarea id="expDesc" placeholder="الوصف والمهام المنجزة" rows="3"></textarea>
+                        <button class="btn-submit w-100" onclick="App.saveExperience()">✅ حفظ الخبرة</button>
+                    </div>
+                    <div id="admin-exp-list" class="admin-list mt-3"></div>
                 </div>
+
+                <!-- 3️⃣ قسم المهارات -->
                 <div id="tab-skills" class="admin-tab-content">
-                    <input type="hidden" id="skillEditIndex" value="-1">
-                    <input type="text" id="skillName" placeholder="اسم المهارة">
-                    <input type="text" id="skillCategory" placeholder="التصنيف">
-                    <select id="skillLevel">
-                        <option value="خبير">خبير</option>
-                        <option value="متقدم">متقدم</option>
-                        <option value="متوسط">متوسط</option>
-                    </select>
-                    <button class="btn-submit" onclick="App.saveSkill()">✅ حفظ المهارة</button>
-                    <div id="admin-skills-list" class="admin-list"></div>
+                    <div class="admin-card-section">
+                        <input type="hidden" id="skillEditIndex" value="-1">
+                        <div class="form-grid">
+                            <input type="text" id="skillName" placeholder="اسم المهارة">
+                            <input type="text" id="skillCategory" placeholder="التصنيف">
+                        </div>
+                        <select id="skillLevel">
+                            <option value="خبير">خبير</option>
+                            <option value="متقدم">متقدم</option>
+                            <option value="متوسط">متوسط</option>
+                        </select>
+                        <button class="btn-submit w-100" onclick="App.saveSkill()">✅ حفظ المهارة</button>
+                    </div>
+                    <div id="admin-skills-list" class="admin-list mt-3"></div>
                 </div>
+
+                <!-- 4️⃣ قسم التطوع -->
                 <div id="tab-vol" class="admin-tab-content">
-                    <input type="hidden" id="volEditIndex" value="-1">
-                    <input type="text" id="volRole" placeholder="الدور">
-                    <input type="text" id="volOrg" placeholder="الجهة">
-                    <input type="text" id="volPeriod" placeholder="الفترة">
-                    <button class="btn-submit" onclick="App.saveVolunteer()">✅ حفظ التطوع</button>
-                    <div id="admin-vol-list" class="admin-list"></div>
+                    <div class="admin-card-section">
+                        <input type="hidden" id="volEditIndex" value="-1">
+                        <div class="form-grid">
+                            <input type="text" id="volRole" placeholder="الدور التطوعي">
+                            <input type="text" id="volOrg" placeholder="الجهة">
+                        </div>
+                        <input type="text" id="volPeriod" placeholder="الفترة">
+                        <button class="btn-submit w-100" onclick="App.saveVolunteer()">✅ حفظ التطوع</button>
+                    </div>
+                    <div id="admin-vol-list" class="admin-list mt-3"></div>
+                </div>
+
+                <!-- 5️⃣ قسم المفاتيح السرية واختبار النظام -->
+                <div id="tab-keys" class="admin-tab-content">
+                    <div class="admin-card-section">
+                        <h4>🔑 خزنة المفاتيح السرية (API Keys)</h4>
+                        <label>مفاتيح الذكاء الإداري (Gemini / Groq Keys):</label>
+                        <textarea id="admin-ai-keys-input"
+                            placeholder="أدخل المفاتيح (مفتاح في كل سطر أو مفصولة بفاصلة)..." rows="3"></textarea>
+
+                        <label>مفاتيح هدى (Huda API Keys):</label>
+                        <textarea id="huda-ai-keys-input"
+                            placeholder="أدخل المفاتيح (مفتاح في كل سطر أو مفصولة بفاصلة)..." rows="3"></textarea>
+
+                        <button class="btn-submit w-100" onclick="App.saveApiKeys()">💾 حفظ جميع المفاتيح</button>
+                        <button class="btn-submit w-100 mt-2" style="background: #8b5cf6;" onclick="App.testApiKeys()">⚡
+                            فحص وتأكيد صلاحية المفاتيح</button>
+                        <button class="btn-submit w-100 mt-2" style="background: #0284c7;"
+                            onclick="App.testDbConnections()">🔍 اختبار اتصال القواعد الأربع</button>
+                    </div>
+                </div>
+
+                <!-- 6️⃣ قسم قواعد البيانات الأربع -->
+                <div id="tab-db" class="admin-tab-content">
+                    <div class="admin-card-section">
+                        <h4>🗄️ ربط قواعد البيانات الأربع</h4>
+                        <label>1. رابط قاعدة بيانات الموقع (Website DB):</label>
+                        <input type="text" id="db-website-url" placeholder="https://...firebaseio.com/data.json">
+
+                        <label>2. رابط قاعدة بيانات هدى (Huda DB):</label>
+                        <input type="text" id="db-huda-url" placeholder="https://...firebaseio.com/huda.json">
+
+                        <label>3. رابط قاعدة بيانات الذكاء الإداري (AI Engine DB):</label>
+                        <input type="text" id="db-ai-url" placeholder="https://...firebaseio.com/ai_admin.json">
+
+                        <label>4. رابط قاعدة بيانات كلمات المرور (Passwords DB):</label>
+                        <input type="text" id="db-passwords-url" placeholder="https://...firebaseio.com/passwords.json">
+
+                        <div style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
+                            <button class="btn-submit" style="flex: 1;" onclick="App.saveDbConnections()">🔗 حفظ وربط
+                                قواعد البيانات</button>
+                            <button class="btn-secondary"
+                                style="flex: 1; background:#64748b; color:#fff; padding:10px; border-radius:var(--radius-sm); border:none; cursor:pointer;"
+                                onclick="App.testDbConnections()">🔍 اختبار الاتصال</button>
+                        </div>
+                    </div>
+                    <div id="cloud-sync-status" class="sync-status mt-2">حالة المزامنة: وضع محلي بالكامل (على الجهاز
+                        فقط) ⚠️</div>
+                </div>
+
+                <!-- 7️⃣ تبويب أمان اللوحة -->
+                <div id="tab-pass" class="admin-tab-content">
+                    <div class="admin-card-section">
+                        <h4>🔐 تغيير كلمة مرور لوحة التحكم الرئيسية</h4>
+                        <label>كلمة المرور الحالية:</label>
+                        <input type="password" id="current-admin-pass" placeholder="أدخل كلمة المرور الحالية">
+                        <label>كلمة المرور الجديدة:</label>
+                        <input type="password" id="new-admin-pass" placeholder="أدخل كلمة المرور الجديدة">
+                        <label>تأكيد كلمة المرور الجديدة:</label>
+                        <input type="password" id="confirm-admin-pass" placeholder="أعد إدخال كلمة المرور الجديدة">
+                        <button class="btn-submit w-100" onclick="App.changeAdminPassword()">🔒 تحديث كلمة مرور
+                            اللوحة</button>
+                    </div>
+                </div>
+
+                <!-- 8️⃣ تبويب التصاريح المؤقتة -->
+                <div id="tab-tokens" class="admin-tab-content">
+                    <div class="admin-card-section token-section">
+                        <h4>⏳ مولد كلمات المرور المؤقتة (معاينة الشهادات)</h4>
+                        <div class="form-grid">
+                            <div>
+                                <label>الشهادة المستهدفة:</label>
+                                <select id="tempCertSelect"></select>
+                                <div id="tempCertListContainer"
+                                    style="max-height:120px; overflow-y:auto; border:1px solid var(--border-color); padding:8px; border-radius:6px; background:#fff; display:none;">
+                                </div>
+                            </div>
+                            <div>
+                                <label>مدة الصلاحية:</label>
+                                <select id="tempDurationSelect">
+                                    <option value="60" selected>ساعة واحدة</option>
+                                    <option value="1440">24 ساعة (يوم كامل)</option>
+                                    <option value="2880">48 ساعة (يومان)</option>
+                                    <option value="4320">72 ساعة (3 أيام)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button class="btn-submit w-100 mt-2" style="background:#059669;"
+                            onclick="App.generateTempPasscode()">⚡ توليد كلمة مرور مؤقتة</button>
+                    </div>
+
+                    <div class="admin-card-section mt-3">
+                        <h4>🗄️ سجل وقاعدة بيانات الكلمات المؤقتة النشطة</h4>
+                        <div id="temp-tokens-list"></div>
+                    </div>
                 </div>
             </div>
         </div>
     </aside>
 
+    <!-- الهيدر الرئيسي للموقع -->
     <header class="hero">
+        <!-- أداة الترجمة التلقائية الشاملة -->
+        <div class="lang-switcher-container">
+            <div id="google_translate_element"></div>
+        </div>
+    
         <h1 id="hero-name">أحمد عادل ناجي ذياب</h1>
         <p class="subtitle" id="hero-title">مدرب برامج محاسبة وأنظمة مالية | مدرب معتمد (ICDL & English)</p>
         <div class="contact-info">
@@ -78,12 +217,28 @@
             <span>✉️ Ahmed.a.n.thiab@gmail.com</span>
         </div>
     </header>
-
+    
+    <!-- سكربت تشغيل ترجمة جوجل التلقائية -->
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({
+                pageLanguage: 'ar',
+                includedLanguages: 'ar,en,fr',
+                layout: google.translate.TranslateElement.InlineLayout.SIMPLE
+            }, 'google_translate_element');
+        }
+    </script>
+    <script type="text/javascript"
+        src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+    
     <main class="container">
-        <section class="master-access-bar">
+        <!-- 1️⃣ شريط الوصول الرئيسي -->
+        <section class="master-access-bar"
+            style="background:var(--bg-card); padding:18px; border-radius:var(--radius-md); margin-top:20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; border:1px solid var(--border-color);">
             <div>
                 <span>🔓 المعرض مقفل بحماية الكود</span>
-                <p style="font-size:0.85rem; color:var(--text-muted);">أدخل كود أي شهادة لفتح معاينتها، أو استخدم الكود الشامل.</p>
+                <p style="font-size:0.85rem; color:var(--text-muted); margin-top:4px;">أدخل كود التصريح المؤقت المحدد
+                    للشهادة لرؤيتها.</p>
             </div>
             <div style="display:flex; gap:10px; flex-wrap:wrap;">
                 <button class="btn-master" onclick="App.openModal('accessModal')">🔑 إدخال كود تصريح</button>
@@ -91,9 +246,10 @@
             </div>
         </section>
 
-        <section class="card">
+        <section class="card" style="margin-top:20px;">
             <h2>👤 نبذة تعريفية</h2>
-            <p id="profile-summary" class="section-desc">مدرب معتمد ومحاسب أكاديمي حاصل على بكالوريوس المحاسبة من جامعة أبين.</p>
+            <p id="profile-summary" class="section-desc">مدرب معتمد ومحاسب أكاديمي حاصل على بكالوريوس المحاسبة من جامعة
+                أبين.</p>
         </section>
 
         <section class="card">
@@ -117,112 +273,161 @@
         </section>
     </main>
 
-    <!-- الحاوية العائمة للزر مع النص التعريفي المتحرك -->
-<div style="position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; align-items: center; gap: 10px;">
-    <span style="background: #ffffff; padding: 8px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.15); color: #075e54; white-space: nowrap;">تواصل مع السكرتيرة 💬</span>
-    <button id="public-chat-btn" onclick="AIEngine.togglePublicChat()" style="position: static; width: 60px; height: 60px; border-radius: 50%; background: #25d366; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 28px; box-shadow: 0 6px 20px rgba(37, 211, 102, 0.4); border: none; cursor: pointer; transition: transform 0.3s;">
-        <i class="fab fa-whatsapp"></i>
-    </button>
-</div>
+    <!-- نافذة إدخال الكود -->
+    <div id="accessModal" class="modal">
+        <div class="modal-content">
+            <h3 style="margin-bottom: 15px;">🔑 إدخال كود التصريح</h3>
+            <input type="text" id="passcode" placeholder="أدخل الكود هنا...">
+            <button class="btn-primary" style="width: 100%; margin-top: 10px;" onclick="App.validateAccessCode()">تحقق
+                وفتح</button>
+            <button class="btn-submit" style="background: #ef4444; margin-top: 10px; width: 100%;"
+                onclick="App.closeModal('accessModal')">إلغاء</button>
+        </div>
+    </div>
 
-<!-- صندوق المحادثة المطور والمريح للعين -->
-<div id="whatsapp-chat-box">
-    <div id="wa-chat-header">
-        <div style="display: flex; align-items: center; gap: 10px;">
-            <div class="wa-avatar">أ</div>
-            <div>
-                <h5 style="margin:0; font-size: 0.95rem; color:#fff;">سكرتيرة أحمد ذياب</h5>
-                <small style="font-size: 0.75rem; color: #d1d7db;">متصل الآن</small>
+    <!-- نافذة طلب المفتاح عبر واتساب الموحدة -->
+    <div id="wa-modal" class="modal">
+        <div class="modal-content">
+            <h3 style="margin-bottom: 15px;">💬 طلب مفتاح عبر واتساب</h3>
+            <label
+                style="display:flex; align-items:center; gap:8px; margin-bottom:10px; cursor:pointer; background:#f1f5f9; padding:8px; border-radius:6px;">
+                <input type="checkbox" id="waSelectAll" onchange="App.toggleWaSelectAll(this)"
+                    style="width:auto; margin:0;">
+                <strong>🌟 تحديد جميع الشهادات</strong>
+            </label>
+            <div id="waCertListContainer"
+                style="max-height: 180px; overflow-y: auto; border: 1px solid var(--border-color); padding: 10px; border-radius: var(--radius-sm); margin-bottom: 14px; background: #fafafa;">
             </div>
-        </div>
-        <div style="display: flex; gap: 10px; align-items: center;">
-            <button onclick="toggleChatFullscreen()" style="background: none; border: none; color: #fff; cursor: pointer; font-size: 1.1rem; padding: 4px;" title="تكبير الشات">⛶</button>
-            <button onclick="AIEngine.togglePublicChat()" style="background: none; border: none; color: #fff; cursor: pointer; font-size: 1.2rem; padding: 4px;" title="إغلاق">✕</button>
-        </div>
-    </div>
-    
-    <div id="wa-chat-messages">
-        <div class="msg bot-msg">أهلاً بك , انا هدى كيف يمكنني مساعدتك اليوم </div>
-    </div>
-    
-    <div id="wa-chat-input-area">
-        <input type="text" id="wa-chat-input" placeholder="اكتب رسالتك هنا..." onkeypress="if(event.key === 'Enter') AIEngine.sendPublicMessage()">
-        <button id="wa-chat-send" onclick="AIEngine.sendPublicMessage()">➤</button>
-    </div>
-</div>
 
-    <!-- 2️⃣ لوحة الذكاء الإداري (ستايل جمناي الداكن - معرف منفصل) -->
+            <button class="btn-whatsapp" style="width: 100%; margin-top: 10px;" onclick="App.sendWaCertRequest()">إرسال
+                الطلب</button>
+            <button class="btn-submit" style="background: #ef4444; margin-top: 10px; width: 100%;"
+                onclick="App.closeModal('wa-modal')">إلغاء</button>
+        </div>
+    </div>
+
+    <!-- نافذة عرض صورة الشهادة (Lightbox) المضافة حديثاً -->
+    <div id="imageViewerModal" class="modal" onclick="if(event.target === this) App.closeModal('imageViewerModal')">
+        <div class="modal-content"
+            style="background: transparent; box-shadow: none; max-width: 90%; text-align: center; position: relative; padding: 0;">
+            <button onclick="App.closeModal('imageViewerModal')"
+                style="position: absolute; top: -50px; right: 0; background: rgba(0,0,0,0.6); border: none; color: white; font-size: 2rem; cursor: pointer; width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 10; transition: background 0.3s;">&times;</button>
+            <img id="certViewerImage" src=""
+                style="max-width: 100%; max-height: 85vh; border-radius: var(--radius-md); box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 2px solid white; object-fit: contain;">
+        </div>
+    </div>
+
+    <!-- زر وصندوق سكرتيرة أحمد (هدى) -->
+    <div class="huda-chat-wrapper" style="position:fixed; bottom:24px; right:24px; z-index:9999;">
+        <button id="public-chat-btn" onclick="HudaEngine.togglePublicChat()">💬</button>
+    </div>
+
+    <div id="whatsapp-chat-box">
+        <div id="wa-chat-header">
+            <div class="wa-header-info">
+                <div class="wa-avatar-container">
+                    <div class="wa-avatar">أ</div>
+                    <div class="wa-online-dot"></div>
+                </div>
+                <div>
+                    <div class="wa-user-title">سكرتيرة أحمد ذياب</div>
+                    <div class="wa-user-status">متصل الآن</div>
+                </div>
+            </div>
+            <button onclick="HudaEngine.togglePublicChat()"
+                style="background: none; border: none; color: #fff; cursor: pointer; font-size: 1.2rem;"
+                title="إغلاق">✕</button>
+        </div>
+        <div id="wa-chat-messages">
+            <div class="msg bot-msg">أهلاً بك، أنا هدى سكرتيرة الأستاذ أحمد عادل، كيف يمكنني مساعدتك اليوم؟</div>
+        </div>
+        <div id="wa-chat-input-area">
+            <input type="text" id="wa-chat-input" placeholder="اكتب رسالتك هنا..."
+                onkeypress="if(event.key === 'Enter') HudaEngine.sendPublicMessage()">
+            <button id="wa-chat-send" onclick="HudaEngine.sendPublicMessage()">➤</button>
+        </div>
+    </div>
+
+    <!-- لوحة الذكاء الإداري جمناي -->
     <div id="gemini-admin-box">
         <div class="gemini-header">
-            <div style="display:flex; align-items:center; gap:10px;">
-                <span style="font-size:1.2rem;">✨</span>
-                <strong>Gemini Control Engine</strong>
+            <div style="display:flex; align-items:center; gap:12px;">
+                <span style="font-size:1.4rem;">✨</span>
+                <strong>Gemini Control Engine & Huda Reports</strong>
+                <div class="theme-switcher" style="margin-right: 20px;">
+                    <button id="btn-theme-gemini" class="theme-btn active" onclick="AIEngine.setAITheme('gemini')">✨
+                        Gemini</button>
+                    <button id="btn-theme-chatgpt" class="theme-btn" onclick="AIEngine.setAITheme('chatgpt')">🟢
+                        ChatGPT</button>
+                </div>
             </div>
             <button onclick="AIEngine.toggleGeminiAdmin()" class="gemini-close-btn">إغلاق</button>
         </div>
         <div class="gemini-nav">
-            <button class="gemini-tab active" onclick="AIEngine.switchGeminiTab('g-cmd')">الأوامر والتعديل</button>
-            <button class="gemini-tab" onclick="AIEngine.switchGeminiTab('g-train')">تدريب وسائط</button>
-            <button class="gemini-tab" onclick="AIEngine.switchGeminiTab('g-perms')">الصلاحيات الكاملة</button>
-            <button class="gemini-tab" onclick="AIEngine.switchGeminiTab('g-reports')">التقارير والذاكرة</button>
+            <button class="gemini-tab active" onclick="AIEngine.switchGeminiTab('g-cmd', this)">الأوامر
+                والتعديل</button>
+            <button class="gemini-tab" onclick="AIEngine.switchGeminiTab('g-train', this)">تدريب الوسائط</button>
+            <button class="gemini-tab" onclick="AIEngine.switchGeminiTab('g-perms', this)">الصلاحيات والإنترنت</button>
+            <button class="gemini-tab" onclick="AIEngine.switchGeminiTab('g-reports', this)">التقارير والنصائح</button>
         </div>
         <div class="gemini-body">
-            <!-- تبويب الأوامر -->
             <div id="g-cmd" class="gemini-tab-content active">
-                <p style="color:#aaa; font-size:0.9rem; margin-bottom:10px;">أعطِ أمرك الذكي لتحديث محتوى أو تصميم الموقع مباشرة:</p>
+                <p style="color:#aaa; font-size:0.95rem; margin-bottom:12px;">أعطِ أمرك الذكي لتحديث محتوى أو تصميم
+                    الموقع مباشرة مع دمج الذاكرة:</p>
                 <textarea id="gemini-cmd-input" placeholder="مثال: أضف خبرة جديدة كمدرب مالي لعام 2026..."></textarea>
                 <button class="gemini-btn" onclick="AIEngine.runGeminiCommand()">تنفيذ الأمر الذكي 🚀</button>
             </div>
-            <!-- تبويب التدريب -->
             <div id="g-train" class="gemini-tab-content">
-                <label style="color:#aaa;">اختر نوع الوسائط لتعليم الذكاء:</label>
-                <select id="train-media-type" class="gemini-select">
-                    <option value="video">🎥 فيديو (رابط أو تفريغ)</option>
-                    <option value="audio">🎙️ صوت (تفريغ نصي)</option>
-                    <option value="book">📚 كتاب / ملف نصي</option>
-                    <option value="link">🔗 رابط موقع خارجي</option>
-                </select>
-                <textarea id="train-media-content" placeholder="ضع رابط أو محتوى المادة التعليمية هنا..."></textarea>
-                <button class="gemini-btn" onclick="AIEngine.trainGeminiMedia()">حفظ وتدريب النظام 🧠</button>
+                <div class="form-grid">
+                    <div>
+                        <label style="color:#aaa;">اختر الجهة المستهدفة بالتدريب:</label>
+                        <select id="train-target-entity" class="gemini-select">
+                            <option value="gemini">🤖 جمناي الإداري (تعديل قاعدة البيانات والنظام)</option>
+                            <option value="huda">👩‍💼 هدى (تدريب السكرتيرة بشكل مستقل)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="color:#aaa;">اختر نوع الوسائط أو الملف:</label>
+                        <select id="train-media-type" class="gemini-select">
+                            <option value="video">🎥 فيديو (رابط أو تفريغ)</option>
+                            <option value="audio">🎙️ صوت (تفريغ نصي)</option>
+                            <option value="book">📚 كتاب / ملف نصي أو PDF</option>
+                            <option value="link">🔗 رابط موقع خارجي أو شبكات اجتماعية</option>
+                        </select>
+                    </div>
+                </div>
+                <textarea id="train-media-content" placeholder="ضع رابط، تفريغ صوتي، أو محتوى الملف هنا..."
+                    style="margin-top: 10px;"></textarea>
+                <button class="gemini-btn mt-2" onclick="AIEngine.trainGeminiMedia()">تحليل وتدريب الجهة المستهدفة
+                    🧠</button>
             </div>
-            <!-- تبويب الصلاحيات -->
             <div id="g-perms" class="gemini-tab-content">
                 <h4 style="color:#8ab4f8; margin-bottom:15px;">إعطاء الصلاحيات الكاملة للذكاء الاصطناعي:</h4>
-                <div class="gemini-perm-item"><input type="checkbox" id="perm-data" checked> <span>صلاحية التعديل على البيانات والمحتوى</span></div>
-                <div class="gemini-perm-item"><input type="checkbox" id="perm-design" checked> <span>صلاحية التعديل على أشكال وألوان الموقع (CSS)</span></div>
-                <div class="gemini-perm-item"><input type="checkbox" id="perm-info" checked> <span>صلاحية تعديل المعلومات الشخصية وهيدر الموقع</span></div>
-                <div class="gemini-perm-item"><input type="checkbox" id="perm-keys" checked> <span>صلاحية توليد والتحكم بمفاتيح التصاريح</span></div>
+                <div class="gemini-perm-item"><input type="checkbox" id="perm-data" checked> <span>صلاحية التعديل والدمج
+                        على البيانات والمحتوى</span></div>
+                <div class="gemini-perm-item"><input type="checkbox" id="perm-design" checked> <span>صلاحية التعديل على
+                        أشكال وألوان الموقع (CSS)</span></div>
+                <div class="gemini-perm-item"><input type="checkbox" id="perm-info" checked> <span>صلاحية تعديل
+                        المعلومات الشخصية وهيدر الموقع</span></div>
+                <div class="gemini-perm-item"><input type="checkbox" id="perm-keys" checked> <span>صلاحية توليد والتحكم
+                        بمفاتيح التصاريح</span></div>
+                <div class="gemini-perm-item" style="background:#2d2d30; border-color:#4285f4; margin-top: 15px;">
+                    <input type="checkbox" id="internet-learning-toggle" checked
+                        onchange="AIEngine.toggleInternetLearning()">
+                    <span style="color:#34d399; font-weight:bold;">القدرة على التعلم والبحث المستمر من الإنترنت</span>
+                </div>
             </div>
-            <!-- تبويب التقارير والذاكرة -->
             <div id="g-reports" class="gemini-tab-content">
-                <h4 style="color:#8ab4f8; margin-bottom:10px;">تقرير الذاكرة والتعلم الحالي:</h4>
-                <pre id="gemini-memory-view">جاري تحميل تقرير الذكاء...</pre>
+                <div id="gemini-reports-container" style="margin-bottom: 20px;">جاري تحميل التقارير المنفصلة...</div>
+                <h4 style="color:#8ab4f8; margin-bottom:10px; margin-top:20px;">البنية الكاملة للبيانات المخزنة:</h4>
+                <pre id="gemini-memory-view">جاري تحميل الذاكرة...</pre>
             </div>
         </div>
     </div>
 
-    <!-- Modals -->
-    <div id="accessModal" class="modal">
-        <div class="modal-content">
-            <span class="close-btn" onclick="App.closeModal('accessModal')">&times;</span>
-            <h3>مطلوب كود التصريح</h3>
-            <input type="password" id="passcode" placeholder="أدخل الكود هنا...">
-            <button class="btn-submit" onclick="App.validateAccessCode()">تحقق وفتح المعاينة</button>
-            <div id="errorMsg" class="error-text"></div>
-        </div>
-    </div>
-
-    <div id="wa-modal" class="modal">
-        <div class="modal-content">
-            <span class="close-btn" onclick="App.closeModal('wa-modal')">&times;</span>
-            <h3>طلب مفتاح عبر واتساب</h3>
-            <select id="waCertSelect"></select>
-            <button class="btn-whatsapp" style="width:100%; margin-top:10px;" onclick="App.sendWaSingleCertRequest()">إرسال الطلب عبر واتساب</button>
-        </div>
-    </div>
-
-    <!-- تحميل الملفات بالترتيب المحكم -->
-    <script src="ai.admin.js"></script>
     <script src="script.js"></script>
+    <script src="ai.huda.js"></script>
+    <script src="ai.admin.js"></script>
 </body>
+
 </html>
