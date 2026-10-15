@@ -181,6 +181,18 @@ export async function callAi({ system, message, modelHint }: { system: string; m
       lastStatus = 502;
     }
   }
+  export function requireSameOrigin(req: VercelRequest, res: VercelResponse): boolean {
+  // السماح لطلبات القراءة GET بالمرور فوراً لتجنب مشاكل المتصفح
+  if (req.method === 'GET') return true;
+
+  const expected = process.env.APP_ORIGIN;
+  const origin = req.headers.origin;
+  if (!expected || !origin || origin !== expected) {
+    send(res, 403, { error: 'ORIGIN_NOT_ALLOWED' });
+    return false;
+  }
+  return true;
+}
   const error: any = new Error('ALL_AI_KEYS_FAILED');
   error.status = lastStatus === 429 ? 503 : 502;
   throw error;
