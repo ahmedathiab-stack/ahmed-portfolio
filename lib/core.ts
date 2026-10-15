@@ -1,3 +1,15 @@
+export function requireSameOrigin(req: VercelRequest, res: VercelResponse): boolean {
+  // السماح بطلبات القراءة وتجاوز الفحص في بيئة التطوير المحلي
+  if (req.method === 'GET' || process.env.NODE_ENV === 'development') return true;
+
+  const expected = process.env.APP_ORIGIN;
+  const origin = req.headers.origin;
+  if (!expected || !origin || origin !== expected) {
+    send(res, 403, { error: 'ORIGIN_NOT_ALLOWED' });
+    return false;
+  }
+  return true;
+}
 import crypto from 'node:crypto';
 import admin from 'firebase-admin';
 import jwt from 'jsonwebtoken';
