@@ -7,6 +7,14 @@ const CONFIG = {
         TEMP_TOKENS: "ahmed_temp_passcodes_v1"
     }
 };
+// مثال لربط جلب البيانات من الـ Backend
+async function fetchBackendData() {
+    const res = await fetch('/api/data?action=data');
+    if (res.ok) {
+        const data = await res.json();
+        return data.knowledge;
+    }
+}
 
 const DEFAULT_KNOWLEDGE_BASE = {
     personalInfo: {
