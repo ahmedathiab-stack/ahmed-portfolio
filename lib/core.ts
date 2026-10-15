@@ -209,3 +209,9 @@ export async function callAi({ system, message, modelHint }: { system: string; m
   error.status = lastStatus === 429 ? 503 : 502;
   throw error;
 }
+
+// مثال للاتصال بقواعد بيانات متعددة بنفس المفتاح المجاني
+const dbMain = admin.database(app, 'https://ahmed-main-rtdb.firebaseio.com');
+const dbAiRules = admin.database(app, 'https://ahmed-ai-rules-rtdb.firebaseio.com');
+const dbStudents = admin.database(app, 'https://ahmed-students-rtdb.firebaseio.com');
+const dbSecurity = admin.database(app, 'https://ahmed-security-rtdb.firebaseio.com');
