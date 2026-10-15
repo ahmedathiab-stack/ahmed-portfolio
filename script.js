@@ -216,4 +216,44 @@ const App = {
         } else { alert('كلمة المرور خاطئة!'); }
     }
 };
+class Store {
+    static async getKnowledge() {
+        try {
+            const res = await fetch('/api/data?action=data');
+            if (res.ok) {
+                const data = await res.json();
+                return data.knowledge;
+            }
+        } catch (e) {
+            console.warn("تعذر الاتصال بالخلفية، جاري استخدام التخزين المحلي المؤقت.");
+        }
+        
+        // Fallback الاحتياطي
+        const localFallback = localStorage.getItem('ahmed_knowledge_base_fallback');
+        let db = localFallback ? JSON.parse(localFallback) : DEFAULT_KNOWLEDGE_BASE;
+        if (!db.courses) db.courses = [];
+        if (!db.reservations) db.reservations = [];
+        if (!db.links) db.links = [];
+        return db;
+    }
+
+    static async saveKnowledge(data) {
+        // حفظ محلياً للتجاوب السريع
+        localStorage.setItem('ahmed_knowledge_base_fallback', JSON.stringify(data));
+        
+        // إرسال البيانات للخلفية وقاعدة البيانات عبر الـ API
+        try {
+            await fetch('/api/data', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'saveSection', section: 'all', data })
+            });
+        } catch (e) {
+            console.error("فشل الحفظ في الخلفية:", e);
+        }
+
+        await App.renderAll();
+        return true;
+    }
+}
 window.onload = () => App.init();
