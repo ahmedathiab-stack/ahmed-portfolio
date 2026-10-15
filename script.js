@@ -15,6 +15,49 @@ async function fetchBackendData() {
         return data.knowledge;
     }
 }
+class Store {
+    static async getKnowledge() {
+        try {
+            const res = await fetch('/api/index?action=data');
+            if (res.ok) {
+                const data = await res.json();
+                return data.knowledge;
+            }
+        } catch (e) {
+            console.warn("تعذر الاتصال بالخلفية، جاري استخدام التخزين المحلي المؤقت.");
+        }
+
+        const localFallback = localStorage.getItem('ahmed_knowledge_base_fallback');
+        let db = localFallback ? JSON.parse(localFallback) : DEFAULT_KNOWLEDGE_BASE;
+        if (!db.courses) db.courses = [];
+        if (!db.reservations) db.reservations = [];
+        if (!db.links) db.links = [];
+        return db;
+    }
+
+    static async saveKnowledge(data) {
+        try {
+            const res = await fetch('/api/index?action=data', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'saveSection', section: 'all', data })
+            });
+
+            if (!res.ok) {
+                throw new Error('SERVER_SAVE_FAILED');
+            }
+
+            localStorage.setItem('ahmed_knowledge_base_fallback', JSON.stringify(data));
+            await App.renderAll();
+            alert('✅ تم الحفظ وتحديث قاعدة البيانات بنجاح!');
+            return true;
+        } catch (e) {
+            console.error("فشل الحفظ في الخلفية:", e);
+            alert('❌ حدث خطأ أثناء الحفظ في الخادم. يرجى التحقق من الاتصال.');
+            return false;
+        }
+    }
+}
 
 const DEFAULT_KNOWLEDGE_BASE = {
     personalInfo: {
