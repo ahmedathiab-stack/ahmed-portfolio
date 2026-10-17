@@ -8,7 +8,6 @@ const CONFIG = {
     }
 };
 
-// دالة مساعدة لتنقية النصوص وحماية الموقع من ثغرات XSS
 function escapeHtml(str) {
     if (!str) return '';
     return String(str)
@@ -19,7 +18,6 @@ function escapeHtml(str) {
         .replace(/'/g, '&#039;');
 }
 
-// دالة جلب البيانات من الـ Backend مع معالجة محسنة للأخطاء
 async function fetchBackendData() {
     try {
         const res = await fetch('/api/index?action=data');
@@ -32,7 +30,6 @@ async function fetchBackendData() {
     }
 }
 
-// كلاس تخزين واسترجاع المعلومات الموحد
 class Store {
     static sanitizeUrl(url) {
         if (!url) return '';
@@ -163,9 +160,9 @@ const App = {
         container.innerHTML = certs.map((c, i) => {
             const isUnlocked = unlocked.includes(String(i)) || unlocked.includes(c.title);
             return `
-                <div class="cert-card">
+                <div class="cert-card" style="background:white; padding:15px; border-radius:12px; border:1px solid #e2e8f0;">
                     <img src="${escapeHtml(c.imageUrl || '')}" alt="${escapeHtml(c.title)}" style="width:100%; height:160px; object-fit:cover; border-radius:8px;">
-                    <h4 style="margin-top:10px;">${escapeHtml(c.title)}</h4>
+                    <h4 style="margin-top:10px; color:#0f172a;">${escapeHtml(c.title)}</h4>
                     <p style="font-size:0.9rem; color:#64748b;">${escapeHtml(c.issuer)}</p>
                     <span style="display:inline-block; margin-top:8px; padding:4px 10px; font-size:0.8rem; border-radius:6px; background:${isUnlocked ? '#dcfce7; color:#166534;' : '#fee2e2; color:#991b1b;'}">
                         ${isUnlocked ? '🟢 مفعلة' : '🔒 محمية'}
