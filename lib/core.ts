@@ -1,15 +1,3 @@
-export function requireSameOrigin(req: VercelRequest, res: VercelResponse): boolean {
-  // السماح بطلبات القراءة وتجاوز الفحص في بيئة التطوير المحلي
-  if (req.method === 'GET' || process.env.NODE_ENV === 'development') return true;
-
-  const expected = process.env.APP_ORIGIN;
-  const origin = req.headers.origin;
-  if (!expected || !origin || origin !== expected) {
-    send(res, 403, { error: 'ORIGIN_NOT_ALLOWED' });
-    return false;
-  }
-  return true;
-}
 import crypto from 'node:crypto';
 import admin from 'firebase-admin';
 import jwt from 'jsonwebtoken';
@@ -193,25 +181,7 @@ export async function callAi({ system, message, modelHint }: { system: string; m
       lastStatus = 502;
     }
   }
-  export function requireSameOrigin(req: VercelRequest, res: VercelResponse): boolean {
-  // السماح لطلبات القراءة GET بالمرور فوراً لتجنب مشاكل المتصفح
-  if (req.method === 'GET') return true;
-
-  const expected = process.env.APP_ORIGIN;
-  const origin = req.headers.origin;
-  if (!expected || !origin || origin !== expected) {
-    send(res, 403, { error: 'ORIGIN_NOT_ALLOWED' });
-    return false;
-  }
-  return true;
-}
   const error: any = new Error('ALL_AI_KEYS_FAILED');
   error.status = lastStatus === 429 ? 503 : 502;
   throw error;
 }
-
-// مثال للاتصال بقواعد بيانات متعددة بنفس المفتاح المجاني
-const dbMain = admin.database(app, 'https://ahmed-main-rtdb.firebaseio.com');
-const dbAiRules = admin.database(app, 'https://ahmed-ai-rules-rtdb.firebaseio.com');
-const dbStudents = admin.database(app, 'https://ahmed-students-rtdb.firebaseio.com');
-const dbSecurity = admin.database(app, 'https://ahmed-security-rtdb.firebaseio.com');
