@@ -7,21 +7,52 @@ const CONFIG = {
         TEMP_TOKENS: "ahmed_temp_passcodes_v1"
     }
 };
-// مثال لربط جلب البيانات من الـ Backend
+
+// دالة جلب البيانات من الـ Backend
 async function fetchBackendData() {
-    const res = await fetch('/api/data?action=data');
-    if (res.ok) {
-        const data = await res.json();
-        return data.knowledge;
+    try {
+        const res = await fetch('/api/index?action=data');
+        if (res.ok) {
+            const data = await res.json();
+            return data.knowledge;
+        }
+    } catch (e) {
+        console.warn("تعذر الاتصال بالخلفية");
     }
+    return null;
 }
+
+// كلاس تخزين واسترجاع المعلومات الموحد (بدون تكرار)
 class Store {
+    static sanitizeUrl(url) {
+        if (!url) return '';
+        let u = url.trim();
+        if (u.includes('firebaseio.com') && !u.endsWith('.json') && !u.includes('.json?')) {
+            u = u.replace(/\/+$/, '') + '.json';
+        }
+        return u;
+    }
+
+    static getAdminPassword() { 
+        return localStorage.getItem(CONFIG.STORAGE_KEYS.ADMIN_PASS) || "Ahmed_Admin_2026"; 
+    }
+
+    static setAdminPassword(newPass) { 
+        localStorage.setItem(CONFIG.STORAGE_KEYS.ADMIN_PASS, newPass); 
+    }
+
     static async getKnowledge() {
         try {
             const res = await fetch('/api/index?action=data');
             if (res.ok) {
                 const data = await res.json();
-                return data.knowledge;
+                if (data && data.knowledge) {
+                    let db = data.knowledge;
+                    if (!db.courses) db.courses = [];
+                    if (!db.reservations) db.reservations = [];
+                    if (!db.links) db.links = [];
+                    return db;
+                }
             }
         } catch (e) {
             console.warn("تعذر الاتصال بالخلفية، جاري استخدام التخزين المحلي المؤقت.");
@@ -36,6 +67,8 @@ class Store {
     }
 
     static async saveKnowledge(data) {
+        localStorage.setItem('ahmed_knowledge_base_fallback', JSON.stringify(data));
+        
         try {
             const res = await fetch('/api/index?action=data', {
                 method: 'POST',
@@ -46,16 +79,20 @@ class Store {
             if (!res.ok) {
                 throw new Error('SERVER_SAVE_FAILED');
             }
-
-            localStorage.setItem('ahmed_knowledge_base_fallback', JSON.stringify(data));
-            await App.renderAll();
-            alert('✅ تم الحفظ وتحديث قاعدة البيانات بنجاح!');
-            return true;
         } catch (e) {
-            console.error("فشل الحفظ في الخلفية:", e);
-            alert('❌ حدث خطأ أثناء الحفظ في الخادم. يرجى التحقق من الاتصال.');
-            return false;
+            console.error("فشل الحفظ في الخادم:", e);
         }
+
+        await App.renderAll();
+        return true;
+    }
+
+    static getUnlockedCerts() {
+        try {
+            const certData = JSON.parse(sessionStorage.getItem(CONFIG.STORAGE_KEYS.UNLOCKED_CERTS) || '{}');
+            const now = Date.now();
+            return Object.keys(certData).filter(id => certData[id] > now);
+        } catch(e) { return []; }
     }
 }
 
@@ -69,46 +106,10 @@ const DEFAULT_KNOWLEDGE_BASE = {
     experiences: [],
     skills: [],
     volunteer: [],
-    courses: [],      // 🆕 الدورات
-    reservations: [], // 🆕 الحجوزات
-    links: []         // 🆕 ملازم وروابط
+    courses: [],
+    reservations: [],
+    links: []
 };
-
-class Store {
-    static sanitizeUrl(url) {
-        if (!url) return '';
-        let u = url.trim();
-        if (u.includes('firebaseio.com') && !u.endsWith('.json') && !u.includes('.json?')) {
-            u = u.replace(/\/+$/, '') + '.json';
-        }
-        return u;
-    }
-    static getAdminPassword() { return localStorage.getItem(CONFIG.STORAGE_KEYS.ADMIN_PASS) || "Ahmed_Admin_2026"; }
-    static setAdminPassword(newPass) { localStorage.setItem(CONFIG.STORAGE_KEYS.ADMIN_PASS, newPass); }
-
-    static async getKnowledge() {
-        const localFallback = localStorage.getItem('ahmed_knowledge_base_fallback');
-        let db = localFallback ? JSON.parse(localFallback) : DEFAULT_KNOWLEDGE_BASE;
-        // التأكد من وجود المصفوفات الجديدة
-        if (!db.courses) db.courses = [];
-        if (!db.reservations) db.reservations = [];
-        if (!db.links) db.links = [];
-        return db;
-    }
-
-    static async saveKnowledge(data) {
-        localStorage.setItem('ahmed_knowledge_base_fallback', JSON.stringify(data));
-        await App.renderAll();
-        return true;
-    }
-    static getUnlockedCerts() {
-        try {
-            const certData = JSON.parse(sessionStorage.getItem(CONFIG.STORAGE_KEYS.UNLOCKED_CERTS) || '{}');
-            const now = Date.now();
-            return Object.keys(certData).filter(id => certData[id] > now);
-        } catch(e) { return []; }
-    }
-}
 
 const App = {
     isAdminLoggedIn: false,
@@ -125,8 +126,8 @@ const App = {
         this.renderCertificates(db);
         this.renderExperiences(db);
         this.renderSkills(db);
-        this.renderCourses(db); // 🆕
-        this.renderLinks(db);   // 🆕
+        this.renderCourses(db);
+        this.renderLinks(db);
         if (this.isAdminLoggedIn) {
             this.renderAdminLists(db);
         }
@@ -168,12 +169,10 @@ const App = {
         `).join('');
     },
 
-    // (دوّال render السابقة)
     renderCertificates(db) { /* كود العرض الأصلي */ },
     renderExperiences(db) { /* كود العرض الأصلي */ },
     renderSkills(db) { /* كود العرض الأصلي */ },
 
-    // 🆕 نظام الحفظ الموحد من لوحة التحكم
     async saveData(collection) {
         if(!this.isAdminLoggedIn) return;
         if(!this.cachedDb[collection]) this.cachedDb[collection] = [];
@@ -192,7 +191,7 @@ const App = {
             };
         } else if (collection === 'certificates') {
             newItem = { title: document.getElementById('certTitle').value, issuer: document.getElementById('certIssuer').value, imageUrl: document.getElementById('certImage').value };
-        } // يمكن إضافة باقي الأنواع بنفس النمط
+        }
         
         this.cachedDb[collection].push(newItem);
         await Store.saveKnowledge(this.cachedDb);
@@ -201,7 +200,6 @@ const App = {
     },
 
     renderAdminLists(db) {
-        // إكمال دالة الرندر للوحة التحكم
         const createHtml = (arr, displayKey, collectionName) => {
             return (arr || []).map((item, i) => `
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px; background:#f1f5f9; padding:8px 12px; border-radius:6px;">
@@ -214,7 +212,6 @@ const App = {
         if(document.getElementById('admin-courses-list')) document.getElementById('admin-courses-list').innerHTML = createHtml(db.courses, 'name', 'courses');
         if(document.getElementById('admin-links-list')) document.getElementById('admin-links-list').innerHTML = createHtml(db.links, 'title', 'links');
         
-        // عرض الحجوزات كجدول
         const resList = document.getElementById('admin-reservations-list');
         if (resList) {
             if(!db.reservations || !db.reservations.length) {
@@ -259,44 +256,5 @@ const App = {
         } else { alert('كلمة المرور خاطئة!'); }
     }
 };
-class Store {
-    static async getKnowledge() {
-        try {
-            const res = await fetch('/api/data?action=data');
-            if (res.ok) {
-                const data = await res.json();
-                return data.knowledge;
-            }
-        } catch (e) {
-            console.warn("تعذر الاتصال بالخلفية، جاري استخدام التخزين المحلي المؤقت.");
-        }
-        
-        // Fallback الاحتياطي
-        const localFallback = localStorage.getItem('ahmed_knowledge_base_fallback');
-        let db = localFallback ? JSON.parse(localFallback) : DEFAULT_KNOWLEDGE_BASE;
-        if (!db.courses) db.courses = [];
-        if (!db.reservations) db.reservations = [];
-        if (!db.links) db.links = [];
-        return db;
-    }
 
-    static async saveKnowledge(data) {
-        // حفظ محلياً للتجاوب السريع
-        localStorage.setItem('ahmed_knowledge_base_fallback', JSON.stringify(data));
-        
-        // إرسال البيانات للخلفية وقاعدة البيانات عبر الـ API
-        try {
-            await fetch('/api/data', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'saveSection', section: 'all', data })
-            });
-        } catch (e) {
-            console.error("فشل الحفظ في الخلفية:", e);
-        }
-
-        await App.renderAll();
-        return true;
-    }
-}
 window.onload = () => App.init();
