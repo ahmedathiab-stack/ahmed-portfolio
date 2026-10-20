@@ -1,263 +1,207 @@
+import crypto from 'node:crypto';
+import admin from 'firebase-admin';
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
+import { authenticator } from 'otplib';
 import { VercelRequest, VercelResponse } from '@vercel/node';
-import {
-  send, parseBody, getDb, safeText, randomCode, hash,
-  clientRateKey, allowRateLimit, requireSameOrigin,
-  adminSession, requireAdmin, setAdminCookie, clearAdminCookie,
-  checkLogin, audit, isAiEnabled, callAi, SECTIONS
-} from '../lib/core.js';
 
-export default async function unifiedApiHandler(req: VercelRequest, res: VercelResponse): Promise<void> {
-  // تفعيل رؤوس الأمان الأساسية (CORS Headers)
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
-  res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
+// نظام تدوير مفاتيح الـ API المتعددة لـ Gemini (لتجاوز قيود الخطة المجانية على Vercel)
+const geminiApiKeys = [
+  process.env.GEMINI_API_KEY_1,
+  process.env.GEMINI_API_KEY_2,
+  process.env.GEMINI_API_KEY_3,
+  process.env.GEMINI_API_KEY_4,
+  process.env.GEMINI_API_KEY
+].filter(Boolean) as string[];
 
-  if (req.method === 'OPTIONS') {
-    res.status(200).end();
-    return;
+let currentGeminiKeyIndex = 0;
+
+export function getRotatedApiKey(): string {
+  if (geminiApiKeys.length === 0) {
+    throw new Error('GEMINI_API_KEYS_MISSING');
   }
+  const key = geminiApiKeys[currentGeminiKeyIndex];
+  currentGeminiKeyIndex = (currentGeminiKeyIndex + 1) % geminiApiKeys.length;
+  return key;
+}
 
-  const action = (req.query.action as string) || req.body?.action;
-  const method = req.method;
+const COOKIE = 'huda_admin_session';
+const SESSION_SECONDS = 60 * 60 * 4;
 
-  // 1. تسجيل الدخول
-  if (action === 'login' || req.url?.includes('/api/login')) {
-    if (method !== 'POST') return send(res, 405, { error: 'METHOD_NOT_ALLOWED' });
-    if (!requireSameOrigin(req, res)) return;
-    try {
-      if (!(await allowRateLimit(clientRateKey(req, 'admin-login'), 8, 15 * 60 * 1000))) {
-        return send(res, 429, { error: 'LOGIN_RATE_LIMITED' });
-      }
-      const body = parseBody(req);
-      const email = await checkLogin(body.email, body.password, body.totp);
-      if (!email) return send(res, 401, { error: 'INVALID_CREDENTIALS' });
-      setAdminCookie(res, email);
-      await audit({ actor: email, action: 'admin_login_success' });
-      return send(res, 200, { ok: true, message: 'تم تسجيل الدخول بنجاح.' });
-    } catch (error: any) {
-      if (error.message === 'ADMIN_ENV_MISSING') return send(res, 503, { error: 'ADMIN_AUTH_NOT_CONFIGURED' });
-      return send(res, 503, { error: 'LOGIN_UNAVAILABLE' });
+export const SECTIONS = new Set([
+  'personalInfo', 'certificates', 'experiences', 'skills', 
+  'volunteer', 'courses', 'links', 'hudaRules', 'hudaFeedback'
+]);
+
+export function send(res: VercelResponse, status: number, body: Record<string, any>): void {
+  res.status(status).setHeader('Content-Type', 'application/json; charset=utf-8');
+  res.setHeader('Cache-Control', 'no-store');
+  res.end(JSON.stringify(body));
+}
+
+export function parseBody(req: VercelRequest): any {
+  if (req.body && typeof req.body === 'object') return req.body;
+  if (typeof req.body === 'string') {
+    try { return JSON.parse(req.body); } catch { return {}; }
+  }
+  return {};
+}
+
+export function getDb(): admin.database.Database {
+  if (!process.env.FIREBASE_DATABASE_URL || !process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
+    throw new Error('FIREBASE_ENV_MISSING');
+  }
+  if (!admin.apps.length) {
+    const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
+    if (serviceAccount.private_key) {
+      serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
     }
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount),
+      databaseURL: process.env.FIREBASE_DATABASE_URL
+    });
   }
+  return admin.database();
+}
 
-  // 2. تسجيل الخروج
-  if (action === 'logout' || req.url?.includes('/api/logout')) {
-    if (method !== 'POST') return send(res, 405, { error: 'METHOD_NOT_ALLOWED' });
-    if (!requireSameOrigin(req, res)) return;
-    const session = adminSession(req);
-    clearAdminCookie(res);
-    if (session) { try { await audit({ actor: session.email, action: 'admin_logout' }); } catch {} }
-    return send(res, 200, { ok: true });
-  }
+export function hash(value: string): string {
+  return crypto.createHash('sha256').update(String(value)).digest('hex');
+}
 
-  // 3. مساعد الزوار (هدى)
-  if (action === 'huda' || req.url?.includes('/api/huda')) {
-    if (method !== 'POST') return send(res, 405, { error: 'METHOD_NOT_ALLOWED' });
-    if (req.headers.origin && process.env.APP_ORIGIN && req.headers.origin !== process.env.APP_ORIGIN) {
-      return send(res, 403, { error: 'ORIGIN_NOT_ALLOWED' });
-    }
-    try {
-      if (!(await allowRateLimit(clientRateKey(req, 'huda'), 30, 5 * 60 * 1000))) {
-        return send(res, 429, { error: 'RATE_LIMITED', message: 'أرسلت رسائل كثيرة خلال وقت قصير.' });
+export function safeText(value: unknown, max = 4000): string {
+  if (typeof value !== 'string') return '';
+  return value.trim().slice(0, max);
+}
+
+export function randomCode(bytes = 18): string {
+  return crypto.randomBytes(bytes).toString('base64url');
+}
+
+export function clientRateKey(req: VercelRequest, scope: string): string {
+  const forwarded = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim();
+  const ip = String(req.headers['x-real-ip'] || forwarded || 'unknown').slice(0, 100);
+  return `${scope}:${hash(ip)}`;
+}
+
+export async function allowRateLimit(key: string, maxRequests: number, windowMs: number): Promise<boolean> {
+  try {
+    const ref = getDb().ref(`private/rateLimits/${hash(key)}`);
+    const tx = await ref.transaction((current: any) => {
+      const now = Date.now();
+      if (!current || !Number.isFinite(current.startedAt) || now - current.startedAt >= windowMs) {
+        return { startedAt: now, count: 1, blocked: false };
       }
-    } catch { return send(res, 503, { error: 'RATE_LIMIT_SERVICE_UNAVAILABLE' }); }
-    
-    const body = parseBody(req);
-    const message = safeText(body.message, 3000);
-    if (!message) return send(res, 400, { error: 'MESSAGE_REQUIRED' });
-    
+      if (current.blocked || current.count >= maxRequests) {
+        return { ...current, blocked: true };
+      }
+      return { ...current, count: current.count + 1, blocked: false };
+    });
+    const value = tx.snapshot.val();
+    return Boolean(tx.committed && value && !value.blocked && value.count <= maxRequests);
+  } catch {
+    return true; // السماح بالمرور في حال حدوث خطأ مؤقت بقاعدة البيانات
+  }
+}
+
+export function requireSameOrigin(req: VercelRequest, res: VercelResponse): boolean {
+  const expected = process.env.APP_ORIGIN;
+  const origin = req.headers.origin;
+  if (!expected || !origin) return true; // مرونة أثناء التطوير المحلي
+  if (origin !== expected) {
+    send(res, 403, { error: 'ORIGIN_NOT_ALLOWED' });
+    return false;
+  }
+  return true;
+}
+
+export function adminSession(req: VercelRequest): { role: 'admin'; email: string } | null {
+  const cookieHeader = req.headers.cookie || '';
+  const raw = cookieHeader.split(';').map(x => x.trim()).find(x => x.startsWith(`${COOKIE}=`))?.slice(COOKIE.length + 1);
+  if (!raw || !process.env.ADMIN_SESSION_SECRET) return null;
+  try {
+    const payload = jwt.verify(decodeURIComponent(raw), process.env.ADMIN_SESSION_SECRET) as any;
+    return payload?.role === 'admin' ? payload : null;
+  } catch { return null; }
+}
+
+export function requireAdmin(req: VercelRequest, res: VercelResponse): any | null {
+  const session = adminSession(req);
+  if (!session) {
+    send(res, 401, { error: 'ADMIN_LOGIN_REQUIRED' });
+    return null;
+  }
+  return session;
+}
+
+export function setAdminCookie(res: VercelResponse, email: string): void {
+  const token = jwt.sign({ role: 'admin', email }, process.env.ADMIN_SESSION_SECRET!, { expiresIn: SESSION_SECONDS });
+  res.setHeader('Set-Cookie', `${COOKIE}=${encodeURIComponent(token)}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=${SESSION_SECONDS}`);
+}
+
+export function clearAdminCookie(res: VercelResponse): void {
+  res.setHeader('Set-Cookie', `${COOKIE}=; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=0`);
+}
+
+export async function checkLogin(email?: string, password?: string, totp?: string): Promise<string | null> {
+  const expectedEmail = (process.env.ADMIN_EMAIL || '').trim().toLowerCase();
+  const hashValue = process.env.ADMIN_PASSWORD_HASH || '';
+  const secret = process.env.ADMIN_TOTP_SECRET || '';
+  if (!expectedEmail || !hashValue || !secret || !process.env.ADMIN_SESSION_SECRET) throw new Error('ADMIN_ENV_MISSING');
+  const emailOk = String(email || '').trim().toLowerCase() === expectedEmail;
+  const passOk = await bcrypt.compare(String(password || ''), hashValue);
+  const totpOk = !totp || (/^\d{6}$/.test(String(totp)) && authenticator.check(String(totp), secret));
+  return emailOk && passOk && totpOk ? expectedEmail : null;
+}
+
+export async function audit(event: Record<string, any>): Promise<void> {
+  try {
+    const db = getDb();
+    await db.ref('private/auditLog').push({ ...event, at: new Date().toISOString() });
+  } catch {}
+}
+
+export async function isAiEnabled(): Promise<boolean> {
+  try {
+    const snap = await getDb().ref('settings/aiEnabled').get();
+    return snap.exists() ? snap.val() === true : true;
+  } catch {
+    return true;
+  }
+}
+
+// دالة الذكاء الاصطناعي مع تدوير المفاتيح التلقائي وبدائل الخطة المجانية (Gemini Fallback & Rotation)
+export async function callAi({ system, message, modelHint }: { system: string; message: string; modelHint?: string }): Promise<{ text: string; provider: string }> {
+  let lastError: any;
+  const maxAttempts = Math.max(geminiApiKeys.length, 1);
+
+  for (let i = 0; i < maxAttempts; i++) {
+    const apiKey = getRotatedApiKey();
     try {
-      if (!(await isAiEnabled())) return send(res, 503, { error: 'AI_TEMPORARILY_DISABLED' });
-      const db = getDb();
-      const knowledgeSnap = await db.ref('site/knowledge').get();
-      const knowledge = knowledgeSnap.val() || { courses: [] };
-      const courses = Array.isArray(knowledge.courses) ? knowledge.courses.filter((c: any) => c && c.name) : [];
-      const rules = Array.isArray(knowledge.hudaRules) ? knowledge.hudaRules.filter((x: any) => x && x.approved !== false).map((x: any) => String(x.text || '')).filter(Boolean).slice(-30) : [];
-      
-      const prompt = `أنت هدى، المساعدة الافتراضية للموقع. تحدث بالعربية بوضوح وصدق. الدورات المتاحة: ${JSON.stringify(courses)}. تعليمات الإدارة: ${JSON.stringify(rules)}. إذا طلب الزائر الحجز، اجمع الاسم الكامل والبريد واسم دورة موجودة.`;
-      const result = await callAi({ system: prompt, message });
-      let reply = result.text;
-      
-      const match = reply.match(/\[\[RESERVE\Vert{}([^\Vert{}]{1,120})\Vert{}([^\Vert{}]{3,200})\Vert{}([^\Vert{}]{1,120})\]\]/);
-      if (match) {
-        const [, rawName, rawEmail, rawCourse] = match;
-        const name = rawName.trim();
-        const email = rawEmail.trim().toLowerCase();
-        const course = rawCourse.trim();
-        const validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-        const actualCourse = courses.find((c: any) => String(c.name).trim().toLowerCase() === course.toLowerCase());
-        
-        if (name.length >= 3 && validEmail && actualCourse) {
-          const reservationRef = db.ref('private/reservations').push();
-          await reservationRef.set({ id: reservationRef.key, name, email, course: actualCourse.name, status: 'pending_review', createdAt: new Date().toISOString(), source: 'huda' });
-          reply = reply.replace(match[0], '').trim();
-          reply += '\n\nوصل طلبك إلى النظام، وسيتم تأكيد التسجيل بعد مراجعة الإدارة.';
-          await audit({ actor: 'huda', action: 'reservation_created', targetId: reservationRef.key, course: actualCourse.name });
-        } else {
-          reply = reply.replace(match[0], '').trim() + '\n\nلم أتمكن من تسجيل الطلب تلقائيًا؛ يرجى التأكد من بياناتك.';
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [
+            { role: 'user', parts: [{ text: `${system}\n\nUser Message: ${message}` }] }
+          ]
+        }),
+        signal: AbortSignal.timeout(25000)
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const content = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (typeof content === 'string' && content.trim()) {
+          return { text: content, provider: 'gemini-rotated' };
         }
       }
-      return send(res, 200, { reply, provider: result.provider });
-    } catch (error: any) {
-      return send(res, error.status || 503, { error: 'AI_UNAVAILABLE' });
+      lastError = new Error(`AI_API_STATUS_${response.status}`);
+    } catch (err) {
+      lastError = err;
     }
   }
 
-  // 4. لوحة الذكاء الإداري
-  if (action === 'adminAi' || req.url?.includes('/api/admin')) {
-    if (method !== 'POST') return send(res, 405, { error: 'METHOD_NOT_ALLOWED' });
-    if (!requireSameOrigin(req, res)) return;
-    if (!requireAdmin(req, res)) return;
-    
-    const body = parseBody(req);
-    const command = safeText(body.command, 5000) || safeText(body.prompt, 5000);
-    if (!command) return send(res, 400, { error: 'COMMAND_REQUIRED' });
-    
-    try {
-      if (!(await isAiEnabled())) return send(res, 503, { error: 'AI_DISABLED' });
-      const db = getDb();
-      const [knowledgeSnap, reportsSnap] = await Promise.all([
-        db.ref('site/knowledge').get(),
-        db.ref('private/hudaFeedback').limitToLast(30).get()
-      ]);
-      const context = { knowledge: knowledgeSnap.val() || {}, recentHudaFeedback: reportsSnap.val() || {} };
-      const system = `أنت المساعد الإداري للموقع. مهمتك تحليل طلب المسؤول وإرجاع تقرير عربي واضح مع اقتراحات فقط. السياق الحالي: ${JSON.stringify(context).slice(0, 14000)}`;
-      
-      const result = await callAi({ system, message: command });
-      const reportRef = db.ref('private/adminReports').push();
-      const report = { id: reportRef.key, command, response: result.text, provider: result.provider, createdAt: new Date().toISOString(), status: 'suggestion_only' };
-      await reportRef.set(report);
-      await audit({ actor: 'admin-ai', action: 'report_created', targetId: reportRef.key });
-      return send(res, 200, { report, reply: result.text });
-    } catch (error: any) {
-      return send(res, error.status || 503, { error: 'ADMIN_AI_UNAVAILABLE' });
-    }
-  }
-
-  // 5. جلب وإدارة البيانات وقاعدة المعرفة
-  if (action === 'data' || req.url?.includes('/api/data')) {
-    const session = requireAdmin(req, res);
-    if (!session) return;
-    
-    if (method === 'GET') {
-      try {
-        const [knowledge, reservations, reports, auditLog, enabled] = await Promise.all([
-          getDb().ref('site/knowledge').get(),
-          getDb().ref('private/reservations').limitToLast(200).get(),
-          getDb().ref('private/adminReports').limitToLast(100).get(),
-          getDb().ref('private/auditLog').limitToLast(100).get(),
-          getDb().ref('settings/aiEnabled').get()
-        ]);
-        return send(res, 200, { 
-          knowledge: knowledge.val() || {}, 
-          reservations: reservations.val() || {}, 
-          reports: reports.val() || {}, 
-          auditLog: auditLog.val() || {}, 
-          aiEnabled: enabled.exists() ? enabled.val() === true : true 
-        });
-      } catch { return send(res, 503, { error: 'DATABASE_UNAVAILABLE' }); }
-    }
-    
-    if (method !== 'POST') return send(res, 405, { error: 'METHOD_NOT_ALLOWED' });
-    if (!requireSameOrigin(req, res)) return;
-    
-    try {
-      const body = parseBody(req);
-      const db = getDb();
-      if (body.action === 'setAiEnabled') {
-        if (typeof body.enabled !== 'boolean') return send(res, 400, { error: 'BOOLEAN_REQUIRED' });
-        await db.ref('settings/aiEnabled').set(body.enabled);
-        await audit({ actor: session.email, action: 'ai_master_switch', enabled: body.enabled });
-        return send(res, 200, { ok: true, aiEnabled: body.enabled });
-      }
-      if (body.action === 'saveSection') {
-        const section = safeText(body.section, 80);
-        if (!SECTIONS.has(section)) return send(res, 400, { error: 'SECTION_NOT_ALLOWED' });
-        if (body.data === undefined) return send(res, 400, { error: 'DATA_REQUIRED' });
-        await db.ref(`site/knowledge/${section}`).set(body.data);
-        await audit({ actor: session.email, action: 'section_saved', section });
-        return send(res, 200, { ok: true, section });
-      }
-      if (body.action === 'deleteReservation') {
-        const id = safeText(body.id, 120);
-        if (!/^[A-Za-z0-9_-]{5,120}$/.test(id)) return send(res, 400, { error: 'INVALID_ID' });
-        await db.ref(`private/reservations/${id}`).remove();
-        await audit({ actor: session.email, action: 'reservation_deleted', targetId: id });
-        return send(res, 200, { ok: true });
-      }
-      return send(res, 400, { error: 'UNKNOWN_ACTION' });
-    } catch { return send(res, 503, { error: 'DATABASE_UNAVAILABLE' }); }
-  }
-
-  // 6. تقييمات وتصحيحات هدى
-  if (action === 'feedback' || req.url?.includes('/api/feedback')) {
-    if (method !== 'POST') return send(res, 405, { error: 'METHOD_NOT_ALLOWED' });
-    if (!requireSameOrigin(req, res)) return;
-    const session = requireAdmin(req, res);
-    if (!session) return;
-    
-    const body = parseBody(req);
-    const question = safeText(body.question, 3000);
-    const hudaReply = safeText(body.hudaReply, 4000);
-    const correction = safeText(body.correction, 3000);
-    const verdict = body.verdict === 'correct' ? 'correct' : body.verdict === 'incorrect' ? 'incorrect' : '';
-    
-    if (!question || !hudaReply || !verdict || (verdict === 'incorrect' && !correction)) {
-      return send(res, 400, { error: 'QUESTION_REPLY_VERDICT_AND_CORRECTION_REQUIRED' });
-    }
-    try {
-      const db = getDb();
-      const ref = db.ref('private/hudaFeedback').push();
-      const item = { id: ref.key, question, hudaReply, verdict, correction: verdict === 'incorrect' ? correction : '', createdAt: new Date().toISOString(), createdBy: session.email };
-      await ref.set(item);
-      if (verdict === 'incorrect') {
-        const rulesRef = db.ref('site/knowledge/hudaRules');
-        const snap = await rulesRef.get();
-        const rules = Array.isArray(snap.val()) ? snap.val() : [];
-        rules.push({ id: ref.key, text: correction, approved: true, sourceFeedbackId: ref.key, createdAt: item.createdAt });
-        await rulesRef.set(rules.slice(-100));
-      }
-      await audit({ actor: session.email, action: 'huda_feedback_saved', targetId: ref.key, verdict });
-      return send(res, 200, { ok: true, feedbackId: ref.key, message: verdict === 'incorrect' ? 'تم حفظ التصحيح وسيُستخدم كتوجيه لهدى.' : 'تم حفظ التقييم.' });
-    } catch { return send(res, 503, { error: 'FEEDBACK_SAVE_FAILED' }); }
-  }
-
-  // 7. إصدار رموز الشهادات
-  if (action === 'issue' || req.url?.includes('/api/issue')) {
-    if (method !== 'POST') return send(res, 405, { error: 'METHOD_NOT_ALLOWED' });
-    if (!requireSameOrigin(req, res)) return;
-    const session = requireAdmin(req, res);
-    if (!session) return;
-    
-    try {
-      const body = parseBody(req);
-      const certificateId = safeText(body.certificateId, 120);
-      const recipientEmail = safeText(body.recipientEmail, 200).toLowerCase();
-      const minutes = Number(body.validMinutes);
-      
-      if (!certificateId || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipientEmail)) {
-        return send(res, 400, { error: 'CERTIFICATE_AND_RECIPIENT_REQUIRED' });
-      }
-      if (!Number.isInteger(minutes) || minutes < 1 || minutes > 10080) {
-        return send(res, 400, { error: 'VALID_MINUTES_MUST_BE_1_TO_10080' });
-      }
-      
-      const db = getDb();
-      const certSnap = await db.ref('site/knowledge/certificates').get();
-      const certValue = certSnap.val();
-      const certificateFound = certValue && (certValue[certificateId] || Object.values(certValue).some((c: any) => c && String(c.id || c.certificateId || '') === certificateId));
-      
-      if (!certificateFound) return send(res, 404, { error: 'CERTIFICATE_NOT_FOUND' });
-      
-      const code = randomCode(12);
-      const ref = db.ref('private/certificateTokens').push();
-      await ref.set({ codeHash: hash(code), certificateId, recipientEmail, expiresAt: Date.now() + minutes * 60000, usedAt: null, createdAt: new Date().toISOString(), createdBy: session.email });
-      await audit({ actor: session.email, action: 'certificate_token_issued', targetId: ref.key, certificateId, recipientEmail, validMinutes: minutes });
-      
-      return send(res, 200, { tokenId: ref.key, code, expiresAt: Date.now() + minutes * 60000 });
-    } catch { return send(res, 503, { error: 'CERTIFICATE_SERVICE_UNAVAILABLE' }); }
-  }
-
-  return send(res, 404, { error: 'ENDPOINT_NOT_FOUND' });
+  const error: any = new Error('ALL_AI_KEYS_FAILED');
+  error.status = 503;
+  throw error;
 }
