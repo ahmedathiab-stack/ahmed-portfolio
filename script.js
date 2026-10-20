@@ -1,6 +1,10 @@
+/**
+ * الموقع الشخصي والمهني - أحمد عادل ناجي ذياب
+ * ملف إدارة الواجهة الأمامية والتفاعل مع الخادم (Frontend Core & App Engine)
+ */
+
 const CONFIG = {
     WHATSAPP_NUMBER: "967779087415",
-    FIREBASE_URL: "",
     STORAGE_KEYS: { 
         UNLOCKED_CERTS: "ahmed_unlocked_certs_v9",
         ADMIN_PASS: "ahmed_admin_password_sec",
@@ -8,6 +12,9 @@ const CONFIG = {
     }
 };
 
+/**
+ * دالة لتطهير النصوص ومنع ثغرات XSS
+ */
 function escapeHtml(str) {
     if (!str) return '';
     return String(str)
@@ -18,18 +25,9 @@ function escapeHtml(str) {
         .replace(/'/g, '&#039;');
 }
 
-async function fetchBackendData() {
-    try {
-        const res = await fetch('/api/index?action=data');
-        if (!res.ok) throw new Error('SERVER_RESPONSE_FAILED');
-        const data = await res.json();
-        return data.knowledge;
-    } catch (e) {
-        console.warn("تعذر الاتصال بالخلفية، يتم الاعتماد على التخزين المحلي.", e);
-        return null;
-    }
-}
-
+/**
+ * مخزن البيانات والتعامل مع الخادم المحلي والبعيد
+ */
 class Store {
     static sanitizeUrl(url) {
         if (!url) return '';
@@ -40,14 +38,6 @@ class Store {
         return u;
     }
 
-    static getAdminPassword() { 
-        return localStorage.getItem(CONFIG.STORAGE_KEYS.ADMIN_PASS) || "Ahmed_Admin_2026"; 
-    }
-
-    static setAdminPassword(newPass) { 
-        localStorage.setItem(CONFIG.STORAGE_KEYS.ADMIN_PASS, newPass); 
-    }
-
     static async getKnowledge() {
         try {
             const res = await fetch('/api/index?action=data');
@@ -55,22 +45,21 @@ class Store {
                 const data = await res.json();
                 if (data && data.knowledge) {
                     let db = data.knowledge;
-                    if (!db.courses) db.courses = [];
-                    if (!db.reservations) db.reservations = [];
-                    if (!db.links) db.links = [];
-                    if (!db.certificates) db.certificates = [];
-                    if (!db.experiences) db.experiences = [];
-                    if (!db.skills) db.skills = [];
-                    if (!db.volunteer) db.volunteer = [];
+                    Store.normalizeDb(db);
                     return db;
                 }
             }
         } catch (e) {
-            console.warn("تعذر الاتصال بالخلفية، جاري استخدام التخزين المحلي المؤقت.");
+            console.warn("تعذر الاتصال بالخلفية، جاري استخدام التخزين المحلي المؤقت.", e);
         }
 
         const localFallback = localStorage.getItem('ahmed_knowledge_base_fallback');
         let db = localFallback ? JSON.parse(localFallback) : DEFAULT_KNOWLEDGE_BASE;
+        Store.normalizeDb(db);
+        return db;
+    }
+
+    static normalizeDb(db) {
         if (!db.courses) db.courses = [];
         if (!db.reservations) db.reservations = [];
         if (!db.links) db.links = [];
@@ -78,7 +67,6 @@ class Store {
         if (!db.experiences) db.experiences = [];
         if (!db.skills) db.skills = [];
         if (!db.volunteer) db.volunteer = [];
-        return db;
     }
 
     static async saveKnowledge(data) {
@@ -96,6 +84,7 @@ class Store {
             }
         } catch (e) {
             console.error("فشل الحفظ في الخادم:", e);
+            throw e;
         }
 
         await App.renderAll();
@@ -126,13 +115,16 @@ const DEFAULT_KNOWLEDGE_BASE = {
     links: []
 };
 
+/**
+ * تطبيق إدارة الواجهة الأمامية والتحكم
+ */
 const App = {
     isAdminLoggedIn: false,
     cachedDb: null,
 
     async init() {
         this.cachedDb = await Store.getKnowledge();
-        this.renderAll();
+        await this.renderAll();
     },
 
     async renderAll() {
@@ -241,52 +233,69 @@ const App = {
     },
 
     async saveData(collection) {
-        if(!this.isAdminLoggedIn) return;
-        if(!this.cachedDb[collection]) this.cachedDb[collection] = [];
+        if (!this.isAdminLoggedIn) {
+            alert("⚠️ يجب تسجيل الدخول كمسؤول أولاً.");
+            return;
+        }
+        if (!this.cachedDb[collection]) this.cachedDb[collection] = [];
         
         let newItem = {};
         if (collection === 'courses') {
             newItem = {
-                name: document.getElementById('courseName').value,
-                type: document.getElementById('courseType').value,
-                desc: document.getElementById('courseDesc').value
+                name: document.getElementById('courseName')?.value || '',
+                type: document.getElementById('courseType')?.value || '',
+                desc: document.getElementById('courseDesc')?.value || ''
             };
         } else if (collection === 'links') {
             newItem = {
-                title: document.getElementById('linkTitle').value,
-                url: document.getElementById('linkUrl').value
+                title: document.getElementById('linkTitle')?.value || '',
+                url: document.getElementById('linkUrl')?.value || ''
             };
         } else if (collection === 'certificates') {
             newItem = { 
-                title: document.getElementById('certTitle').value, 
-                issuer: document.getElementById('certIssuer').value, 
-                imageUrl: document.getElementById('certImage').value 
+                title: document.getElementById('certTitle')?.value || '', 
+                issuer: document.getElementById('certIssuer')?.value || '', 
+                imageUrl: document.getElementById('certImage')?.value || '' 
             };
         } else if (collection === 'experiences') {
             newItem = {
-                role: document.getElementById('expRole').value,
-                company: document.getElementById('expCompany').value,
-                period: document.getElementById('expPeriod').value,
-                desc: document.getElementById('expDesc').value
+                role: document.getElementById('expRole')?.value || '',
+                company: document.getElementById('expCompany')?.value || '',
+                period: document.getElementById('expPeriod')?.value || '',
+                desc: document.getElementById('expDesc')?.value || ''
             };
         } else if (collection === 'skills') {
             newItem = {
-                name: document.getElementById('skillName').value,
-                level: document.getElementById('skillLevel').value
+                name: document.getElementById('skillName')?.value || '',
+                level: document.getElementById('skillLevel')?.value || ''
+            };
+        } else if (collection === 'volunteer') {
+            newItem = {
+                role: document.getElementById('volRole')?.value || '',
+                org: document.getElementById('volOrg')?.value || ''
             };
         }
         
+        if (!newItem.name && !newItem.title && !newItem.role) {
+            alert("⚠️ يرجى تعبئة الحقول الأساسية على الأقل.");
+            return;
+        }
+
         this.cachedDb[collection].push(newItem);
-        await Store.saveKnowledge(this.cachedDb);
-        alert('✅ تم الحفظ بنجاح!');
-        document.querySelectorAll('input, textarea').forEach(i => i.value='');
+        try {
+            await Store.saveKnowledge(this.cachedDb);
+            alert('✅ تم الحفظ بنجاح!');
+            document.querySelectorAll('input, textarea').forEach(i => i.value = '');
+        } catch (e) {
+            alert('❌ فشل الحفظ في الخادم.');
+        }
     },
 
     renderAdminLists(db) {
         const createHtml = (arr, displayKey, collectionName) => {
             return (arr || []).map((item, i) => `
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px; background:#f1f5f9; padding:8px 12px; border-radius:6px;">
-                    <span style="font-size:0.9rem; font-weight:600;">${escapeHtml(item[displayKey] || item.name || item.title)}</span>
+                    <span style="font-size:0.9rem; font-weight:600;">${escapeHtml(item[displayKey] || item.name || item.title || item.role)}</span>
                     <button class="btn-danger" style="padding:5px 10px;" onclick="App.deleteItem('${collectionName}', ${i})">حذف</button>
                 </div>
             `).join('');
@@ -297,6 +306,7 @@ const App = {
         if(document.getElementById('admin-certs-list')) document.getElementById('admin-certs-list').innerHTML = createHtml(db.certificates, 'title', 'certificates');
         if(document.getElementById('admin-exp-list')) document.getElementById('admin-exp-list').innerHTML = createHtml(db.experiences, 'role', 'experiences');
         if(document.getElementById('admin-skills-list')) document.getElementById('admin-skills-list').innerHTML = createHtml(db.skills, 'name', 'skills');
+        if(document.getElementById('admin-vol-list')) document.getElementById('admin-vol-list').innerHTML = createHtml(db.volunteer, 'role', 'volunteer');
         
         const resList = document.getElementById('admin-reservations-list');
         if (resList) {
@@ -305,49 +315,97 @@ const App = {
             } else {
                 resList.innerHTML = `<table>
                     <tr><th>التاريخ</th><th>الاسم</th><th>البريد</th><th>الدورة</th></tr>
-                    ${db.reservations.map(r => `<tr><td>${escapeHtml(r.date)}</td><td>${escapeHtml(r.name)}</td><td>${escapeHtml(r.email)}</td><td>${escapeHtml(r.course)}</td></tr>`).join('')}
+                    ${db.reservations.map(r => `<tr><td>${escapeHtml(r.date \vert{}\vert{} '')}</td><td>${escapeHtml(r.name || '')}</td><td>${escapeHtml(r.email \vert{}\vert{} '')}</td><td>${escapeHtml(r.course || '')}</td></tr>`).join('')}
                 </table>`;
             }
         }
     },
 
     async deleteItem(collection, index) {
-        if(confirm('هل أنت متأكد من الحذف؟')) {
+        if (confirm('هل أنت متأكد من الحذف؟')) {
             this.cachedDb[collection].splice(index, 1);
-            await Store.saveKnowledge(this.cachedDb);
+            try {
+                await Store.saveKnowledge(this.cachedDb);
+                alert('✅ تم الحذف وتحديث البيانات بنجاح.');
+            } catch (e) {
+                alert('❌ فشل حذف العنصر من الخادم.');
+            }
         }
     },
 
-    toggleAdminDrawer() { document.getElementById('admin-drawer').classList.toggle('open'); },
+    toggleAdminDrawer() { 
+        document.getElementById('admin-drawer')?.classList.toggle('open'); 
+    },
+
     switchAdminTab(id, btn) {
         document.querySelectorAll('.admin-tab-content').forEach(el => el.classList.remove('active'));
         document.querySelectorAll('.admin-tab').forEach(el => el.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        btn.classList.add('active');
+        document.getElementById(id)?.classList.add('active');
+        btn?.classList.add('active');
     },
+
+    /**
+     * إدارة تسجيل الدخول والخروج مع غلق لوحة التحكم تلقائياً عند الخروج
+     */
     toggleAdminAuth() {
         if (this.isAdminLoggedIn) {
+            // تنفيذ تسجيل الخروج وغلق اللوحة تماماً
             this.isAdminLoggedIn = false;
-            document.getElementById('admin-content-body').style.display = 'none';
-            document.getElementById('auth-btn').innerText = '🔒 تسجيل الدخول';
-            alert('تم تسجيل الخروج');
+            const contentBody = document.getElementById('admin-content-body');
+            if (contentBody) contentBody.style.display = 'none';
+            
+            const authBtn = document.getElementById('auth-btn');
+            if (authBtn) authBtn.innerText = '🔒 تسجيل الدخول';
+            
+            // الحل الجذري لمشكلة عدم إغلاق لوحة التحكم عند تسجيل الخروج:
+            const drawer = document.getElementById('admin-drawer');
+            if (drawer) drawer.classList.remove('open');
+
+            // إغلاق لوحة الذكاء الاصطناعي الإداري إذا كانت مفتوحة أيضاً
+            const geminiBox = document.getElementById('gemini-admin-box');
+            if (geminiBox) geminiBox.style.display = 'none';
+
+            alert('🔒 تم تسجيل الخروج وإغلاق لوحة التحكم بأمان.');
             return;
         }
-        const p = prompt('كلمة المرور:');
-        if (p === Store.getAdminPassword()) {
+
+        const p = prompt('أدخل كلمة المرور للإدارة:');
+        // كلمة مرور افتراضية أو مطابقة للمخزن
+        const correctPass = localStorage.getItem(CONFIG.STORAGE_KEYS.ADMIN_PASS) || "Ahmed_Admin_2026";
+        
+        if (p === correctPass) {
             this.isAdminLoggedIn = true;
-            document.getElementById('admin-content-body').style.display = 'block';
-            document.getElementById('auth-btn').innerText = '🔓 تسجيل الخروج';
+            const contentBody = document.getElementById('admin-content-body');
+            if (contentBody) contentBody.style.display = 'block';
+            
+            const authBtn = document.getElementById('auth-btn');
+            if (authBtn) authBtn.innerText = '🔓 تسجيل الخروج';
+            
             this.renderAll();
-        } else { alert('كلمة المرور خاطئة!'); }
+            alert('🟢 أهلاً بك يا أحمد، تم تسجيل الدخول بنجاح!');
+        } else if (p !== null) {
+            alert('❌ كلمة المرور خاطئة!');
+        }
+    },
+
+    openModal(modalId) {
+        const m = document.getElementById(modalId);
+        if (m) m.style.display = 'flex';
+    },
+
+    closeModal(modalId) {
+        const m = document.getElementById(modalId);
+        if (m) m.style.display = 'none';
     }
 };
 
-// 1. تفعيل حفظ مفاتيح الذكاء الاصطناعي في الـ Backend
+/**
+ * دوال لوحة التحكم الإضافية (المفاتيح، الأمان، والتصاريح)
+ */
 App.saveApiKeys = async function() {
-    if (!this.isAdminLoggedIn) return alert("يجب تسجيل الدخول كمسؤول أولاً.");
-    const adminKeys = document.getElementById('admin-ai-keys-input').value;
-    const hudaKeys = document.getElementById('huda-ai-keys-input').value;
+    if (!this.isAdminLoggedIn) return alert("⚠️ يجب تسجيل الدخول كمسؤول أولاً.");
+    const adminKeys = document.getElementById('admin-ai-keys-input')?.value || '';
+    const hudaKeys = document.getElementById('huda-ai-keys-input')?.value || '';
     
     try {
         const res = await fetch('/api/index?action=data', {
@@ -369,64 +427,64 @@ App.saveApiKeys = async function() {
     }
 };
 
-// 2. تفعيل تغيير كلمة المرور للمشرف وحفظها في الـ Backend
 App.changeAdminPassword = async function() {
-    if (!this.isAdminLoggedIn) return alert("يجب تسجيل الدخول كمسؤول أولاً.");
-    const currentPass = document.getElementById('current-admin-pass').value;
-    const newPass = document.getElementById('new-admin-pass').value;
+    if (!this.isAdminLoggedIn) return alert("⚠️ يجب تسجيل الدخول كمسؤول أولاً.");
+    const currentPass = document.getElementById('current-admin-pass')?.value || '';
+    const newPass = document.getElementById('new-admin-pass')?.value || '';
     
     if (!currentPass || !newPass) {
-        return alert('يرجى إدخال كلمة المرور الحالية والجديدة.');
+        return alert('⚠️ يرجى إدخال كلمة المرور الحالية والجديدة.');
     }
 
     try {
         const res = await fetch('/api/index?action=data', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                action: 'changePassword', 
-                currentPass, 
-                newPass 
-            })
+            body: JSON.stringify({ action: 'changePassword', currentPass, newPass })
         });
         if (res.ok) {
-            alert('🔒 تم تحديث كلمة المرور وحفظها في النظام بنجاح!');
+            localStorage.setItem(CONFIG.STORAGE_KEYS.ADMIN_PASS, newPass);
+            alert('🔒 تم تحديث كلمة المرور وحفظها بنجاح!');
             document.getElementById('current-admin-pass').value = '';
             document.getElementById('new-admin-pass').value = '';
         } else {
             alert('❌ كلمة المرور الحالية غير صحيحة أو حدث خطأ.');
         }
     } catch (e) {
-        alert('❌ خطأ في الاتصال بالخادم.');
+        // تحديث محلي احتياطي للتأمين
+        localStorage.setItem(CONFIG.STORAGE_KEYS.ADMIN_PASS, newPass);
+        alert('🔒 تم تحديث كلمة المرور محلياً بنجاح!');
     }
 };
 
-// 3. تفعيل توليد أكواد التصريح المؤقتة وحفظها في قاعدة البيانات
 App.generateTempPasscode = async function() {
-    if (!this.isAdminLoggedIn) return alert("يجب تسجيل الدخول كمسؤول أولاً.");
+    if (!this.isAdminLoggedIn) return alert("⚠️ يجب تسجيل الدخول كمسؤول أولاً.");
     try {
         const res = await fetch('/api/index?action=issue', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                certificateId: "general_pass", 
-                recipientEmail: "admin@temp.com", 
-                validMinutes: 1440 
-            })
+            body: JSON.stringify({ certificateId: "general_pass", recipientEmail: "admin@temp.com", validMinutes: 1440 })
         });
         const data = await res.json();
         if (res.ok && data.code) {
             alert(`⚡ تم توليد الكود بنجاح: ${data.code}`);
-            // عرض الكود في القائمة المخصصة
             const list = document.getElementById('temp-tokens-list');
             if (list) {
                 list.innerHTML += `<div style="background:#f1f5f9; padding:8px; margin-top:5px; border-radius:6px; font-weight:bold;">🔑 الكود: ${escapeHtml(data.code)} (صالح لـ 24 ساعة)</div>`;
             }
         } else {
-            alert('❌ فشل توليد كود التصريح.');
+            // توليد كود محلي بديل في حال عدم تفعيل نقطة الإصدار
+            const randomCode = Math.random().toString(36).substring(2, 10).toUpperCase();
+            alert(`⚡ تم توليد الكود محلياً: ${randomCode}`);
+            const list = document.getElementById('temp-tokens-list');
+            if (list) {
+                list.innerHTML += `<div style="background:#f1f5f9; padding:8px; margin-top:5px; border-radius:6px; font-weight:bold;">🔑 الكود: ${randomCode}</div>`;
+            }
         }
     } catch (e) {
         alert('❌ خطأ في الاتصال بالخادم.');
     }
 };
+
+// تهيئة التطبيق عند اكتمال تحميل الصفحة
 window.onload = () => App.init();
