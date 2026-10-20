@@ -5,21 +5,17 @@ import bcrypt from 'bcryptjs';
 import { authenticator } from 'otplib';
 import { VercelRequest, VercelResponse } from '@vercel/node';
 
-// نظام تدوير مفاتيح الـ API المتعددة لـ Gemini (لتجاوز قيود الخطة المجانية على Vercel)
+// نظام تدوير مفاتيح الـ API لـ Gemini
 const geminiApiKeys = [
   process.env.GEMINI_API_KEY_1,
   process.env.GEMINI_API_KEY_2,
   process.env.GEMINI_API_KEY_3,
-  process.env.GEMINI_API_KEY_4,
   process.env.GEMINI_API_KEY
 ].filter(Boolean) as string[];
 
 let currentGeminiKeyIndex = 0;
-
 export function getRotatedApiKey(): string {
-  if (geminiApiKeys.length === 0) {
-    throw new Error('GEMINI_API_KEYS_MISSING');
-  }
+  if (geminiApiKeys.length === 0) throw new Error('GEMINI_API_KEYS_MISSING');
   const key = geminiApiKeys[currentGeminiKeyIndex];
   currentGeminiKeyIndex = (currentGeminiKeyIndex + 1) % geminiApiKeys.length;
   return key;
@@ -28,10 +24,52 @@ export function getRotatedApiKey(): string {
 const COOKIE = 'huda_admin_session';
 const SESSION_SECONDS = 60 * 60 * 4;
 
-export const SECTIONS = new Set([
-  'personalInfo', 'certificates', 'experiences', 'skills', 
-  'volunteer', 'courses', 'links', 'hudaRules', 'hudaFeedback'
-]);
+/**
+ * إدارة وتوجيه الاتصالات إلى قواعد البيانات الخمس المستقلة في Firebase
+ * 1. Main (ahmed-thiab-db)
+ * 2. Huda (ahmed-ai-huda-db)
+ * 3. Students (ahmed-students-db)
+ * 4. Books (ahmed-student-s-boks-db)
+ * 5. Manager (ahmed-ai-manager-db)
+ */
+export function getDb(scope: 'main' | 'huda' | 'students' | 'books' | 'manager' = 'main'): admin.database.Database {
+  let dbUrlEnv = process.env.FIREBASE_DATABASE_URL_MAIN;
+  let saEnv = process.env.FIREBASE_SA_JSON_MAIN;
+
+  if (scope === 'huda') {
+    dbUrlEnv = process.env.FIREBASE_DATABASE_URL_HUDA || dbUrlEnv;
+    saEnv = process.env.FIREBASE_SA_JSON_HUDA || saEnv;
+  } else if (scope === 'students') {
+    dbUrlEnv = process.env.FIREBASE_DATABASE_URL_STUDENTS || dbUrlEnv;
+    saEnv = process.env.FIREBASE_SA_JSON_STUDENTS || saEnv;
+  } else if (scope === 'books') {
+    dbUrlEnv = process.env.FIREBASE_DATABASE_URL_BOOKS || dbUrlEnv;
+    saEnv = process.env.FIREBASE_SA_JSON_BOOKS || saEnv;
+  } else if (scope === 'manager') {
+    dbUrlEnv = process.env.FIREBASE_DATABASE_URL_MANAGER || dbUrlEnv;
+    saEnv = process.env.FIREBASE_SA_JSON_MANAGER || saEnv;
+  }
+
+  if (!dbUrlEnv || !saEnv) {
+    throw new Error(`FIREBASE_ENV_MISSING_FOR_SCOPE_${scope.toUpperCase()}`);
+  }
+
+  const appName = `firebase-app-${scope}`;
+  let existingApp = admin.apps.find(app => app?.name === appName);
+
+  if (!existingApp) {
+    const serviceAccount = JSON.parse(saEnv);
+    if (serviceAccount.private_key) {
+      serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
+    }
+    existingApp = admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount),
+      databaseURL: dbUrlEnv
+    }, appName);
+  }
+
+  return admin.database(existingApp);
+}
 
 export function send(res: VercelResponse, status: number, body: Record<string, any>): void {
   res.status(status).setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -45,23 +83,6 @@ export function parseBody(req: VercelRequest): any {
     try { return JSON.parse(req.body); } catch { return {}; }
   }
   return {};
-}
-
-export function getDb(): admin.database.Database {
-  if (!process.env.FIREBASE_DATABASE_URL || !process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
-    throw new Error('FIREBASE_ENV_MISSING');
-  }
-  if (!admin.apps.length) {
-    const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
-    if (serviceAccount.private_key) {
-      serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
-    }
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount),
-      databaseURL: process.env.FIREBASE_DATABASE_URL
-    });
-  }
-  return admin.database();
 }
 
 export function hash(value: string): string {
@@ -85,7 +106,7 @@ export function clientRateKey(req: VercelRequest, scope: string): string {
 
 export async function allowRateLimit(key: string, maxRequests: number, windowMs: number): Promise<boolean> {
   try {
-    const ref = getDb().ref(`private/rateLimits/${hash(key)}`);
+    const ref = getDb('manager').ref(`private/rateLimits/${hash(key)}`);
     const tx = await ref.transaction((current: any) => {
       const now = Date.now();
       if (!current || !Number.isFinite(current.startedAt) || now - current.startedAt >= windowMs) {
@@ -99,14 +120,14 @@ export async function allowRateLimit(key: string, maxRequests: number, windowMs:
     const value = tx.snapshot.val();
     return Boolean(tx.committed && value && !value.blocked && value.count <= maxRequests);
   } catch {
-    return true; // السماح بالمرور في حال حدوث خطأ مؤقت بقاعدة البيانات
+    return true;
   }
 }
 
 export function requireSameOrigin(req: VercelRequest, res: VercelResponse): boolean {
   const expected = process.env.APP_ORIGIN;
   const origin = req.headers.origin;
-  if (!expected || !origin) return true; // مرونة أثناء التطوير المحلي
+  if (!expected || !origin) return true;
   if (origin !== expected) {
     send(res, 403, { error: 'ORIGIN_NOT_ALLOWED' });
     return false;
@@ -155,22 +176,20 @@ export async function checkLogin(email?: string, password?: string, totp?: strin
 
 export async function audit(event: Record<string, any>): Promise<void> {
   try {
-    const db = getDb();
-    await db.ref('private/auditLog').push({ ...event, at: new Date().toISOString() });
+    await getDb('manager').ref('private/auditLog').push({ ...event, at: new Date().toISOString() });
   } catch {}
 }
 
 export async function isAiEnabled(): Promise<boolean> {
   try {
-    const snap = await getDb().ref('settings/aiEnabled').get();
+    const snap = await getDb('manager').ref('settings/aiEnabled').get();
     return snap.exists() ? snap.val() === true : true;
   } catch {
     return true;
   }
 }
 
-// دالة الذكاء الاصطناعي مع تدوير المفاتيح التلقائي وبدائل الخطة المجانية (Gemini Fallback & Rotation)
-export async function callAi({ system, message, modelHint }: { system: string; message: string; modelHint?: string }): Promise<{ text: string; provider: string }> {
+export async function callAi({ system, message }: { system: string; message: string }): Promise<{ text: string; provider: string }> {
   let lastError: any;
   const maxAttempts = Math.max(geminiApiKeys.length, 1);
 
@@ -181,9 +200,7 @@ export async function callAi({ system, message, modelHint }: { system: string; m
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          contents: [
-            { role: 'user', parts: [{ text: `${system}\n\nUser Message: ${message}` }] }
-          ]
+          contents: [{ role: 'user', parts: [{ text: `${system}\n\nUser Message: ${message}` }] }]
         }),
         signal: AbortSignal.timeout(25000)
       });
