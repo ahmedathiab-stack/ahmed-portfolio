@@ -13,41 +13,32 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* =========================================================
-   خلفية المربعات التفاعلية السينمائية المتوافقة مع الثيم الغامق
-   ========================================================= */
-/* =========================================================
-   كود شبكة المربعات الهندسية الخلفية (بخطوط بيضاء تفاعلية)
-   ========================================================= */
 body {
     font-family: var(--font-main);
-    background-color: #090d16;
-    /* شبكة مربعات هندسية دقيقة بلون أبيض شفاف وبدون الاعتماد على روابط خارجية */
+    background-color: var(--bg-main);
     background-image: 
-        linear-gradient(to right, rgba(255, 255, 255, 0.08) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
-    background-size: 50px 50px; /* يتحكم بحجم المربعات (يمكنك تصغيره أو تكبيره حسب الرغبة) */
+        radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(16, 185, 129, 0.1) 0%, transparent 40%);
     color: var(--text-main);
     line-height: 1.7;
     overflow-x: hidden;
-    position: relative;
 }
 
-/* تأثير ضبابي سائل متحرك فوق المربعات لإعطاء طابع حركي عشوائي مرتب ومبهر */
+/* خلفية سائلة متحركة (تفاعل حيوي تشبه الدخان/السائل) */
 body::before {
     content: '';
     position: fixed;
     top: -50%; left: -50%; width: 200%; height: 200%;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.03) 0%, transparent 60%);
-    animation: interactiveFog 15s infinite alternate ease-in-out;
+    background: radial-gradient(circle, rgba(99,102,241,0.05) 0%, transparent 60%);
+    animation: liquidMove 15s infinite alternate ease-in-out;
     z-index: -1;
     pointer-events: none;
 }
 
-@keyframes interactiveFog {
+@keyframes liquidMove {
     0% { transform: translate(0, 0) rotate(0deg) scale(1); }
-    50% { transform: translate(-4%, 4%) rotate(180deg) scale(1.1); }
-    100% { transform: translate(4%, -4%) rotate(360deg) scale(1); }
+    50% { transform: translate(-5%, 5%) rotate(180deg) scale(1.1); }
+    100% { transform: translate(5%, -5%) rotate(360deg) scale(1); }
 }
 
 /* Hero Section (سينمائي وثلاثي الأبعاد) */
