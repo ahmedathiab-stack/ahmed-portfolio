@@ -1,11 +1,8 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import OpenAI from "openai";
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  // ترويسات الأمان لمنع مشاكل CORS
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,POST');
@@ -21,13 +18,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     const { message } = req.body || {};
+    
     if (!message || typeof message !== 'string' || message.trim() === '') {
       return res.status(400).json({ error: 'Message is required.' });
     }
 
-    if (!process.env.OPENAI_API_KEY) {
-      return res.status(500).json({ reply: "مفتاح OpenAI API Key غير مهيأ في إعدادات البيئة على Vercel." });
+    // التحقق من وجود المفتاح لمنع الانهيار
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) {
+      return.status(500).json({ 
+        reply: "⚠️ تنبيه للمطور: مفتاح OPENAI_API_KEY غير مضاف في لوحة تحكم Vercel (Environment Variables)." 
+      });
     }
+
+    const openai = new OpenAI({ apiKey });
 
     const systemPrompt = `أنت هدى (Huda)، مساعدة مكتبية بشرية 100% للمدرب أحمد عادل ناجي ذياب. تتحدثين باللغة العربية بدافء واحترافية. إذا طلب المستخدم حجز دورة، اسأليه عن: 1) الاسم الكامل، 2) البريد أو الهاتف، 3) اسم الدورة. وعند توفرها ضع هذا الوسام في نهاية الرد: [[RESERVE|الاسم|التواصل|الدورة]]`;
 
@@ -43,14 +47,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const reply = completion.choices?.[0]?.message?.content || "عذراً، لم أستطع الرد.";
     let reservationSaved = false;
-    const reserveMatch = reply.match(/\[\[RESERVE\Vert{}([^\Vert{}]+)\Vert{}([^\Vert{}]+)\Vert{}(.*?)\]\]/);
-    if (reserveMatch) {
+    
+    if (reply.includes('[[RESERVE|')) {
       reservationSaved = true;
     }
 
     return res.status(200).json({ reply, reservationSaved });
+
   } catch (error: any) {
-    console.error("API Error:", error);
-    return res.status(500).json({ reply: "عذراً، أواجه ضغطاً مؤقتامؤقتاً. تواصل عبر الواتساب: +967779087415" });
+    console.error("OpenAI API Server Error:", error);
+    return res.status(500).json({ 
+      reply: "عذراً، أواجه ضغطاً مؤقتاً في خوادم الذكاء الاصطناعي. تواصل مباشرة مع الأستاذ أحمد عبر الواتساب: +967779087415",
+      details: error?.message 
+    });
   }
 }
