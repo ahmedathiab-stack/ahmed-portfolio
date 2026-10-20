@@ -5,6 +5,19 @@ import bcrypt from 'bcryptjs';
 import { authenticator } from 'otplib';
 import { VercelRequest, VercelResponse } from '@vercel/node';
 
+const apiKeys = [
+  process.env.GEMINI_API_KEY_1,
+  process.env.GEMINI_API_KEY_2,
+  process.env.GEMINI_API_KEY_3
+].filter(Boolean);
+
+let currentKeyIndex = 0;
+function getNextApiKey() {
+  if (apiKeys.length === 0) return process.env.GEMINI_API_KEY;
+  const key = apiKeys[currentKeyIndex];
+  currentKeyIndex = (currentKeyIndex + 1) % apiKeys.length;
+  return key;
+}
 const COOKIE = 'huda_admin_session';
 const SESSION_SECONDS = 60 * 60 * 4;
 
