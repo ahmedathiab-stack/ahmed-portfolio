@@ -5,7 +5,10 @@ import {
   adminSession, requireAdmin, setAdminCookie, clearAdminCookie,
   checkLogin, audit, isAiEnabled, callAi, SECTIONS
 } from '../lib/core.js';
-
+// تحقق صارم من الجلسة دون تغيير مسارات الـ API أو الـ IDs في الواجهة
+if (action === 'adminAi' && !verifyAdminSession(req)) {
+  return res.status(401.json({ error: "يجب تسجيل الدخول كمسؤول" }));
+}
 export default async function unifiedApiHandler(req: VercelRequest, res: VercelResponse): Promise<void> {
   const action = (req.query.action as string) || req.body?.action;
   const method = req.method;
