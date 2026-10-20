@@ -174,9 +174,6 @@ class Store {
         localStorage.setItem(CONFIG.STORAGE_KEYS.TEMP_TOKENS, JSON.stringify(tokens));
     }
 
-    /**
-     * تتبع وإدارة عداد الزوار الحقيقي الذكي
-     */
     static getVisitorCount() {
         try {
             let count = parseInt(localStorage.getItem(CONFIG.STORAGE_KEYS.VISITOR_COUNT) || '1420', 10);
@@ -202,7 +199,7 @@ const App = {
     async init() {
         this.cachedDb = await Store.getKnowledge();
         this.loadMultiDbSettingsToForm();
-        this.initVoiceRecognition(); // تفعيل التعرف الصوتي للشات
+        this.initVoiceRecognition();
         this.renderAll();
     },
 
@@ -234,7 +231,7 @@ const App = {
         this.cachedDb = await Store.getKnowledge();
         const db = this.cachedDb;
 
-        this.renderStudentServices(db); // عرض خدمات الطلاب (ملازم ودورات)
+        this.renderStudentServices(db);
         this.renderCourses(db);
         this.renderLinks(db);
         this.renderCertificates(db);
@@ -254,9 +251,6 @@ const App = {
         if(document.getElementById('stat-visitors')) document.getElementById('stat-visitors').innerText = Store.getVisitorCount();
     },
 
-    /**
-     * عرض قسم خدمات الطلاب الشاملة (يجمع الملازم الأكاديمية والدورات المتاحة)
-     */
     renderStudentServices(db) {
         const container = document.getElementById('student-services-container');
         if (!container) return;
@@ -294,9 +288,6 @@ const App = {
         container.innerHTML = html;
     },
 
-    /**
-     * دمج التعرف الصوتي (Speech-to-Text) في شات هدى تماماً مثل واتساب
-     */
     initVoiceRecognition() {
         const micBtn = document.getElementById('voice-record-btn');
         const inputField = document.getElementById('wa-chat-input');
@@ -497,5 +488,4 @@ const App = {
             if (!arr || !arr.length) return `<p class="text-muted" style="font-size:0.85rem;">لا توجد عناصر حالياً.</p>`;
             return arr.map((item, i) => `
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; background:white; border:1px solid #e2e8f0; padding:8px 12px; border-radius:8px;">
-                    <span style="font-size:0.9rem; font-weight:bold;">${escapeHTML(item[displayKey] || 'عنصر بدون عنوان')}</span>
-                    <button class="btn-danger" style="padding:4px 10px; border-radius:6px; font-size:0.8rem;" onclick="App.deleteItem('${
+                    <span
