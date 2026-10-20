@@ -343,4 +343,90 @@ const App = {
     }
 };
 
+// 1. تفعيل حفظ مفاتيح الذكاء الاصطناعي في الـ Backend
+App.saveApiKeys = async function() {
+    if (!this.isAdminLoggedIn) return alert("يجب تسجيل الدخول كمسؤول أولاً.");
+    const adminKeys = document.getElementById('admin-ai-keys-input').value;
+    const hudaKeys = document.getElementById('huda-ai-keys-input').value;
+    
+    try {
+        const res = await fetch('/api/index?action=data', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                action: 'saveSection', 
+                section: 'aiKeys', 
+                data: { adminKeys, hudaKeys, updatedAt: new Date().toISOString() } 
+            })
+        });
+        if (res.ok) {
+            alert('✅ تم حفظ وتحديث مفاتيح الـ API في الخلفية بنجاح!');
+        } else {
+            alert('❌ فشل حفظ المفاتيح في الخادم.');
+        }
+    } catch (e) {
+        alert('❌ حدث خطأ في الاتصال بالخادم.');
+    }
+};
+
+// 2. تفعيل تغيير كلمة المرور للمشرف وحفظها في الـ Backend
+App.changeAdminPassword = async function() {
+    if (!this.isAdminLoggedIn) return alert("يجب تسجيل الدخول كمسؤول أولاً.");
+    const currentPass = document.getElementById('current-admin-pass').value;
+    const newPass = document.getElementById('new-admin-pass').value;
+    
+    if (!currentPass || !newPass) {
+        return alert('يرجى إدخال كلمة المرور الحالية والجديدة.');
+    }
+
+    try {
+        const res = await fetch('/api/index?action=data', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                action: 'changePassword', 
+                currentPass, 
+                newPass 
+            })
+        });
+        if (res.ok) {
+            alert('🔒 تم تحديث كلمة المرور وحفظها في النظام بنجاح!');
+            document.getElementById('current-admin-pass').value = '';
+            document.getElementById('new-admin-pass').value = '';
+        } else {
+            alert('❌ كلمة المرور الحالية غير صحيحة أو حدث خطأ.');
+        }
+    } catch (e) {
+        alert('❌ خطأ في الاتصال بالخادم.');
+    }
+};
+
+// 3. تفعيل توليد أكواد التصريح المؤقتة وحفظها في قاعدة البيانات
+App.generateTempPasscode = async function() {
+    if (!this.isAdminLoggedIn) return alert("يجب تسجيل الدخول كمسؤول أولاً.");
+    try {
+        const res = await fetch('/api/index?action=issue', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                certificateId: "general_pass", 
+                recipientEmail: "admin@temp.com", 
+                validMinutes: 1440 
+            })
+        });
+        const data = await res.json();
+        if (res.ok && data.code) {
+            alert(`⚡ تم توليد الكود بنجاح: ${data.code}`);
+            // عرض الكود في القائمة المخصصة
+            const list = document.getElementById('temp-tokens-list');
+            if (list) {
+                list.innerHTML += `<div style="background:#f1f5f9; padding:8px; margin-top:5px; border-radius:6px; font-weight:bold;">🔑 الكود: ${escapeHtml(data.code)} (صالح لـ 24 ساعة)</div>`;
+            }
+        } else {
+            alert('❌ فشل توليد كود التصريح.');
+        }
+    } catch (e) {
+        alert('❌ خطأ في الاتصال بالخادم.');
+    }
+};
 window.onload = () => App.init();
