@@ -26,6 +26,7 @@
                 <div>📚 الدورات: <span id="stat-courses">0</span></div>
                 <div>📝 الحجوزات: <span id="stat-reservations">0</span></div>
                 <div>🔗 الملازم: <span id="stat-links">0</span></div>
+                <div>👥 الزوار: <span id="stat-visitors">0</span></div>
             </div>
 
             <div id="admin-content-body" style="display:none; margin-top:20px;">
@@ -52,7 +53,7 @@
                             <input type="text" id="certIssuer" placeholder="الجهة المصدرة">
                         </div>
                         <input type="text" id="certImage" placeholder="رابط الصورة">
-                        <button class="btn-primary w-100 mt-2" onclick="App.saveData('certificates')">✅ حفظ الشهادة</button>
+                        <button class="btn-submit w-100 mt-2" onclick="App.saveData('certificates')">✅ حفظ الشهادة</button>
                     </div>
                     <div id="admin-certs-list" class="admin-list mt-3"></div>
                 </div>
@@ -66,7 +67,7 @@
                         </div>
                         <input type="text" id="expPeriod" placeholder="الفترة">
                         <textarea id="expDesc" placeholder="الوصف"></textarea>
-                        <button class="btn-primary w-100 mt-2" onclick="App.saveData('experiences')">✅ حفظ الخبرة</button>
+                        <button class="btn-submit w-100 mt-2" onclick="App.saveData('experiences')">✅ حفظ الخبرة</button>
                     </div>
                     <div id="admin-exp-list" class="admin-list mt-3"></div>
                 </div>
@@ -82,7 +83,7 @@
                                 <option value="متوسط">متوسط</option>
                             </select>
                         </div>
-                        <button class="btn-primary w-100 mt-2" onclick="App.saveData('skills')">✅ حفظ المهارة</button>
+                        <button class="btn-submit w-100 mt-2" onclick="App.saveData('skills')">✅ حفظ المهارة</button>
                     </div>
                     <div id="admin-skills-list" class="admin-list mt-3"></div>
                 </div>
@@ -94,7 +95,7 @@
                             <input type="text" id="volRole" placeholder="الدور">
                             <input type="text" id="volOrg" placeholder="الجهة">
                         </div>
-                        <button class="btn-primary w-100 mt-2" onclick="App.saveData('volunteer')">✅ حفظ التطوع</button>
+                        <button class="btn-submit w-100 mt-2" onclick="App.saveData('volunteer')">✅ حفظ التطوع</button>
                     </div>
                     <div id="admin-vol-list" class="admin-list mt-3"></div>
                 </div>
@@ -110,7 +111,7 @@
                             </select>
                         </div>
                         <textarea id="courseDesc" placeholder="وصف سريع للدورة"></textarea>
-                        <button class="btn-primary w-100 mt-2" onclick="App.saveData('courses')">✅ إضافة الدورة</button>
+                        <button class="btn-submit w-100 mt-2" onclick="App.saveData('courses')">✅ إضافة الدورة</button>
                     </div>
                     <div id="admin-courses-list" class="admin-list mt-3"></div>
                 </div>
@@ -130,7 +131,7 @@
                             <input type="text" id="linkTitle" placeholder="اسم الملزمة / الملف">
                             <input type="text" id="linkUrl" placeholder="رابط الملف">
                         </div>
-                        <button class="btn-primary w-100 mt-2" onclick="App.saveData('links')">✅ إضافة الملف</button>
+                        <button class="btn-submit w-100 mt-2" onclick="App.saveData('links')">✅ إضافة الملف</button>
                     </div>
                     <div id="admin-links-list" class="admin-list mt-3"></div>
                 </div>
@@ -147,7 +148,7 @@
                         <input type="text" id="db-url-reservations" placeholder="https://...">
                         <label style="font-size: 0.85rem; font-weight: bold;">قاعدة بيانات الملازم:</label>
                         <input type="text" id="db-url-links" placeholder="https://...">
-                        <button class="btn-primary w-100 mt-2" onclick="App.saveMultiDbConnections()">💾 حفظ الروابط</button>
+                        <button class="btn-submit w-100 mt-2" onclick="App.saveMultiDbConnections()">💾 حفظ الروابط</button>
                     </div>
                 </div>
 
@@ -156,14 +157,14 @@
                     <div class="admin-card-section">
                         <input type="password" id="current-admin-pass" placeholder="كلمة المرور الحالية">
                         <input type="password" id="new-admin-pass" placeholder="كلمة المرور الجديدة">
-                        <button class="btn-primary w-100" onclick="App.changeAdminPassword()">🔒 تحديث كلمة المرور</button>
+                        <button class="btn-submit w-100" onclick="App.changeAdminPassword()">🔒 تحديث كلمة المرور</button>
                     </div>
                 </div>
 
                 <!-- تبويب التصاريح -->
                 <div id="tab-tokens" class="admin-tab-content">
                     <div class="admin-card-section">
-                        <button class="btn-primary w-100 mt-2" onclick="App.generateTempPasscode()">⚡ توليد كود تصريح</button>
+                        <button class="btn-submit w-100 mt-2" onclick="App.generateTempPasscode()">⚡ توليد كود تصريح</button>
                     </div>
                     <div id="temp-tokens-list" class="mt-3"></div>
                 </div>
@@ -171,9 +172,9 @@
         </div>
     </aside>
 
-    <!-- الهيدر الرئيسي وتنسيق زر الترجمة العصري -->
+    <!-- الهيدر الرئيسي وتنسيق زر الترجمة العصري الزجاجي -->
     <header class="hero">
-        <div class="lang-switcher-container">
+        <div class="lang-switcher-container" style="background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(10px); padding: 8px 14px; border-radius: 30px; border: 1px solid rgba(255, 255, 255, 0.3); box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: inline-flex; align-items: center; gap: 8px; margin-bottom: 20px;">
             <div id="google_translate_element"></div>
         </div>
         <div class="hero-content">
@@ -200,7 +201,7 @@
             </div>
         </section>
 
-        <!-- قسم خدمات الطلاب الشاملة (يحتوي الملازم والدورات) -->
+        <!-- قسم خدمات الطلاب الشاملة (يحتوي الملازم والدورات المتاحة) -->
         <section id="student-services-section" class="card fade-in">
             <h2>🎓 خدمات الطلاب الشاملة</h2>
             <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 15px;">بوابة الطالب للوصول السريع إلى الملازم الأكاديمية والدورات التدريبية المعتمدة.</p>
@@ -257,7 +258,20 @@
         </div>
     </div>
 
-    <!-- صندوق الدردشة مع هدى (مع دعم التعرف الصوتي) -->
+    <!-- نافذة مراجعة تغييرات الذكاء الاصطناعي -->
+    <div id="ai-review-modal" class="modal">
+        <div class="modal-content" style="max-width: 600px; text-align: right;">
+            <h3>🤖 مراجعة اقتراح الذكاء الاصطناعي</h3>
+            <p style="font-size: 0.9rem; color: #64748b;">يرجى التحقق من التغييرات المحدثة قبل الحفظ النهائي:</p>
+            <pre id="ai-diff-preview" style="background: #f1f5f9; padding: 15px; border-radius: 8px; max-height: 250px; overflow-y: auto; font-size: 0.85rem; direction: ltr; text-align: left;"></pre>
+            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                <button class="btn-submit w-100" onclick="AIEngine.confirmAIProposal()">✅ إقرار وتطبيق التعديل</button>
+                <button class="btn-danger w-100" onclick="AIEngine.rejectAIProposal()">❌ رفض التعديل</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- صندوق الدردشة مع هدى (مع زر التعرف الصوتي) -->
     <div class="huda-chat-wrapper">
         <button id="public-chat-btn" onclick="HudaEngine.togglePublicChat()">💬 تواصل مع هدى</button>
     </div>
@@ -271,9 +285,11 @@
             <button onclick="HudaEngine.togglePublicChat()" class="close-chat" aria-label="إغلاق الشات">✕</button>
         </div>
         <div id="wa-chat-messages"></div>
-        <div id="wa-chat-input-area">
-            <input type="text" id="wa-chat-input" placeholder="اكتب رسالتك أو تحدث بالصوت..." onkeypress="if(event.key === 'Enter') HudaEngine.sendPublicMessage()">
-            <button id="wa-chat-send" onclick="HudaEngine.sendPublicMessage()">إرسال</button>
+        <div id="wa-chat-input-area" style="display: flex; align-items: center; gap: 8px; padding: 10px; background: #f8fafc;">
+            <!-- زر التعرف الصوتي (Speech-to-Text) شبيه بواتساب -->
+            <button id="voice-record-btn" type="button" title="اضغط للتحدث بالصوت (تحويل لصوت إلى نص)" style="background: #25d366; color: white; border: none; border-radius: 50%; width: 40px; height: 40px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; transition: transform 0.2s;">🎤</button>
+            <input type="text" id="wa-chat-input" placeholder="اكتب رسالتك أو تحدث بالصوت..." onkeypress="if(event.key === 'Enter') HudaEngine.sendPublicMessage()" style="flex: 1; padding: 10px; border: 1px solid #cbd5e1; border-radius: 20px; outline: none;">
+            <button id="wa-chat-send" onclick="HudaEngine.sendPublicMessage()" style="background: var(--primary); color: white; border: none; padding: 10px 16px; border-radius: 20px; cursor: pointer;">إرسال</button>
         </div>
     </div>
 
@@ -323,6 +339,11 @@
         </div>
     </div>
 
+    <!-- استدعاء ملفات السكريبت بالترتيب الصحيح -->
+    <script src="script.js"></script>
+    <script src="ai.huda.js"></script>
+    <script src="ai.admin.js"></script>
+
     <!-- ترجمة جوجل -->
     <script type="text/javascript">
         function googleTranslateElementInit() {
@@ -330,9 +351,5 @@
         }
     </script>
     <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" async defer></script>
-
-    <script src="script.js"></script>
-    <script src="ai.huda.js"></script>
-    <script src="ai.admin.js"></script>
 </body>
 </html>
