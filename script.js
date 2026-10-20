@@ -116,14 +116,31 @@ const DEFAULT_KNOWLEDGE_BASE = {
 };
 
 /**
- * تطبيق إدارة الواجهة الأمامية والتحكم
+ * تطبيق إدارة الواجهة الأمامية والتحكم مع إدارة حالة الدخول عبر sessionStorage
  */
 const App = {
-    isAdminLoggedIn: false,
+    get isAdminLoggedIn() {
+        return sessionStorage.getItem('ahmed_admin_logged_in') === 'true';
+    },
+    
+    set isAdminLoggedIn(val) {
+        if (val) {
+            sessionStorage.setItem('ahmed_admin_logged_in', 'true');
+        } else {
+            sessionStorage.removeItem('ahmed_admin_logged_in');
+        }
+    },
+
     cachedDb: null,
 
     async init() {
         this.cachedDb = await Store.getKnowledge();
+        if (this.isAdminLoggedIn) {
+            const contentBody = document.getElementById('admin-content-body');
+            if (contentBody) contentBody.style.display = 'block';
+            const authBtn = document.getElementById('auth-btn');
+            if (authBtn) authBtn.innerText = '🔓 تسجيل الخروج';
+        }
         await this.renderAll();
     },
 
@@ -345,11 +362,10 @@ const App = {
     },
 
     /**
-     * إدارة تسجيل الدخول والخروج مع غلق لوحة التحكم تلقائياً عند الخروج
+     * إدارة تسجيل الدخول والخروج مع غلق لوحة التحكم ولوحة الذكاء الإداري فوراً وتطهير الجلسة
      */
     toggleAdminAuth() {
         if (this.isAdminLoggedIn) {
-            // تنفيذ تسجيل الخروج وغلق اللوحة تماماً
             this.isAdminLoggedIn = false;
             const contentBody = document.getElementById('admin-content-body');
             if (contentBody) contentBody.style.display = 'none';
@@ -357,11 +373,9 @@ const App = {
             const authBtn = document.getElementById('auth-btn');
             if (authBtn) authBtn.innerText = '🔒 تسجيل الدخول';
             
-            // الحل الجذري لمشكلة عدم إغلاق لوحة التحكم عند تسجيل الخروج:
             const drawer = document.getElementById('admin-drawer');
             if (drawer) drawer.classList.remove('open');
 
-            // إغلاق لوحة الذكاء الاصطناعي الإداري إذا كانت مفتوحة أيضاً
             const geminiBox = document.getElementById('gemini-admin-box');
             if (geminiBox) geminiBox.style.display = 'none';
 
@@ -370,7 +384,6 @@ const App = {
         }
 
         const p = prompt('أدخل كلمة المرور للإدارة:');
-        // كلمة مرور افتراضية أو مطابقة للمخزن
         const correctPass = localStorage.getItem(CONFIG.STORAGE_KEYS.ADMIN_PASS) || "Ahmed_Admin_2026";
         
         if (p === correctPass) {
@@ -451,7 +464,6 @@ App.changeAdminPassword = async function() {
             alert('❌ كلمة المرور الحالية غير صحيحة أو حدث خطأ.');
         }
     } catch (e) {
-        // تحديث محلي احتياطي للتأمين
         localStorage.setItem(CONFIG.STORAGE_KEYS.ADMIN_PASS, newPass);
         alert('🔒 تم تحديث كلمة المرور محلياً بنجاح!');
     }
@@ -473,7 +485,6 @@ App.generateTempPasscode = async function() {
                 list.innerHTML += `<div style="background:#f1f5f9; padding:8px; margin-top:5px; border-radius:6px; font-weight:bold;">🔑 الكود: ${escapeHtml(data.code)} (صالح لـ 24 ساعة)</div>`;
             }
         } else {
-            // توليد كود محلي بديل في حال عدم تفعيل نقطة الإصدار
             const randomCode = Math.random().toString(36).substring(2, 10).toUpperCase();
             alert(`⚡ تم توليد الكود محلياً: ${randomCode}`);
             const list = document.getElementById('temp-tokens-list');
