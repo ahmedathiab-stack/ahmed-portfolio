@@ -5,11 +5,19 @@ import {
   adminSession, requireAdmin, setAdminCookie, clearAdminCookie,
   checkLogin, audit, isAiEnabled, callAi, SECTIONS
 } from '../lib/core.js';
-// تحقق صارم من الجلسة دون تغيير مسارات الـ API أو الـ IDs في الواجهة
-if (action === 'adminAi' && !verifyAdminSession(req)) {
-  return res.status(401.json({ error: "يجب تسجيل الدخول كمسؤول" }));
-}
+
 export default async function unifiedApiHandler(req: VercelRequest, res: VercelResponse): Promise<void> {
+  // تفعيل رؤوس الأمان الأساسية (CORS Headers)
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+  res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
+
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
+  }
+
   const action = (req.query.action as string) || req.body?.action;
   const method = req.method;
 
@@ -71,7 +79,7 @@ export default async function unifiedApiHandler(req: VercelRequest, res: VercelR
       const result = await callAi({ system: prompt, message });
       let reply = result.text;
       
-      const match = reply.match(/\[\[RESERVE\Vert{}([^\vert{}]{1,120})\Vert{}([^\vert{}]{3,200})\Vert{}([^\vert{}]{1,120})\]\]/);
+      const match = reply.match(/\[\[RESERVE\Vert{}([^\Vert{}]{1,120})\Vert{}([^\Vert{}]{3,200})\Vert{}([^\Vert{}]{1,120})\]\]/);
       if (match) {
         const [, rawName, rawEmail, rawCourse] = match;
         const name = rawName.trim();
@@ -103,7 +111,7 @@ export default async function unifiedApiHandler(req: VercelRequest, res: VercelR
     if (!requireAdmin(req, res)) return;
     
     const body = parseBody(req);
-    const command = safeText(body.command, 5000);
+    const command = safeText(body.command, 5000) || safeText(body.prompt, 5000);
     if (!command) return send(res, 400, { error: 'COMMAND_REQUIRED' });
     
     try {
@@ -121,7 +129,7 @@ export default async function unifiedApiHandler(req: VercelRequest, res: VercelR
       const report = { id: reportRef.key, command, response: result.text, provider: result.provider, createdAt: new Date().toISOString(), status: 'suggestion_only' };
       await reportRef.set(report);
       await audit({ actor: 'admin-ai', action: 'report_created', targetId: reportRef.key });
-      return send(res, 200, { report });
+      return send(res, 200, { report, reply: result.text });
     } catch (error: any) {
       return send(res, error.status || 503, { error: 'ADMIN_AI_UNAVAILABLE' });
     }
