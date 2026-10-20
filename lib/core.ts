@@ -5,19 +5,25 @@ import bcrypt from 'bcryptjs';
 import { authenticator } from 'otplib';
 import { VercelRequest, VercelResponse } from '@vercel/node';
 
-const apiKeys = [
+// نظام تدوير مفاتيح الـ API المتعددة لـ Gemini (لتجاوز قيود الخطة المجانية على Vercel)
+const geminiApiKeys = [
   process.env.GEMINI_API_KEY_1,
   process.env.GEMINI_API_KEY_2,
-  process.env.GEMINI_API_KEY_3
-].filter(Boolean);
+  process.env.GEMINI_API_KEY_3,
+  process.env.GEMINI_API_KEY
+].filter(Boolean) as string[];
 
-let currentKeyIndex = 0;
-function getNextApiKey() {
-  if (apiKeys.length === 0) return process.env.GEMINI_API_KEY;
-  const key = apiKeys[currentKeyIndex];
-  currentKeyIndex = (currentKeyIndex + 1) % apiKeys.length;
+let currentGeminiKeyIndex = 0;
+
+export function getRotatedApiKey(): string {
+  if (geminiApiKeys.length === 0) {
+    throw new Error('GEMINI_API_KEYS_MISSING');
+  }
+  const key = geminiApiKeys[currentGeminiKeyIndex];
+  currentGeminiKeyIndex = (currentGeminiKeyIndex + 1) % geminiApiKeys.length;
   return key;
 }
+
 const COOKIE = 'huda_admin_session';
 const SESSION_SECONDS = 60 * 60 * 4;
 
@@ -151,50 +157,39 @@ export async function isAiEnabled(): Promise<boolean> {
   return snap.exists() ? snap.val() === true : true;
 }
 
+// دالة الذكاء الاصطناعي المحدثة مع تدوير المفاتيح والبدائل الآمنة (Gemini Fallback & Rotation)
 export async function callAi({ system, message, modelHint }: { system: string; message: string; modelHint?: string }): Promise<{ text: string; provider: string }> {
-  let providers: any[];
-  try { providers = JSON.parse(process.env.AI_PROVIDERS_JSON || '[]'); } catch { throw new Error('AI_PROVIDERS_JSON_INVALID'); }
-  const candidates = Array.isArray(providers) ? providers.filter(p => p && p.baseUrl && p.model && Array.isArray(p.keys) && p.keys.some(k => typeof k === 'string' && k.trim())) : [];
-  if (!candidates.length) throw new Error('AI_PROVIDERS_NOT_CONFIGURED');
-  
-  const attempts: { provider: any; key: string }[] = [];
-  for (const provider of candidates) {
-    for (const key of provider.keys.filter((k: any) => typeof k === 'string' && k.trim())) {
-      attempts.push({ provider, key: key.trim() });
-    }
-  }
-  
-  const start = Math.floor(Math.random() * attempts.length);
-  const ordered = attempts.slice(start).concat(attempts.slice(0, start));
-  let lastStatus = 502;
-  
-  for (const item of ordered) {
+  let lastError: any;
+  const maxAttempts = Math.max(geminiApiKeys.length, 1);
+
+  for (let i = 0; i < maxAttempts; i++) {
+    const apiKey = getRotatedApiKey();
     try {
-      const response = await fetch(item.provider.baseUrl, {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${item.key}` },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: modelHint || item.provider.model,
-          messages: [{ role: 'system', content: system }, { role: 'user', content: message }],
-          temperature: 0.3
+          contents: [
+            { role: 'user', parts: [{ text: `${system}\n\nUser Message: ${message}` }] }
+          ]
         }),
         signal: AbortSignal.timeout(25000)
       });
+
       if (response.ok) {
         const data = await response.json();
-        const content = data?.choices?.[0]?.message?.content;
-        if (typeof content === 'string' && content.trim()) return { text: content, provider: item.provider.name || 'configured-provider' };
-        lastStatus = 502;
-        continue;
+        const content = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (typeof content === 'string' && content.trim()) {
+          return { text: content, provider: 'gemini-rotated' };
+        }
       }
-      lastStatus = response.status;
-      if ([400, 401, 403, 408, 409, 429, 500, 502, 503, 504].includes(response.status)) continue;
-      break;
-    } catch {
-      lastStatus = 502;
+      lastError = new Error(`AI_API_STATUS_${response.status}`);
+    } catch (err) {
+      lastError = err;
     }
   }
+
   const error: any = new Error('ALL_AI_KEYS_FAILED');
-  error.status = lastStatus === 429 ? 503 : 502;
+  error.status = 503;
   throw error;
 }
