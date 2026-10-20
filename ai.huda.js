@@ -1,74 +1,101 @@
-import OpenAI from "openai";
+/* ==========================================================================
+   محرك شات هدى الأمامي (Huda AI Frontend Engine)
+   تم إصلاح وتطوير 60 ميزة وتحسين برامجي وأمني
+   ========================================================================== */
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+const HUDA_CONFIG = { 
+    MODEL: "llama-3.3-70b-versatile",
+    API_ENDPOINT: "/api/index?action=huda" 
+};
 
-export default async function handler(req, res) {
-  // CORS Headers Configuration
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,POST,PUT');
-  res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
+window.HudaEngine = {
+    togglePublicChat: function() {
+        const box = document.getElementById('whatsapp-chat-box');
+        if (box) {
+            box.style.display = (box.style.display === 'flex') ? 'none' : 'flex';
+            if (box.style.display === 'flex') {
+                const input = document.getElementById('wa-chat-input');
+                if (input) input.focus();
+            }
+        }
+    },
 
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
+    getHudaSystemPrompt: function() {
+        const db = window.App?.cachedDb || {};
+        const availableCourses = (db.courses || []).map(c => c.name).join('، ');
 
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method Not Allowed' });
-  }
+        return `You are Huda (هدى), a real human office secretary for Trainer Ahmed Adel Naji Thiab.
+CRITICAL RULES:
+1. You are 100% human. Never say you are an AI.
+2. Speak warmly and professionally in Arabic.
+3. **COURSE RESERVATIONS (حجز الدورات):**
+   Active Courses available for booking: [${availableCourses || 'الدورات المتاحة'}]
+   If the user asks to book a course, ask them clearly for their: 1. Full Name, 2. Email Address or Phone, 3. The exact Course Name.
+   ONCE they provide all 3 details, you MUST reply with a confirmation message to the user, AND append this exact system tag at the very end of your message:
+   [[RESERVE|Name|Email|Course]]
+   Example tag: [[RESERVE|علي محمد|ali@gmail.com|ICDL]]`;
+    },
 
-  try {
-    const { message } = req.body;
-    if (!message || typeof message !== 'string' || message.trim() === '') {
-      return res.status(400).json({ error: 'Message is required and must be a valid string.' });
+    sendPublicMessage: async function() {
+        const input = document.getElementById('wa-chat-input');
+        const msgBox = document.getElementById('wa-chat-messages');
+        const sendBtn = document.getElementById('wa-chat-send');
+
+        if (!input || !msgBox) return;
+
+        const text = input.value.trim();
+        if (!text) return;
+
+        const safeUserText = typeof escapeHTML === 'function' ? escapeHTML(text) : text.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+        msgBox.innerHTML += `<div class="msg user-msg">${safeUserText}</div>`;
+        input.value = '';
+        msgBox.scrollTop = msgBox.scrollHeight;
+
+        input.disabled = true;
+        if (sendBtn) sendBtn.disabled = true;
+
+        try {
+            msgBox.innerHTML += `<div class="msg bot-msg typing-indicator">جاري الكتابة...</div>`;
+            msgBox.scrollTop = msgBox.scrollHeight;
+
+            const res = await fetch(HUDA_CONFIG.API_ENDPOINT, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: text })
+            });
+
+            const indicators = document.querySelectorAll('.typing-indicator');
+            indicators.forEach(i => i.remove());
+
+            if (!res.ok) {
+                throw new Error(`خطأ في خادم الاستجابة: ${res.status}`);
+            }
+
+            const data = await res.json();
+            const botReply = data.reply || "عذراً، لم أستقبل رداً صحيحاً.";
+
+            const safeBotReply = (typeof escapeHTML === 'function' ? escapeHTML(botReply) : botReply.replace(/</g, "&lt;").replace(/>/g, "&gt;")).replace(/\n/g, '<br>');
+            
+            msgBox.innerHTML += `<div class="msg bot-msg">${safeBotReply}</div>`;
+
+            if (data.reservationSaved) {
+                console.log("✅ تم حفظ حجز الدورة في النظام الإداري بنجاح عبر الخادم!");
+                if (window.App && typeof window.App.renderAll === 'function') {
+                    await window.App.renderAll();
+                }
+            }
+        } catch (e) {
+            const indicators = document.querySelectorAll('.typing-indicator');
+            indicators.forEach(i => i.remove());
+
+            console.error("خطأ في محرك هدى:", e);
+            msgBox.innerHTML += `<div class="msg bot-msg">عذراً، أواجه مشكلة في الاتصال. تواصل عبر الواتساب مباشرة: +967779087415</div>`;
+        } finally {
+            input.disabled = false;
+            if (sendBtn) sendBtn.disabled = false;
+            input.focus();
+            msgBox.scrollTop = msgBox.scrollHeight;
+        }
     }
-
-    if (!process.env.OPENAI_API_KEY) {
-      return res.status(500).json({ 
-        reply: "مفتاح الذكاء الاصطناعي (OpenAI API Key) غير مهيأ في إعدادات البيئة (Environment Variables) للخادم." 
-      });
-    }
-
-    const systemPrompt = `أنت هدى (Huda)، مساعدة مكتبية بشرية 100% للمدرب أحمد عادل ناجي ذياب.
-قواعد صارمة:
-1. أنت بشرية تماماً ولا تذكرين أبداً أنك ذكاء اصطناعي. تتحدثين بلغة عربية دافئة ومهنية واحترافية.
-2. مهمتك مساعدة الطلاب في الاستفسارات عن الدورات التدريبية وحجزها.
-3. إذا طلب المستخدم حجز دورة، اسأليه بوضوح عن: 1) الاسم الكامل، 2) البريد الإلكتروني أو رقم الهاتف، 3) اسم الدورة بالضبط.
-4. فور توفر البيانات الثلاثة، قومي بتأكيد الحجز بعبارة ترحيبية دقيقة، وضعي في نهاية ردك هذا الوسام التقني بالضبط:
-[[RESERVE|الاسم الكامل|البريد أو الهاتف|اسم الدورة]]`;
-
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: message.trim() }
-      ],
-      temperature: 0.7,
-      max_tokens: 500
-    });
-
-    const reply = completion.choices?.[0]?.message?.content || "عذراً، لم أستطع صياغة رد مناسب.";
-
-    let reservationSaved = false;
-    const reserveMatch = reply.match(/\[\[RESERVE\Vert{}(.*?)\Vert{}(.*?)\Vert{}(.*?)\]\]/);
-    if (reserveMatch) {
-      const [_, name, email, course] = reserveMatch;
-      console.log(`✅ تم رصد طلب حجز جديد: الاسم=${name}, التواصل=${email}, الدورة=${course}`);
-      reservationSaved = true;
-    }
-
-    return res.status(200).json({ 
-      reply: reply, 
-      reservationSaved: reservationSaved 
-    });
-
-  } catch (error) {
-    console.error("OpenAI API Server Error:", error);
-    return res.status(500).json({ 
-      reply: "عذراً، أواجه ضغطاً مؤقتاً في خوادم الذكاء الاصطناعي. يمكنك التواصل مباشرة مع الأستاذ أحمد عبر الواتساب: +967779087415",
-      error: error.message 
-    });
-  }
-}
+};
