@@ -172,7 +172,7 @@ const App = {
         this.renderSkills(db);
         this.renderCourses(db);
         this.renderLinks(db);
-        this.renderStudentServices(db); // عرض قسم خدمات الطلاب (ملازم ودورات)
+        this.renderStudentServices(db); // تحديث وعرض خدمات الطلاب
         this.updateAdminStats(db);
         if (this.isAdminLoggedIn) {
             this.renderAdminLists(db);
@@ -180,7 +180,7 @@ const App = {
     },
 
     /**
-     * تحديث الإحصائيات في لوحة التحكم (الدورات، الحجوزات، الملازم، والزوار)
+     * تحديث الإحصائيات الحقيقية للزوار والدورات والحجوزات والملازم
      */
     updateAdminStats(db) {
         const statCourses = document.getElementById('stat-courses');
@@ -191,7 +191,6 @@ const App = {
         if (statReservations) statReservations.innerText = (db.reservations || []).length;
         if (statLinks) statLinks.innerText = (db.links || []).length;
 
-        // إضافة عداد الزوار لو لوحة التحكم تحتوي عليه
         let statVisitors = document.getElementById('stat-visitors');
         if (!statVisitors) {
             const statsBar = document.querySelector('.admin-stats-bar');
@@ -206,27 +205,10 @@ const App = {
     },
 
     /**
-     * عرض قسم خدمات الطلاب (يجمع الملازم الأكاديمية والدورات المتاحة)
+     * عرض قسم خدمات الطلاب الشاملة (يجمع الملازم والدورات المتاحة)
      */
     renderStudentServices(db) {
-        let container = document.getElementById('student-services-container');
-        if (!container) {
-            // إنشاء القسم ديناميكياً إذا لم يكن موجوداً في HTML لضمان ظهوره بسلاسة
-            const mainContainer = document.querySelector('main.container');
-            if (mainContainer) {
-                const section = document.section || document.createElement('section');
-                section.id = 'student-services-section';
-                section.className = 'card fade-in';
-                section.innerHTML = `
-                    <h2>🎓 خدمات الطلاب الشاملة</h2>
-                    <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 15px;">بوابة الطالب للوصول السريع إلى الملازم الأكاديمية والدورات التدريبية المعتمدة.</p>
-                    <div id="student-services-container" class="grid-container"></div>
-                `;
-                // إدراج القسم قبل قسم الدورات أو في البداية
-                mainContainer.prepend(section);
-                container = document.getElementById('student-services-container');
-            }
-        }
+        const container = document.getElementById('student-services-container');
         if (!container) return;
 
         const courses = db.courses || [];
@@ -262,7 +244,7 @@ const App = {
     },
 
     /**
-     * تحسين وتجميل زر وت widget ترجمة جوجل
+     * تنسيق زر الترجمة ليظهر بشكل عصري وأنيق
      */
     initTranslateStyling() {
         const translateContainer = document.querySelector('.lang-switcher-container');
@@ -280,7 +262,7 @@ const App = {
     },
 
     /**
-     * دمج ميزة التعرف على الصوت (Speech-to-Text) في شات هدى تماماً مثل واتساب
+     * دمج التعرف الصوتي (Speech-to-Text) في شات هدى
      */
     initVoiceRecognition() {
         const inputArea = document.getElementById('wa-chat-input-area');
@@ -306,7 +288,7 @@ const App = {
             recognition.maxAlternatives = 1;
 
             micBtn.style.transform = 'scale(1.2)';
-            micBtn.style.background = '#dc2626'; // لون أحمر أثناء التسجيل
+            micBtn.style.background = '#dc2626';
             const inputField = document.getElementById('wa-chat-input');
             if (inputField) inputField.placeholder = '🎙️ جاري الاستماع... تحدث الآن';
 
@@ -314,23 +296,23 @@ const App = {
                 const speechText = event.results[0][0].transcript;
                 if (inputField) {
                     inputField.value = speechText;
-                    inputField.placeholder = 'اكتب رسالتك...';
+                    inputField.placeholder = 'اكتب رسالتك أو تحدث بالصوت...';
                 }
                 micBtn.style.transform = 'scale(1)';
                 micBtn.style.background = '#25d366';
             };
 
             recognition.onerror = () => {
-                alert('❌ حدث خطأ أثناء التقاط الصوت، يرجى المحاولة مرة أخرى.');
+                alert('❌ حدث خطأ أثناء التقاط الصوت.');
                 micBtn.style.transform = 'scale(1)';
                 micBtn.style.background = '#25d366';
-                if (inputField) inputField.placeholder = 'اكتب رسالتك...';
+                if (inputField) inputField.placeholder = 'اكتب رسالتك أو تحدث بالصوت...';
             };
 
             recognition.onend = () => {
                 micBtn.style.transform = 'scale(1)';
                 micBtn.style.background = '#25d366';
-                if (inputField) inputField.placeholder = 'اكتب رسالتك...';
+                if (inputField) inputField.placeholder = 'اكتب رسالتك أو تحدث بالصوت...';
             };
 
             recognition.start();
@@ -544,7 +526,7 @@ const App = {
     },
 
     /**
-     * إدارة تسجيل الدخول والخروج مع غلق لوحة التحكم ولوحة الذكاء الإداري فوراً وتطهير الجلسة
+     * تسجيل الخروج وإغلاق لوحة التحكم ولوحة الذكاء الإداري بأمان
      */
     toggleAdminAuth() {
         if (this.isAdminLoggedIn) {
@@ -595,7 +577,7 @@ const App = {
 };
 
 /**
- * دوال لوحة التحكم الإضافية (المفاتيح، الأمان، التصاريح، وقواعد البيانات المتعددة)
+ * دوال لوحة التحكم الإضافية
  */
 App.saveMultiDbConnections = async function() {
     if (!this.isAdminLoggedIn) return alert("⚠️ يجب تسجيل الدخول كمسؤول أولاً.");
@@ -603,9 +585,7 @@ App.saveMultiDbConnections = async function() {
         courses: document.getElementById('db-url-courses')?.value || '',
         certificates: document.getElementById('db-url-certificates')?.value || '',
         reservations: document.getElementById('db-url-reservations')?.value || '',
-        links: document.getElementById('db-url-links')?.value || '',
-        experiences: document.getElementById('db-url-experiences')?.value || '',
-        skills: document.getElementById('db-url-skills')?.value || ''
+        links: document.getElementById('db-url-links')?.value || ''
     };
 
     try {
