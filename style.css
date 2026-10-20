@@ -1,140 +1,280 @@
+:root {
+    --primary: #6366f1;
+    --primary-hover: #4f46e5;
+    --bg-main: #070a13;
+    --bg-card: rgba(15, 23, 42, 0.75);
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --border-color: rgba(99, 102, 241, 0.2);
+    --radius-md: 24px;
+    --shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+    --font-main: 'Tajawal', sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
 /* =========================================================
-   1. خلفية نمط المربعات التفاعلية (Grid Pattern & Interactive Fog)
+   الدمج الاحترافي: شبكة المربعات التفاعلية السينمائية (Interactive Grid)
    ========================================================= */
 body {
     font-family: var(--font-main);
-    background-color: #0f172a;
-    /* النمط الشبكي المربع التفاعلي المتوافق مع الثيم الداكن السينمائي */
+    background-color: var(--bg-main);
+    /* شبكة مربعات هندسية دقيقة ومزدوجة تمنح عمقاً ثلاثي الأبعاد */
     background-image: 
-        linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
-    background-size: 40px 40px;
-    color: #f8fafc;
-    line-height: 1.6;
+        linear-gradient(to right, rgba(99, 102, 241, 0.07) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(99, 102, 241, 0.07) 1px, transparent 1px),
+        radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.05) 0%, transparent 60%);
+    background-size: 60px 60px, 60px 60px, 100% 100%;
+    color: var(--text-main);
+    line-height: 1.7;
     overflow-x: hidden;
-    perspective: 1000px;
+    position: relative;
 }
 
-/* خلفية ضبابية متحركة فوق المربعات لتعطي إحساساً بالحيوية */
+/* تأثير ضبابي سائل متحرك يستجيب للحيوية والعشوائية المرتبة */
 body::before {
     content: '';
     position: fixed;
     top: -50%; left: -50%; width: 200%; height: 200%;
-    background: radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, transparent 50%);
-    animation: liquidMove 12s infinite alternate ease-in-out;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.08) 0%, transparent 60%);
+    animation: interactiveFog 18s infinite alternate ease-in-out;
     z-index: -1;
     pointer-events: none;
 }
 
-@keyframes liquidMove {
+@keyframes interactiveFog {
     0% { transform: translate(0, 0) rotate(0deg) scale(1); }
-    50% { transform: translate(-3%, 4%) rotate(180deg) scale(1.1); }
-    100% { transform: translate(3%, -4%) rotate(360deg) scale(1); }
+    50% { transform: translate(-4%, 4%) rotate(180deg) scale(1.15); }
+    100% { transform: translate(4%, -4%) rotate(360deg) scale(1); }
 }
 
-/* =========================================================
-   2. تأثيرات التمرير ثلاثية الأبعاد والحركة المرحة (3D Scroll & Floating)
-   ========================================================= */
+/* Hero Section (سينمائي وثلاثي الأبعاد) */
 .hero {
-    background: linear-gradient(135deg, #1e1b4b, #0f172a);
+    background: linear-gradient(135deg, #0f172a, #1e1b4b);
     color: white;
-    padding: 70px 20px;
+    padding: 100px 20px;
     text-align: center;
-    border-radius: 0 0 35px 35px;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    border-radius: 0 0 50px 50px;
+    box-shadow: var(--shadow);
     position: relative;
     overflow: hidden;
     transform-style: preserve-3d;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
+    perspective: 1000px;
 }
 
+.hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(45deg, transparent, rgba(99,102,241,0.1), transparent);
+    animation: shimmer 6s infinite linear;
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+.hero-content { position: relative; z-index: 2; }
+.animated-title { 
+    font-size: 3.2rem; 
+    font-weight: 900; 
+    letter-spacing: -1px;
+    background: linear-gradient(to right, #818cf8, #34d399, #f472b6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: fadeInDown 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.subtitle { font-size: 1.3rem; color: var(--text-muted); margin-top: 15px; }
+.contact-info { margin-top: 25px; display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; }
+.contact-info span { 
+    background: rgba(255, 255, 255, 0.05); 
+    border: 1px solid var(--border-color);
+    padding: 10px 20px; 
+    border-radius: 30px; 
+    font-size: 0.95rem; 
+    backdrop-filter: blur(10px);
+    transition: transform 0.3s, background 0.3s;
+}
+.contact-info span:hover { transform: translateY(-5px) scale(1.05); background: rgba(99, 102, 241, 0.15); }
+
+/* Containers & Cards (التخطيط غير المنتظم والحركة المرحة) */
+.container { max-width: 1200px; margin: 50px auto; padding: 0 20px; }
 .card, .glassy-card {
-    background: rgba(15, 23, 42, 0.8) !important;
+    background: var(--bg-card);
     backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
-    padding: 30px;
-    margin-bottom: 30px;
-    box-shadow: 0 15px 35px rgba(0,0,0,0.4);
-    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.4s;
-    transform-style: preserve-3d;
+    padding: 35px;
+    margin-bottom: 40px;
+    box-shadow: var(--shadow);
+    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    transform: perspective(1000px) rotateX(0deg) rotateY(0deg);
 }
-
-.card:hover {
-    transform: translateY(-6px) rotateX(1.5deg) rotateY(-1.5deg);
-    border-color: rgba(59, 130, 246, 0.4) !important;
+.card:hover { 
+    transform: translateY(-8px) rotateX(2deg) rotateY(-2deg); 
+    border-color: rgba(99, 102, 241, 0.5);
+    box-shadow: 0 30px 60px rgba(99, 102, 241, 0.15);
 }
+.card h2 { color: #818cf8; margin-bottom: 25px; border-bottom: 2px dashed rgba(255,255,255,0.1); padding-bottom: 12px; font-size: 1.8rem; }
 
-/* =========================================================
-   3. تطوير نافذة محادثة هدى بأسلوب الواتساب مع إمكانية تحريكها
-   ========================================================= */
-#whatsapp-chat-box {
-    display: none;
-    position: fixed;
-    bottom: 90px;
-    right: 30px;
-    width: 360px;
-    max-width: 90vw;
-    background: rgba(15, 23, 42, 0.95);
-    backdrop-filter: blur(20px);
-    border-radius: 20px;
-    flex-direction: column;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
-    z-index: 1001;
-    border: 1px solid rgba(255, 255, 255, 0.15);
+/* Grid Layouts غير المنتظمة */
+.grid-container, .cert-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 25px;
+}
+.grid-2-col { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 35px; }
+@media(max-width: 768px) { .grid-2-col { grid-template-columns: 1fr; } }
+
+/* Items styling (تأثيرات العائمة والتدوير غير المتماثل) */
+.cert-item, .course-item, .link-item {
+    background: rgba(30, 41, 59, 0.7);
+    padding: 25px;
+    border-radius: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
     overflow: hidden;
-    cursor: grab; /* مؤشر سحب لتوضيح إمكانية نقل النافذة */
-    transition: box-shadow 0.3s;
 }
-
-#whatsapp-chat-box:active {
-    cursor: grabbing;
-    box-shadow: 0 30px 60px rgba(16, 185, 129, 0.3);
+.cert-item::before, .course-item::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; width: 4px; height: 100%;
+    background: var(--primary);
+    opacity: 0.5;
+    transition: opacity 0.3s;
 }
+.cert-item:hover, .course-item:hover { 
+    transform: translateY(-8px) scale(1.02); 
+    border-color: var(--primary);
+    box-shadow: 0 20px 40px rgba(99, 102, 241, 0.25);
+}
+.cert-item:hover::before, .course-item:hover::before { opacity: 1; }
+.course-item h4 { color: #34d399; font-size: 1.3rem; }
+.link-item { display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--primary); margin-bottom: 15px; }
+.link-item a { text-decoration: none; font-weight: bold; color: #818cf8; transition: color 0.2s; }
+.link-item a:hover { color: #34d399; }
 
-#wa-chat-header {
-    background: linear-gradient(135deg, #059669, #047857);
+/* Tags (حركة تطفو وتنحرف ببطء) */
+.tags-container span {
+    background: rgba(99, 102, 241, 0.1); 
+    color: #818cf8; 
+    padding: 10px 18px; 
+    border-radius: 30px; 
+    font-weight: bold; 
+    display: inline-block; 
+    margin: 6px; 
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.tags-container span:hover {
+    background: var(--primary);
     color: white;
-    padding: 14px 18px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    user-select: none;
+    transform: translateY(-4px) rotate(3deg);
+    box-shadow: 0 10px 20px rgba(99, 102, 241, 0.4);
 }
 
-#wa-chat-messages {
-    height: 310px;
-    overflow-y: auto;
-    padding: 15px;
-    background: rgba(11, 15, 25, 0.8);
-    background-image: 
-        linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
-    background-size: 20px 20px;
+/* Buttons (أزرار تفاعلية غير متوقعة) */
+button { font-family: var(--font-main); cursor: pointer; border: none; border-radius: 12px; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+.btn-primary, .btn-master { 
+    background: linear-gradient(135deg, #6366f1, #4f46e5); 
+    color: white; 
+    padding: 14px 28px; 
+    font-weight: bold; 
+    box-shadow: 0 10px 25px rgba(99, 102, 241, 0.4);
+}
+.btn-primary:hover { 
+    transform: translateY(-3px) scale(1.05); 
+    box-shadow: 0 15px 30px rgba(99, 102, 241, 0.6);
+}
+.btn-whatsapp { 
+    background: linear-gradient(135deg, #10b981, #059669); 
+    color: white; 
+    padding: 14px 28px; 
+    font-weight: bold; 
+    box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4);
+}
+.btn-whatsapp:hover { transform: translateY(-3px) scale(1.05); box-shadow: 0 15px 30px rgba(16, 185, 129, 0.6); }
+.btn-danger { background: #ef4444; color: white; padding: 12px; font-weight: bold; }
+.w-100 { width: 100%; }
+.mt-2 { margin-top: 12px; }
+.mt-3 { margin-top: 24px; }
+
+/* Admin Drawer (لوحة تحكم بتصميم زجاجي عائم غير تقليدي) */
+.admin-fab { 
+    position: fixed; bottom: 30px; left: 30px; 
+    background: linear-gradient(135deg, #6366f1, #ec4899); 
+    color: white; width: 65px; height: 65px; border-radius: 50%; 
+    font-size: 1.6rem; z-index: 1000; 
+    box-shadow: 0 15px 35px rgba(99, 102, 241, 0.5); 
+    display: flex; align-items: center; justify-content: center;
+    animation: floatBtn 4s infinite ease-in-out;
+}
+@keyframes floatBtn {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-8px) rotate(10deg); }
 }
 
-#wa-chat-input-area {
-    display: flex;
-    padding: 12px;
-    background: rgba(15, 23, 42, 0.95);
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+.admin-drawer { 
+    position: fixed; top: 0; left: -460px; width: 440px; max-width: 100%; height: 100vh; 
+    background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(25px); 
+    z-index: 2000; box-shadow: 15px 0 50px rgba(0,0,0,0.6); 
+    transition: left 0.5s cubic-bezier(0.16, 1, 0.3, 1); overflow-y: auto; direction: rtl; 
+    border-right: 1px solid var(--border-color);
+}
+.admin-drawer.open { left: 0; }
+.admin-drawer-body { padding: 30px; }
+.admin-header-box { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 20px; }
+.admin-tabs-nav { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 20px; }
+.admin-tab { 
+    background: rgba(255,255,255,0.03); color: var(--text-muted); padding: 12px 15px; 
+    font-size: 0.9rem; font-weight: 700; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); 
+    text-align: right; transition: all 0.3s; display: flex; align-items: center; gap: 8px;
+}
+.admin-tab:hover { background: rgba(99, 102, 241, 0.1); color: white; border-color: var(--primary); }
+.admin-tab.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 5px 20px rgba(99, 102, 241, 0.4); }
+
+.admin-tab-content { display: none; margin-top: 25px; animation: fadeInDown 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+.admin-tab-content.active { display: block; }
+.admin-card-section { background: rgba(30, 41, 59, 0.5); padding: 22px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+.form-grid input, .form-grid select, .admin-card-section input, .admin-card-section textarea { 
+    width: 100%; padding: 12px 16px; background: rgba(15, 23, 42, 0.8); 
+    border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; 
+    font-family: inherit; color: white; margin-bottom: 12px; font-size: 0.95rem; outline: none; 
+    transition: all 0.3s;
+}
+.form-grid input:focus, .admin-card-section input:focus, .admin-card-section textarea:focus { 
+    border-color: var(--primary); 
+    box-shadow: 0 0 15px rgba(99, 102, 241, 0.3);
 }
 
-#wa-chat-input {
-    flex: 1;
-    padding: 10px 16px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 20px;
-    color: white;
-    outline: none;
+.btn-gemini-launch {
+    background: linear-gradient(135deg, #8b5cf6, #ec4899); color: white; width: 100%; padding: 14px;
+    border-radius: 14px; font-weight: bold; font-size: 1rem; box-shadow: 0 10px 25px rgba(139, 92, 246, 0.4);
+    margin-bottom: 15px; transition: transform 0.3s;
 }
+.btn-gemini-launch:hover { transform: translateY(-3px); scale: 1.02; }
 
-#wa-chat-send {
-    background: #10b981;
-    color: white;
-    padding: 10px 20px;
-    margin-right: 8px;
-    border-radius: 20px;
-    font-weight: bold;
+/* Huda Chat (Glassmorphism عائم متطور) */
+.huda-chat-wrapper { position: fixed; bottom: 30px; right: 30px; z-index: 1000; }
+#public-chat-btn { 
+    background: linear-gradient(135deg, #10b981, #065f46); 
+    color: white; padding: 16px 28px; border-radius: 35px; font-size: 1.1rem; 
+    box-shadow: 0 15px 30px rgba(16, 185, 129, 0.4); font-weight: bold; 
+    animation: pulse 2.5s infinite; 
 }
+#whatsapp-chat-box { 
+    display: none; position: fixed; bottom: 100px; right: 30px; width: 370px; max-width: 90%; 
+    background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(20px); border-radius: 22px; 
+    flex-direction: column; box-shadow: 0 25px 50px rgba(0,0,0,0.6); z-index: 1001; 
+    border: 1px solid var(--border-color); overflow: hidden; 
+}
+#wa-chat-header { background: linear-gradient(135deg, #10b981, #047857); color: white; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; }
+#wa-chat-messages { height: 320px; overflow-y: auto; padding: 18px; background: rgba(9, 13, 22, 0.6); }
+#wa-chat-input-area { display: flex; padding: 15px; background: rgba(15, 23, 42, 0.9); border-top: 1px solid rgba(255,255,255,0.05); }
+#wa-chat-input { flex: 1; padding: 12px 16px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 25px; color: white; outline: none; }
+#wa-chat-send { background: #10b981; color: white; padding: 10px 22px; margin-right: 10px; border-radius: 25px; font-weight: bold; }
+.msg { margin-bottom: 12px; padding: 12px 1
