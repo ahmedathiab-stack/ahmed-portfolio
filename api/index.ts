@@ -1,3 +1,65 @@
+async function callAIWithFallback(userPrompt) {
+    // 1. إعداد قائمة المزودين بالترتيب (Groq أسرع وأفضل كبداية، ثم Gemini، ثم OpenAI)
+    const providers = [
+        {
+            name: "Groq",
+            url: "https://api.groq.com/openai/v1/chat/completions",
+            key: process.env.GROQ_API_KEY,
+            body: { model: "llama-3.3-70b-versatile", messages: [{ role: "user", content: userPrompt }] }
+        },
+        {
+            name: "ChatGPT",
+            url: "https://api.openai.com/v1/chat/completions",
+            key: process.env.OPENAI_API_KEY,
+            body: { model: "gpt-3.5-turbo", messages: [{ role: "user", content: userPrompt }] }
+        },
+        {
+            name: "Gemini",
+            // جمناي يستخدم رابط وهيكل مختلف قليلاً
+            url: `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+            key: process.env.GEMINI_API_KEY,
+            isGemini: true,
+            body: { contents: [{ parts: [{ text: userPrompt }] }] }
+        }
+    ];
+
+    // 2. حلقة التناوب: تجربة المزود الأول، وإذا فشل الانتقال للذي يليه
+    for (let provider of providers) {
+        if (!provider.key) continue; // تخطي المزود إذا لم تضف مفتاحه
+
+        try {
+            console.log(`جاري الإرسال عبر المزود: ${provider.name}...`);
+            
+            const response = await fetch(provider.url, {
+                method: "POST",
+                headers: { 
+                    "Content-Type": "application/json",
+                    ...(provider.isGemini ? {} : { "Authorization": `Bearer ${provider.key}` })
+                },
+                body: JSON.stringify(provider.body)
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                
+                // استخراج الرد بناءً على بنية استجابة كل شركة
+                let replyText = "";
+                if (provider.isGemini) {
+                    replyText = data.candidates[0].content.parts[0].text;
+                } else {
+                    replyText = data.choices[0].message.content;
+                }
+
+                console.log(`✅ نجح الرد عبر المزود: ${provider.name}`);
+                return replyText; // إرجاع الرد فوراً والتوجه للمستخدم
+            }
+        } catch (error) {
+            console.warn(`⚠️ فشل المزود ${provider.name}، يتم التجربة مع المزود التالي...`);
+        }
+    }
+
+    throw new Error("عذراً، كافة خدمات الذكاء الاصطناعي معطلة مؤقتاً أو تجاوزت حد الاستخدام.");
+}
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import {
   send, parseBody, getDb, safeText, randomCode, hash,
